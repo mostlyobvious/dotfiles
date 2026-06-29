@@ -13,6 +13,7 @@
     ./neovim.nix
     ./ruby.nix
     ./claude.nix
+    ./pi.nix
     ./zed.nix
     ./eza.nix
   ];
