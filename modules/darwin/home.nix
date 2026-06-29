@@ -10,7 +10,5 @@ in
   home.file.".irb_history".source =
     config.lib.file.mkOutOfStoreSymlink "${icloud}/.irb_history";
 
-  # Host-only by design: no credentials/identity in the shared layer, so the VM uses its own keys.
-  home.file.".ssh/config".source = ../../config/ssh/config;
   home.file.".hushlogin".source = ../../config/hushlogin;
 }
