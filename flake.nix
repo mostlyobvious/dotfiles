@@ -48,6 +48,7 @@
               ./modules/home/common.nix
               ./modules/darwin/home.nix
               ./modules/darwin/ssh.nix
+              ./modules/darwin/ghostty.nix
             ];
           }
         ];
