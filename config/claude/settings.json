@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__pencil"
+    ],
+    "defaultMode": "auto"
+  },
+  "model": "opus",
+  "enabledPlugins": {
+    "ruby-lsp@claude-plugins-official": true,
+    "modularity@vladikk-modularity": true
+  },
+  "extraKnownMarketplaces": {
+    "vladikk-modularity": {
+      "source": {
+        "source": "github",
+        "repo": "vladikk/modularity"
+      }
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
+  "theme": "auto",
+  "preferredNotifChannel": "ghostty",
+  "skipAutoPermissionPrompt": true,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

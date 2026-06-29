@@ -6,6 +6,7 @@
     ./fish.nix
     ./neovim.nix
     ./ruby.nix
+    ./claude.nix
   ];
 
   # Working-copy path for out-of-store symlinks. Override if the repo lives elsewhere.
