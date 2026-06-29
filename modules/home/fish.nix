@@ -1,11 +1,18 @@
-{ config, lib, pkgs, username, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 {
   programs.fish = {
     enable = true;
     shellInit = ''
       set fish_greeting
-    '' + lib.optionalString pkgs.stdenv.isDarwin ''
+    ''
+    + lib.optionalString pkgs.stdenv.isDarwin ''
       /opt/homebrew/bin/brew shellenv | source
       # nix-darwin wires these into PATH via /etc/profile hooks that fish does
       # not read. Prepend them ourselves so Nix-provided CLI tools win over brew.

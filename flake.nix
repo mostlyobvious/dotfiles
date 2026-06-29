@@ -20,20 +20,29 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , home-manager
-    , nix-darwin
-    , determinate
-    , ...
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      nix-darwin,
+      determinate,
+      ...
     }:
     let
       username = "mostlyobvious";
 
-      forAllSystems = nixpkgs.lib.genAttrs [ "aarch64-darwin" "aarch64-linux" ];
+      forAllSystems = nixpkgs.lib.genAttrs [
+        "aarch64-darwin"
+        "aarch64-linux"
+      ];
 
       # Per-host config (extra casks, host-only modules) goes in extraModules.
-      mkDarwin = { hostname, system ? "aarch64-darwin", extraModules ? [ ] }:
+      mkDarwin =
+        {
+          hostname,
+          system ? "aarch64-darwin",
+          extraModules ? [ ],
+        }:
         nix-darwin.lib.darwinSystem {
           inherit system;
           specialArgs = { inherit username hostname; };
@@ -54,7 +63,8 @@
                 ./modules/darwin/ghostty.nix
               ];
             }
-          ] ++ extraModules;
+          ]
+          ++ extraModules;
         };
     in
     {
@@ -70,7 +80,8 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
       # Loaded on cd via .envrc + nix-direnv.
-      devShells = forAllSystems (system:
+      devShells = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
@@ -82,6 +93,7 @@
               deadnix
             ];
           };
-        });
+        }
+      );
     };
 }
