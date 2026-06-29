@@ -1,8 +1,3 @@
-# nix build outputs
 result
 result-*
-
-# direnv / nix-direnv cache
 .direnv
-
-.DS_Store
