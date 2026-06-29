@@ -9,6 +9,7 @@
   imports = [
     ./homebrew.nix
     ./system.nix
+    ./spotlight.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
