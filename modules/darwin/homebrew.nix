@@ -44,6 +44,7 @@
       "codex"
       "insta360-studio"
       "ia-presenter"
+      "whatsapp"
     ];
 
     # App Store apps (no cask). Requires being signed into the App Store; mas can
