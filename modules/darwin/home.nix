@@ -12,6 +12,5 @@ in
 
   # Host-only by design: no credentials/identity in the shared layer, so the VM uses its own keys.
   home.file.".ssh/config".source = ../../config/ssh/config;
-  home.file.".ideavimrc".source = ../../config/jetbrains/ideavimrc;
   home.file.".hushlogin".source = ../../config/hushlogin;
 }
