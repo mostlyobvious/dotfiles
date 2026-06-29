@@ -10,5 +10,6 @@ in
   home.file.".irb_history".source =
     config.lib.file.mkOutOfStoreSymlink "${icloud}/.irb_history";
 
-  home.file.".hushlogin".source = ../../config/hushlogin;
+  # Empty file; its mere existence suppresses the login banner.
+  home.file.".hushlogin".text = "";
 }
