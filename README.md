@@ -82,10 +82,9 @@ nvim is just the binary and placing the config tree.
 
 ### Ruby — per-project devshells
 
-No global Ruby, no chruby. Each project declares its Ruby via its own `flake.nix` +
+Each project declares its Ruby via its own `flake.nix` +
 `.envrc`; `nix-direnv` wires it on `cd`. The shared module only enables `direnv` +
-`nix-direnv`. No reusable template — project devshells churn too much to freeze into
-one.
+`nix-direnv`.
 
 ### Homebrew — host-only, zap
 
