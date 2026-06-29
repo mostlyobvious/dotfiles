@@ -39,7 +39,6 @@
       "slack"
       "signal"
       "affinity"
-      "adguard"
       "deckset"
       "claude"
       "codex"
