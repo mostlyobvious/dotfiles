@@ -22,6 +22,7 @@
       "rtl_433"
       "lima"
       "container"
+      "mas"
     ];
 
     casks = [
@@ -36,6 +37,23 @@
       "brave-browser"
       "codexbar"
       "slack"
+      "signal"
+      "affinity"
+      "adguard"
+      "deckset"
+      "claude"
+      "codex"
+      "insta360-studio"
+      "ia-presenter"
     ];
+
+    # App Store apps (no cask). Requires being signed into the App Store; mas can
+    # reinstall apps tied to the Apple ID but can no longer sign in or purchase.
+    masApps = {
+      "iA Writer" = 775737590;
+      "Photomator" = 1444636541;
+      "Amphetamine" = 937984704;
+      "ActionBar" = 6758538752;
+    };
   };
 }
