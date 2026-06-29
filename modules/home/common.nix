@@ -7,6 +7,7 @@
     ./neovim.nix
     ./ruby.nix
     ./claude.nix
+    ./zed.nix
   ];
 
   # Working-copy path for out-of-store symlinks. Override if the repo lives elsewhere.
