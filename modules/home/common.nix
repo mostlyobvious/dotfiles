@@ -36,6 +36,10 @@
 
     programs.home-manager.enable = true;
 
+    # Skip the home-manager manpage: its options.json embeds the nixpkgs source
+    # path without context (a Nix warning), and we read options online.
+    manual.manpages.enable = false;
+
     programs.direnv = {
       enable = true;
       nix-direnv.enable = true;
