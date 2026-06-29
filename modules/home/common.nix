@@ -14,6 +14,7 @@
     ./ruby.nix
     ./claude.nix
     ./zed.nix
+    ./eza.nix
   ];
 
   # Working-copy path for out-of-store symlinks. Override if the repo lives elsewhere.
@@ -35,7 +36,6 @@
       gh
       jq
       ripgrep
-      tree
       stylua
       lua-language-server
     ];
