@@ -30,6 +30,9 @@
     let
       username = "mostlyobvious";
 
+      # Systems we expose dev tooling for: the Mac host and the Linux VM.
+      forAllSystems = nixpkgs.lib.genAttrs [ "aarch64-darwin" "aarch64-linux" ];
+
       # One Apple Silicon Mac. hostname flows to networking.* and the home layer;
       # per-host specifics (extra casks, host-only modules) go in extraModules.
       mkDarwin = { hostname, system ? "aarch64-darwin", extraModules ? [ ] }:
@@ -65,5 +68,23 @@
         extraSpecialArgs = { inherit username; };
         modules = [ ./modules/home/common.nix ];
       };
+
+      # `nix fmt` formats the tree.
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+
+      # Tooling for editing this repo, loaded on cd via .envrc + nix-direnv.
+      devShells = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              nixd
+              nixfmt-rfc-style
+              deadnix
+            ];
+          };
+        });
     };
 }
