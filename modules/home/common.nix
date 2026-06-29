@@ -36,6 +36,9 @@
 
     programs.home-manager.enable = true;
 
+    # Empty file; its mere existence suppresses the login banner.
+    home.file.".hushlogin".text = "";
+
     # Skip the home-manager manpage: its options.json embeds the nixpkgs source
     # path without context (a Nix warning), and we read options online.
     manual.manpages.enable = false;

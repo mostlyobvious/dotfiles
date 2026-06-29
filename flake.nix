@@ -46,7 +46,7 @@
             home-manager.extraSpecialArgs = { inherit username; };
             home-manager.users.${username}.imports = [
               ./modules/home/common.nix
-              ./modules/darwin/home.nix
+              ./modules/darwin/history.nix
               ./modules/darwin/ssh.nix
               ./modules/darwin/ghostty.nix
             ];
