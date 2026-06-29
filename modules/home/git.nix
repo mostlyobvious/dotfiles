@@ -95,8 +95,8 @@ in
       difftool.nvim_difftool.cmd = ''nvim -c "DiffTool $LOCAL $REMOTE"'';
       }
 
-      # SSH commit signing with the host's own key. Darwin-only: the key is
-      # host-bound (the VM uses its own), so gpgSign must not reach the VM.
+      # Darwin-only: the signing key is host-bound (the VM uses its own), so
+      # gpgSign must not reach the VM.
       (lib.mkIf pkgs.stdenv.isDarwin {
         gpg.format = "ssh";
         user.signingKey = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
