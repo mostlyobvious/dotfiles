@@ -1,0 +1,26 @@
+-- require("lazyload").on_vim_enter(function()
+--   vim.pack.add({
+--     "https://github.com/saghen/blink.pairs",
+--     "https://github.com/saghen/blink.download",
+--   })
+--
+--   require("blink.pairs").setup({
+--     mappings = {
+--       enabled = true,
+--       pairs = {},
+--     },
+--     highlights = {
+--       enabled = true,
+--       groups = {
+--         "BlinkPairsOrange",
+--         "BlinkPairsPurple",
+--         "BlinkPairsBlue",
+--       },
+--       matchparen = {
+--         enabled = true,
+--         group = "MatchParen",
+--       },
+--     },
+--     debug = false,
+--   })
+-- end)

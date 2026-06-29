@@ -1,0 +1,10 @@
+-- vim.pack.add({
+--   "https://github.com/stevearc/aerial.nvim",
+--   "https://github.com/nvim-treesitter/nvim-treesitter",
+-- })
+--
+-- require("aerial").setup({
+--   attach_mode = "global",
+-- })
+--
+-- vim.keymap.set("n", "<leader>a", "<cmd>AerialToggle!<CR>", { desc = "Symbols" })

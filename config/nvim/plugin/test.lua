@@ -1,0 +1,22 @@
+-- require("lazyload").on_vim_enter(function()
+--   vim.pack.add({
+--     "https://github.com/nvim-treesitter/nvim-treesitter",
+--     "https://github.com/klen/nvim-test",
+--   })
+--
+--   require("nvim-test").setup({
+--     termOpts = {
+--       go_back = true,
+--       direction = "horizontal",
+--     },
+--     runners = {
+--       ruby = "nvim-test.runners.rspec",
+--     },
+--   })
+--
+--   require("nvim-test.runners.rspec"):setup({
+--     command = "bundle",
+--   })
+--
+--   vim.keymap.set("n", "<Leader>.", "<Cmd>TestFile<CR>", { desc = "Test opened file" })
+-- end)
