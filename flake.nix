@@ -67,7 +67,7 @@
         modules = [ ./modules/home/common.nix ];
       };
 
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
       # Loaded on cd via .envrc + nix-direnv.
       devShells = forAllSystems (system:
@@ -78,7 +78,7 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               nixd
-              nixfmt-rfc-style
+              nixfmt
               deadnix
             ];
           };
