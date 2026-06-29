@@ -29,30 +29,35 @@
     }:
     let
       username = "mostlyobvious";
+
+      # One Apple Silicon Mac. hostname flows to networking.* and the home layer;
+      # per-host specifics (extra casks, host-only modules) go in extraModules.
+      mkDarwin = { hostname, system ? "aarch64-darwin", extraModules ? [ ] }:
+        nix-darwin.lib.darwinSystem {
+          inherit system;
+          specialArgs = { inherit username hostname; };
+          modules = [
+            determinate.darwinModules.default
+            ./modules/darwin
+            home-manager.darwinModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              # Back up colliding files instead of aborting the switch.
+              home-manager.backupFileExtension = "hm-bak";
+              home-manager.extraSpecialArgs = { inherit username hostname; };
+              home-manager.users.${username}.imports = [
+                ./modules/home/common.nix
+                ./modules/darwin/history.nix
+                ./modules/darwin/ssh.nix
+                ./modules/darwin/ghostty.nix
+              ];
+            }
+          ] ++ extraModules;
+        };
     in
     {
-      darwinConfigurations.pro = nix-darwin.lib.darwinSystem {
-        system = "aarch64-darwin";
-        specialArgs = { inherit username; };
-        modules = [
-          determinate.darwinModules.default
-          ./modules/darwin
-          home-manager.darwinModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            # Back up colliding files instead of aborting the switch.
-            home-manager.backupFileExtension = "hm-bak";
-            home-manager.extraSpecialArgs = { inherit username; };
-            home-manager.users.${username}.imports = [
-              ./modules/home/common.nix
-              ./modules/darwin/history.nix
-              ./modules/darwin/ssh.nix
-              ./modules/darwin/ghostty.nix
-            ];
-          }
-        ];
-      };
+      darwinConfigurations.pro = mkDarwin { hostname = "pro"; };
 
       # VM. Portable subset only — no darwin, no brew.
       homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {

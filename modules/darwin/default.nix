@@ -1,4 +1,4 @@
-{ pkgs, username, ... }:
+{ pkgs, username, hostname, ... }:
 
 {
   imports = [
@@ -10,9 +10,9 @@
 
   # Uniform across macOS's three host identifiers: ComputerName (Sharing UI),
   # HostName (scutil/shell), LocalHostName (Bonjour .local).
-  networking.computerName = "pro";
-  networking.hostName = "pro";
-  networking.localHostName = "pro";
+  networking.computerName = hostname;
+  networking.hostName = hostname;
+  networking.localHostName = hostname;
 
   # Determinate owns the Nix daemon and /etc/nix/nix.conf.
   nix.enable = false;
