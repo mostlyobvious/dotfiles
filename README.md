@@ -20,11 +20,14 @@ make gc         # nix store gc
 
 ## Bootstrap (fresh Mac)
 
-1. Install Nix via the Determinate Systems installer (baseline assumption).
-2. `make bootstrap` — installs Homebrew if absent, then runs the first switch via
-   `nix run nix-darwin` (since `darwin-rebuild` does not exist yet). This installs
-   `darwin-rebuild`, all packages and dotfiles, runs `brew bundle`, and sets fish
-   as the login shell.
+Stock macOS only needs `make` (ships with the Xcode Command Line Tools:
+`xcode-select --install`).
+
+1. `make bootstrap` — installs Nix (Determinate Systems installer) and Homebrew if
+   absent, then runs the first switch via `nix run nix-darwin` (since `darwin-rebuild`
+   does not exist yet). This installs `darwin-rebuild`, all packages and dotfiles,
+   runs `brew bundle`, and sets fish as the login shell.
+2. Open a new terminal (so the freshly installed Nix is on `PATH`).
 3. Thereafter: `make switch`.
 
 If the login shell does not change automatically, run once:

@@ -6,6 +6,10 @@ FLAKE = .
 # sudo's secure PATH (nor on the user PATH until the fish path fix activates).
 DRB = /run/current-system/sw/bin/darwin-rebuild
 
+# Absolute path: a freshly installed Nix is not on PATH in this same shell
+# (the installer only wires it up for new login sessions).
+NIX = /nix/var/nix/profiles/default/bin/nix
+
 # Self-documenting: lists targets annotated with a `## description` comment.
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -35,8 +39,11 @@ gc: ## Garbage-collect the Nix store
 	nix store gc
 .PHONY: gc
 
-bootstrap: ## Cold start: install Homebrew (if absent), then first switch
+bootstrap: ## Cold start: install Nix + Homebrew (if absent), then first switch
+	@test -x $(NIX) || \
+	  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+	    | sh -s -- install --determinate --no-confirm
 	@test -x /opt/homebrew/bin/brew || \
 	  /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-	sudo -H nix run nix-darwin -- switch --flake $(FLAKE)#$(HOST)
+	sudo -H $(NIX) run nix-darwin -- switch --flake $(FLAKE)#$(HOST)
 .PHONY: bootstrap
