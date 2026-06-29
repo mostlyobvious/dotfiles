@@ -101,6 +101,9 @@ in
           ifmissing = "add";
         };
         init.defaultBranch = "master";
+        branch.sort = "-committerdate";
+        tag.sort = "version:refname";
+        column.ui = "auto";
         difftool.nvim_difftool.cmd = ''nvim -c "DiffTool $LOCAL $REMOTE"'';
       }
 
