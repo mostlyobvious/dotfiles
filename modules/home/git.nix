@@ -12,6 +12,12 @@ in
   programs.git = {
     enable = true;
 
+    signing = lib.mkIf pkgs.stdenv.isDarwin {
+      format = "ssh";
+      key = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+      signByDefault = true;
+    };
+
     ignores = [
       "*.gem"
       "*.rbc"
@@ -107,14 +113,6 @@ in
         difftool.nvim_difftool.cmd = ''nvim -c "DiffTool $LOCAL $REMOTE"'';
       }
 
-      # Darwin-only: the signing key is host-bound (the VM uses its own), so
-      # gpgSign must not reach the VM.
-      (lib.mkIf pkgs.stdenv.isDarwin {
-        gpg.format = "ssh";
-        user.signingKey = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
-        commit.gpgSign = true;
-        tag.gpgSign = true;
-      })
     ];
   };
 }
