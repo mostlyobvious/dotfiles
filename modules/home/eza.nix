@@ -1,13 +1,11 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
-  home.packages = [ pkgs.eza ];
+  programs.eza.enable = true;
 
-  # ls/tree → eza; colours come from config/eza/theme.yml (Rose Pine).
-  programs.fish.shellAliases = {
-    ls = "eza";
-    tree = "eza --tree";
-  };
+  # Preserve the long-form tree alias; Home Manager provides ls/ll/la/lt/lla.
+  programs.fish.shellAliases.tree = "eza --tree";
 
+  # Colours come from config/eza/theme.yml (Rose Pine).
   xdg.configFile."eza/theme.yml".source = ../../config/eza/theme.yml;
 }
