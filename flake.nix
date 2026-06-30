@@ -77,6 +77,7 @@
           system ? "aarch64-linux",
           dotfilesDir ? null,
           homeDirectory ? null,
+          extraModules ? [ ],
         }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
@@ -91,7 +92,8 @@
           ++ lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
           ++ lib.optional (homeDirectory != null) {
             home.homeDirectory = homeDirectory;
-          };
+          }
+          ++ extraModules;
         };
 
       # Per-host config (extra casks, host-only modules) goes in extraModules.
@@ -195,6 +197,14 @@
       homeConfigurations.nixden = mkLinuxHome {
         dotfilesDir = "/tmp/lima-nixden/dotfiles";
         homeDirectory = "/home/mostlyobvious.guest";
+        extraModules = [
+          {
+            programs.zed-editor = {
+              enable = true;
+              installRemoteServer = true;
+            };
+          }
+        ];
       };
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
