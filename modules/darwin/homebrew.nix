@@ -62,7 +62,10 @@ in
 
     # Declared so zap keeps it (codexbar's tap).
     taps = [
-      "steipete/tap"
+      {
+        name = "steipete/tap";
+        trusted = true;
+      }
     ];
 
     # CLI tooling is in Nix; only host-only tools remain here.
