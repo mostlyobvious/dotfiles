@@ -39,6 +39,7 @@ in
   # nix-darwin does not install Homebrew itself; it must already exist (see bootstrap).
   homebrew = {
     enable = true;
+    enableFishIntegration = true;
 
     global.autoUpdate = false;
 

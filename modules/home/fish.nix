@@ -13,7 +13,6 @@
       set fish_greeting
     ''
     + lib.optionalString pkgs.stdenv.isDarwin ''
-      /opt/homebrew/bin/brew shellenv | source
       # nix-darwin wires these into PATH via /etc/profile hooks that fish does
       # not read. Prepend them ourselves so Nix-provided CLI tools win over brew.
       fish_add_path --global --prepend /run/current-system/sw/bin /etc/profiles/per-user/${username}/bin
