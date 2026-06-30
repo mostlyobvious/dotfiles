@@ -1,6 +1,8 @@
-HOST  = pro
-HMCFG = mostlyobvious
-FLAKE = .
+HOST       = pro
+HMCFG      = nixden
+VM         = nixden
+VM_WORKDIR = /tmp/lima-$(VM)/dotfiles
+FLAKE      = .
 
 # Absolute path: darwin-rebuild lives in the system profile, which is not on
 # sudo's secure PATH (nor on the user PATH until the fish path fix activates).
@@ -26,8 +28,14 @@ build: ## Compile the host closure without activating (safe pre-flight)
 	$(DRB) build --flake $(FLAKE)#$(HOST)
 .PHONY: build
 
-home: ## VM: home-manager switch (no darwin, no brew)
-	home-manager switch --flake $(FLAKE)#$(HMCFG)
+home: ## VM: sync dotfiles and activate home-manager (VM=... HMCFG=...)
+	rsync -a --delete \
+	  --exclude .git \
+	  --exclude .direnv \
+	  --exclude result \
+	  ./ /tmp/lima-$(VM)/dotfiles/
+	limactl shell --workdir=$(VM_WORKDIR) $(VM) -- \
+	  bash -lc 'nix build .#homeConfigurations.$(HMCFG).activationPackage && ./result/activate'
 .PHONY: home
 
 update: ## Bump flake inputs, then switch (deliberate upgrade)

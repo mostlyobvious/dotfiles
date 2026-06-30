@@ -66,6 +66,28 @@
         "aarch64-linux"
       ];
 
+      mkLinuxHome =
+        {
+          system ? "aarch64-linux",
+          dotfilesDir ? null,
+          homeDirectory ? null,
+        }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = allowUnfreePred;
+          };
+          extraSpecialArgs = { inherit username inputs; };
+          modules = [
+            inputs.agent-skills.homeManagerModules.default
+            ./modules/home/common.nix
+          ]
+          ++ nixpkgs.lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
+          ++ nixpkgs.lib.optional (homeDirectory != null) {
+            home.homeDirectory = homeDirectory;
+          };
+        };
+
       # Per-host config (extra casks, host-only modules) goes in extraModules.
       mkDarwin =
         {
@@ -100,17 +122,11 @@
     {
       darwinConfigurations.pro = mkDarwin { hostname = "pro"; };
 
-      # VM. Portable subset only — no darwin, no brew.
-      homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "aarch64-linux";
-          config.allowUnfreePredicate = allowUnfreePred;
-        };
-        extraSpecialArgs = { inherit username inputs; };
-        modules = [
-          inputs.agent-skills.homeManagerModules.default
-          ./modules/home/common.nix
-        ];
+      # Linux VMs. Portable subset only — no darwin, no brew.
+      homeConfigurations.${username} = mkLinuxHome { };
+      homeConfigurations.nixden = mkLinuxHome {
+        dotfilesDir = "/tmp/lima-nixden/dotfiles";
+        homeDirectory = "/home/mostlyobvious.guest";
       };
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
