@@ -23,8 +23,6 @@
   xdg.configFile."fish/functions".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/fish/functions";
 
-  xdg.configFile."fish/conf.d/editor.fish".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/fish/conf.d/editor.fish";
   xdg.configFile."fish/conf.d/hydro.fish".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/fish/conf.d/hydro.fish";
   xdg.configFile."fish/conf.d/spring.fish".source =
