@@ -160,7 +160,7 @@
               /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             fi
 
-            sudo -H ${darwinRebuild} switch --flake ${self}#$HOST
+            sudo -H ${darwinRebuild} switch --flake ${self}#"$HOST"
           '';
 
           home = mkApp "dotfiles-home" ''
@@ -180,7 +180,7 @@
 
           switch = mkApp "dotfiles-switch" ''
             HOST="''${HOST:-pro}"
-            sudo -H ${darwinRebuild} switch --flake ${self}#$HOST
+            sudo -H ${darwinRebuild} switch --flake ${self}#"$HOST"
           '';
 
           update = mkApp "dotfiles-update" ''
