@@ -41,7 +41,8 @@ in
     enable = true;
 
     onActivation = {
-      # zap uninstalls anything not declared below, along with its data. Keep the lists complete.
+      # zap uninstalls undeclared brews/casks, along with cask data. MAS apps
+      # are a Homebrew Bundle limitation: removing them here will not uninstall them.
       cleanup = "zap";
       autoUpdate = false;
       upgrade = false;
