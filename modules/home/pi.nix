@@ -1,32 +1,20 @@
 {
   config,
-  lib,
   inputs,
   pkgs,
   ...
 }:
 
-let
-  piNodejs = lib.findFirst (
-    pkg: lib.getName pkg == "nodejs"
-  ) (throw "pi-coding-agent no longer exposes a nodejs build input") pkgs.pi-coding-agent.buildInputs;
-  piWithNpm = pkgs.symlinkJoin {
-    name = "pi-coding-agent-with-npm";
-    paths = [ pkgs.pi-coding-agent ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/pi --prefix PATH : ${lib.makeBinPath [ piNodejs ]}
-    '';
-  };
-in
 {
-  # pi the coding agent, from nixpkgs; shared module so both host and VM get it.
-  # Its wrapper exposes the same npm bundled with pi-coding-agent to pi's package
-  # installer without adding Node/npm to the user's global packages.
-  home.packages = [
-    piWithNpm
-    inputs.mcp-nixos.packages.${pkgs.system}.mcp-nixos
-  ];
+  # Pi the coding agent, from nixpkgs; shared module so both host and VM get it.
+  # The module wraps pi with Node/npm for package installs without adding Node to
+  # the user's global package set.
+  programs.pi-coding-agent = {
+    enable = true;
+    extraPackages = [ pkgs.nodejs ];
+  };
+
+  home.packages = [ inputs.mcp-nixos.packages.${pkgs.system}.mcp-nixos ];
 
   # Out-of-store: pi rewrites settings.json and MCP adapter config at runtime,
   # so edits land straight in the working copy. The rest of ~/.pi (auth.json,
