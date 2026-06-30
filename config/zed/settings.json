@@ -7,6 +7,13 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "ssh_connections": [
+    {
+      "host": "nixden",
+      "args": [],
+      "projects": []
+    }
+  ],
   "vim_mode": true,
   "agent_servers": {
     "claude-acp": {
