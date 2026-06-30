@@ -18,4 +18,11 @@
       StartInterval = 60;
     };
   };
+
+  # `make switch` re-enables indexing so a rebuild leaves Spotlight on regardless
+  # of the daemon's last battery decision — notably so mas can see installed App
+  # Store apps and not reinstall them. The daemon resumes its policy next tick.
+  system.activationScripts.postActivation.text = ''
+    /usr/bin/mdutil -i on -a >/dev/null 2>&1 || true
+  '';
 }
