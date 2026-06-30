@@ -47,10 +47,6 @@ update: ## Bump flake inputs, then switch (deliberate upgrade)
 	$(MAKE) switch
 .PHONY: update
 
-gc: ## Garbage-collect the Nix store
-	nix store gc
-.PHONY: gc
-
 bootstrap: ## Cold start: install Nix + Homebrew (if absent), then first switch
 	@test -x $(NIX) || \
 	  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
