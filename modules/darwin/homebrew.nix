@@ -40,6 +40,8 @@ in
   homebrew = {
     enable = true;
 
+    global.autoUpdate = false;
+
     onActivation = {
       # zap uninstalls undeclared brews/casks, along with cask data. MAS apps
       # are a Homebrew Bundle limitation: removing them here will not uninstall them.
