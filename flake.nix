@@ -53,7 +53,6 @@
 
   outputs =
     inputs@{
-      self,
       nixpkgs,
       home-manager,
       nix-darwin,
