@@ -62,13 +62,19 @@
     }:
     let
       username = "mostlyobvious";
+      lib = nixpkgs.lib;
+
+      nixSource = lib.fileset.toSource {
+        root = ./.;
+        fileset = lib.fileset.fileFilter (file: file.hasExt "nix") ./.;
+      };
 
       # Narrow unfree allowance — only the packages we knowingly accept, not a
       # blanket allowUnfree. Set at pkgs instantiation: both useGlobalPkgs (host)
       # and the VM's directly-passed pkgs bypass home-manager's nixpkgs.config.
       allowUnfreePred = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "claude-code" ];
 
-      forAllSystems = nixpkgs.lib.genAttrs [
+      forAllSystems = lib.genAttrs [
         "aarch64-darwin"
         "aarch64-linux"
       ];
@@ -89,8 +95,8 @@
             inputs.agent-skills.homeManagerModules.default
             ./modules/home/common.nix
           ]
-          ++ nixpkgs.lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
-          ++ nixpkgs.lib.optional (homeDirectory != null) {
+          ++ lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
+          ++ lib.optional (homeDirectory != null) {
             home.homeDirectory = homeDirectory;
           };
         };
@@ -137,6 +143,24 @@
       };
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
+
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          nixfmt = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
+            find ${nixSource} -name '*.nix' -print0 | xargs -0 nixfmt --check
+            touch $out
+          '';
+
+          deadnix = pkgs.runCommand "deadnix-check" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
+            deadnix --fail ${nixSource}
+            touch $out
+          '';
+        }
+      );
 
       # Loaded on cd via .envrc + nix-direnv.
       devShells = forAllSystems (

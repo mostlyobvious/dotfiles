@@ -28,6 +28,10 @@ build: ## Compile the host closure without activating (safe pre-flight)
 	$(DRB) build --flake $(FLAKE)#$(HOST)
 .PHONY: build
 
+check: ## Run flake checks for tracked repo Nix files
+	nix flake check
+.PHONY: check
+
 home: ## VM: sync dotfiles and activate home-manager (VM=... HMCFG=...)
 	rsync -a --delete \
 	  --exclude .git \
