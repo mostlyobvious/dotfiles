@@ -6,5 +6,6 @@
   "packages": [
     "npm:@zenobius/pi-rose-pine"
   ],
-  "theme": "rose-pine"
+  "theme": "rose-pine",
+  "quietStartup": true
 }
