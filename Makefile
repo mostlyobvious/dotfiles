@@ -24,10 +24,6 @@ switch: ## Host: activate config (HM + brew + macOS). Idempotent
 	sudo -H $(DRB) switch --flake $(FLAKE)#$(HOST)
 .PHONY: switch
 
-build: ## Compile the host closure without activating (safe pre-flight)
-	$(DRB) build --flake $(FLAKE)#$(HOST)
-.PHONY: build
-
 check: ## Run flake checks for tracked repo Nix files
 	nix flake check
 .PHONY: check

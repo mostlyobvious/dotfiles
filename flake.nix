@@ -46,6 +46,7 @@
 
   outputs =
     inputs@{
+      self,
       nixpkgs,
       home-manager,
       nix-darwin,
@@ -151,6 +152,9 @@
             deadnix --fail ${nixSource}
             touch $out
           '';
+        }
+        // lib.optionalAttrs (system == "aarch64-darwin") {
+          darwin-pro = self.darwinConfigurations.pro.system;
         }
       );
 
