@@ -124,6 +124,68 @@
           ]
           ++ extraModules;
         };
+
+      mkDarwinApp =
+        system: name: text:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          type = "app";
+          program = "${
+            pkgs.writeShellApplication {
+              inherit name text;
+              runtimeInputs = with pkgs; [
+                curl
+                lima
+                rsync
+              ];
+            }
+          }/bin/${name}";
+        };
+
+      darwinApps =
+        system:
+        let
+          darwinRebuild = "${nix-darwin.packages.${system}.darwin-rebuild}/bin/darwin-rebuild";
+          mkApp = mkDarwinApp system;
+        in
+        {
+          bootstrap = mkApp "dotfiles-bootstrap" ''
+            HOST="''${HOST:-pro}"
+
+            if ! test -x /opt/homebrew/bin/brew; then
+              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            fi
+
+            sudo -H ${darwinRebuild} switch --flake ${self}#$HOST
+          '';
+
+          home = mkApp "dotfiles-home" ''
+            VM="''${VM:-nixden}"
+            HMCFG="''${HMCFG:-nixden}"
+            VM_WORKDIR="/tmp/lima-$VM/dotfiles"
+
+            rsync -a --delete \
+              --exclude .git \
+              --exclude .direnv \
+              --exclude result \
+              ./ "/tmp/lima-$VM/dotfiles/"
+
+            limactl shell --workdir="$VM_WORKDIR" "$VM" -- \
+              bash -lc "nix build .#homeConfigurations.$HMCFG.activationPackage && ./result/activate"
+          '';
+
+          switch = mkApp "dotfiles-switch" ''
+            HOST="''${HOST:-pro}"
+            sudo -H ${darwinRebuild} switch --flake ${self}#$HOST
+          '';
+
+          update = mkApp "dotfiles-update" ''
+            nix flake update
+            nix run .#switch
+          '';
+        };
     in
     {
       darwinConfigurations.pro = mkDarwin { hostname = "pro"; };
@@ -157,6 +219,8 @@
           darwin-pro = self.darwinConfigurations.pro.system;
         }
       );
+
+      apps = forAllSystems (system: lib.optionalAttrs (system == "aarch64-darwin") (darwinApps system));
 
       # Loaded on cd via .envrc + nix-direnv.
       devShells = forAllSystems (
