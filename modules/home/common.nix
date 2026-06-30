@@ -46,8 +46,9 @@
     # Empty file; its mere existence suppresses the login banner.
     home.file.".hushlogin".text = "";
 
-    # Skip the home-manager manpage: its options.json embeds the nixpkgs source
-    # path without context (a Nix warning), and we read options online.
+    # Install the machine-readable option index for local search/completion tools,
+    # but skip the human manpage to keep the profile lean.
+    manual.json.enable = true;
     manual.manpages.enable = false;
 
     programs.direnv = {
