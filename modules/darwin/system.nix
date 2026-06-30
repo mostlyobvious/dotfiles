@@ -30,7 +30,8 @@ in
   };
 
   # screencapture silently falls back to the Desktop if the target is missing.
-  system.activationScripts.screenshotsDir.text = ''
+  # Must hook a predefined phase: nix-darwin only runs those, not arbitrary keys.
+  system.activationScripts.postActivation.text = ''
     /bin/mkdir -p "${shotsDir}"
   '';
 }
