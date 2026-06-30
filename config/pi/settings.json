@@ -4,7 +4,10 @@
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
   "packages": [
-    "npm:@zenobius/pi-rose-pine"
+    "npm:@zenobius/pi-rose-pine",
+    "npm:pi-mcp-adapter",
+    "npm:pi-edit-hooks",
+    "npm:pi-autoresearch"
   ],
   "theme": "rose-pine",
   "quietStartup": true
