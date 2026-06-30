@@ -31,6 +31,11 @@
     let
       username = "mostlyobvious";
 
+      # Narrow unfree allowance — only the packages we knowingly accept, not a
+      # blanket allowUnfree. Set at pkgs instantiation: both useGlobalPkgs (host)
+      # and the VM's directly-passed pkgs bypass home-manager's nixpkgs.config.
+      allowUnfreePred = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "claude-code" ];
+
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
         "aarch64-linux"
@@ -50,6 +55,7 @@
             determinate.darwinModules.default
             ./modules/darwin
             home-manager.darwinModules.home-manager
+            { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
@@ -58,9 +64,7 @@
               home-manager.extraSpecialArgs = { inherit username hostname; };
               home-manager.users.${username}.imports = [
                 ./modules/home/common.nix
-                ./modules/darwin/history.nix
-                ./modules/darwin/ssh.nix
-                ./modules/darwin/ghostty.nix
+                ./modules/darwin/home.nix
               ];
             }
           ]
@@ -72,7 +76,10 @@
 
       # VM. Portable subset only — no darwin, no brew.
       homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.aarch64-linux;
+        pkgs = import nixpkgs {
+          system = "aarch64-linux";
+          config.allowUnfreePredicate = allowUnfreePred;
+        };
         extraSpecialArgs = { inherit username; };
         modules = [ ./modules/home/common.nix ];
       };
