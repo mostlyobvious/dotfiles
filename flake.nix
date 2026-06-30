@@ -24,6 +24,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # MCP server for querying NixOS/nixpkgs/home-manager options while editing
+    # this repo. Exposed in the dev shell for any coding agent.
+    mcp-nixos = {
+      url = "github:utensils/mcp-nixos";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
     # `nix flake update skills-*` to bump. Consumed by modules/home/skills.nix.
     skills-mattpocock = {
@@ -51,6 +58,7 @@
       home-manager,
       nix-darwin,
       determinate,
+      mcp-nixos,
       ...
     }:
     let
@@ -143,6 +151,7 @@
               nixd
               nixfmt
               deadnix
+              mcp-nixos.packages.${system}.mcp-nixos
             ];
           };
         }
