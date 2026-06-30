@@ -1,8 +1,8 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 {
   # Claude Code CLI from nixpkgs; shared module so both host and VM can run it.
-  home.packages = [ pkgs.claude-code ];
+  programs.claude-code.enable = true;
 
   # Out-of-store: Claude Code rewrites settings.json at runtime, so edits land
   # straight in the working copy. The rest of ~/.claude is runtime state, unmanaged.
