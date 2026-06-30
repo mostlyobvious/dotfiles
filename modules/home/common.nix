@@ -15,6 +15,7 @@
     ./claude.nix
     ./pi.nix
     ./eza.nix
+    ./skills.nix
   ];
 
   # Working-copy path for out-of-store symlinks. Override if the repo lives elsewhere.

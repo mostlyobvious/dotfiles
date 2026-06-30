@@ -17,10 +17,35 @@
     # Determinate owns the Nix daemon and /etc/nix/nix.conf. nix-darwin runs with
     # nix.enable = false; this module wires in the Determinate integration.
     determinate.url = "github:DeterminateSystems/determinate";
+
+    # Declarative agent-skill management (discovery, prefixing, both-agent targets).
+    agent-skills = {
+      url = "github:Kyure-A/agent-skills-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
+    # `nix flake update skills-*` to bump. Consumed by modules/home/skills.nix.
+    skills-mattpocock = {
+      url = "github:mattpocock/skills";
+      flake = false;
+    };
+    skills-impeccable = {
+      url = "github:pbakaus/impeccable";
+      flake = false;
+    };
+    skills-mutant = {
+      url = "github:mbj/mutant";
+      flake = false;
+    };
+    skills-modularity = {
+      url = "github:vladikk/modularity";
+      flake = false;
+    };
   };
 
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
       home-manager,
@@ -61,8 +86,9 @@
               home-manager.useUserPackages = true;
               # Back up colliding files instead of aborting the switch.
               home-manager.backupFileExtension = "hm-bak";
-              home-manager.extraSpecialArgs = { inherit username hostname; };
+              home-manager.extraSpecialArgs = { inherit username hostname inputs; };
               home-manager.users.${username}.imports = [
+                inputs.agent-skills.homeManagerModules.default
                 ./modules/home/common.nix
                 ./modules/darwin/home.nix
               ];
@@ -80,8 +106,11 @@
           system = "aarch64-linux";
           config.allowUnfreePredicate = allowUnfreePred;
         };
-        extraSpecialArgs = { inherit username; };
-        modules = [ ./modules/home/common.nix ];
+        extraSpecialArgs = { inherit username inputs; };
+        modules = [
+          inputs.agent-skills.homeManagerModules.default
+          ./modules/home/common.nix
+        ];
       };
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);

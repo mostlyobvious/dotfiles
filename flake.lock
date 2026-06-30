@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "agent-skills": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782575918,
+        "narHash": "sha256-YzRp956W8ci29lYgsXCBSt8SsIcWBv+67/i9HWSl0Q0=",
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "rev": "79eba8b513730982ab2a00dfbccd4fae84321b9c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "type": "github"
+      }
+    },
     "determinate": {
       "inputs": {
         "determinate-nixd-aarch64-darwin": "determinate-nixd-aarch64-darwin",
@@ -122,6 +143,27 @@
       }
     },
     "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "agent-skills",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782100728,
+        "narHash": "sha256-YTyPsWf6ieaU6j/gJ+i7ERXKC7DEJC8BxUcAubx2SVQ=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "f3dc0b85833c6c9946ad1349ab810d07e0bdf761",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -260,10 +302,79 @@
     },
     "root": {
       "inputs": {
+        "agent-skills": "agent-skills",
         "determinate": "determinate",
-        "home-manager": "home-manager",
+        "home-manager": "home-manager_2",
         "nix-darwin": "nix-darwin",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_3",
+        "skills-impeccable": "skills-impeccable",
+        "skills-mattpocock": "skills-mattpocock",
+        "skills-modularity": "skills-modularity",
+        "skills-mutant": "skills-mutant"
+      }
+    },
+    "skills-impeccable": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782718316,
+        "narHash": "sha256-USqieyi1HctAaITlifB4FNsMJwu5mIPEna5xjpjlTkE=",
+        "owner": "pbakaus",
+        "repo": "impeccable",
+        "rev": "c979ac37c361da564dcce100a4f2623d94ef54c8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pbakaus",
+        "repo": "impeccable",
+        "type": "github"
+      }
+    },
+    "skills-mattpocock": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782811776,
+        "narHash": "sha256-wrdKWfWbPmFzW+8oeTSzB9+mKrZg+QM9NdQC8zXsGIQ=",
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "999745ead1b37119380ad1f4de2bcdda5aa5bc84",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mattpocock",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
+    "skills-modularity": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775302703,
+        "narHash": "sha256-BQzhMlUyBFtBmwxlz/hhIi48b6nJjqDMfp3BSLGUZmo=",
+        "owner": "vladikk",
+        "repo": "modularity",
+        "rev": "bcdca9a595764b9aa88d5d8d6020f52e7f5f1f52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vladikk",
+        "repo": "modularity",
+        "type": "github"
+      }
+    },
+    "skills-mutant": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782100486,
+        "narHash": "sha256-fz4jVhO71WZqQGbtTeHy5svafrpywXAvGbfuwzhrPGM=",
+        "owner": "mbj",
+        "repo": "mutant",
+        "rev": "59517844547eef3d67b71a3c736f05bb3c2376da",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mbj",
+        "repo": "mutant",
+        "type": "github"
       }
     }
   },
