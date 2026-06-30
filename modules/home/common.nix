@@ -33,10 +33,6 @@
     home.stateVersion = "25.05";
 
     home.packages = with pkgs; [
-      fd
-      gh
-      jq
-      ripgrep
       stylua
       lua-language-server
     ];
@@ -55,6 +51,11 @@
       enable = true;
       nix-direnv.enable = true;
     };
+
+    programs.fd.enable = true;
+    programs.gh.enable = true;
+    programs.jq.enable = true;
+    programs.ripgrep.enable = true;
 
     programs.fzf.enable = true;
   };
