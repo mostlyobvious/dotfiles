@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+THEME_NAME="rose-pine"
+TARGET="${PI_SYSTEM_THEME_TARGET:-$HOME/.pi/agent/themes/$THEME_NAME.json}"
+HELPER_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/pi-system-theme-watch"
+HELPER="$HELPER_DIR/appearance-notify"
+
+script_path() {
+  local path="$0"
+  local target
+
+  while [[ -L "$path" ]]; do
+    target="$(readlink "$path")"
+    if [[ "$target" = /* ]]; then
+      path="$target"
+    else
+      path="$(cd "$(dirname "$path")" && pwd)/$target"
+    fi
+  done
+
+  printf '%s\n' "$path"
+}
+
+source_dir() {
+  local candidates=()
+
+  if [[ -n "${PI_SYSTEM_THEME_SOURCE_DIR:-}" ]]; then
+    candidates+=("$PI_SYSTEM_THEME_SOURCE_DIR")
+  fi
+
+  candidates+=(
+    "$HOME/.pi/agent/theme-sources"
+    "$(cd "$(dirname "$(script_path)")/../theme-sources" 2>/dev/null && pwd || true)"
+    "$HOME/Code/dotfiles/config/pi/theme-sources"
+  )
+
+  local dir
+  for dir in "${candidates[@]}"; do
+    if [[ -n "$dir" && -f "$dir/rose-pine-dark.json" && -f "$dir/rose-pine-light.json" ]]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+appearance() {
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    if /usr/bin/defaults read -g AppleInterfaceStyle >/dev/null 2>&1; then
+      printf 'dark\n'
+    else
+      printf 'light\n'
+    fi
+  else
+    printf '%s\n' "${PI_SYSTEM_THEME_APPEARANCE:-dark}"
+  fi
+}
+
+sync_theme() {
+  local mode="$1"
+  local dir src tmp
+
+  dir="$(source_dir)" || {
+    printf 'pi-system-theme-watch: vendored rose-pine theme sources not found\n' >&2
+    return 1
+  }
+
+  case "$mode" in
+    dark) src="$dir/rose-pine-dark.json" ;;
+    light) src="$dir/rose-pine-light.json" ;;
+    *)
+      printf 'pi-system-theme-watch: unknown appearance: %s\n' "$mode" >&2
+      return 1
+      ;;
+  esac
+
+  mkdir -p "$(dirname "$TARGET")"
+  tmp="$(mktemp "${TARGET}.tmp.XXXXXX")"
+  jq --arg name "$THEME_NAME" '.name = $name' "$src" >"$tmp"
+
+  if [[ -f "$TARGET" ]] && cmp -s "$tmp" "$TARGET"; then
+    rm -f "$tmp"
+  else
+    mv "$tmp" "$TARGET"
+  fi
+}
+
+build_helper() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 1
+  [[ -x "$HELPER" && "$HELPER" -nt "$(script_path)" ]] && return 0
+
+  mkdir -p "$HELPER_DIR"
+  /usr/bin/clang -x objective-c -framework Foundation -o "$HELPER" - <<'OBJC'
+#import <Foundation/Foundation.h>
+
+@interface ThemeObserver : NSObject
+@property(nonatomic, copy) NSString *script;
+@end
+
+@implementation ThemeObserver
+- (void)themeChanged:(NSNotification *)notification {
+  NSTask *task = [[NSTask alloc] init];
+  task.launchPath = self.script;
+  task.arguments = @[ @"--once" ];
+  [task launch];
+}
+@end
+
+int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    if (argc < 2) {
+      fprintf(stderr, "usage: appearance-notify SCRIPT\n");
+      return 2;
+    }
+
+    ThemeObserver *observer = [ThemeObserver new];
+    observer.script = [NSString stringWithUTF8String:argv[1]];
+
+    [[NSDistributedNotificationCenter defaultCenter]
+      addObserver:observer
+         selector:@selector(themeChanged:)
+             name:@"AppleInterfaceThemeChangedNotification"
+           object:nil];
+
+    [[NSRunLoop mainRunLoop] run];
+  }
+  return 0;
+}
+OBJC
+}
+
+watch_theme() {
+  sync_theme "$(appearance)"
+
+  if build_helper; then
+    exec "$HELPER" "$(script_path)"
+  fi
+
+  printf 'pi-system-theme-watch: event watching is only implemented on macOS\n' >&2
+  exit 1
+}
+
+case "${1:---watch}" in
+  --once) sync_theme "$(appearance)" ;;
+  --watch) watch_theme ;;
+  *)
+    printf 'usage: %s [--once|--watch]\n' "$0" >&2
+    exit 2
+    ;;
+esac

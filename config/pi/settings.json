@@ -4,7 +4,6 @@
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
   "packages": [
-    "npm:@zenobius/pi-rose-pine",
     "npm:pi-edit-hooks",
     "npm:pi-autoresearch"
   ],
