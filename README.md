@@ -78,20 +78,29 @@ Extra Nix settings go through Determinate's `nix.custom.conf`, not nix-darwin.
 comes from `flake.lock`; upgrades are a deliberate `nix run .#update`. Same
 channel host and VM keeps the shared module evaluating identically.
 
-### Dotfile delivery — raw files first
+### Dotfile delivery — in-store by default
 
-Rich hand-written config stays as raw files; `programs.*` modules are used only
+Rich hand-written config can stay as raw files; `programs.*` modules are used
 where they buy real portability (git, fish, fzf, direnv — they erase
-host-hardcoded paths).
+host-hardcoded paths). Raw files are still normally delivered through the Nix
+store so activation is read-only, rollback-able, and matches the flake revision.
 
-- **Out-of-store** (symlink to the working copy, edits are live, no rebuild):
-  `config/nvim/`, fish `functions/` and `conf.d/`. These are what we iterate on.
-- **In-store** (copied into the store, read-only, rollback-able): `.gemrc`,
-  `.irbrc`, and the host-only `.ssh/config` / `.ideavimrc` / `.hushlogin`.
+Use **out-of-store** symlinks only when the target app reasonably owns the file:
+it rewrites the config, exposes UI/commands that edit it, or needs a tight
+interactive edit loop.
 
-In-store would cost the edit loop without buying determinism for nvim (its
-plugins are pinned by their own lockfile, not Nix), so the things we touch daily
-stay out-of-store.
+Current split:
+
+- **Out-of-store**: `config/nvim/` (editor config + native plugin lockfile),
+  Claude and pi `settings.json` (agents rewrite settings), Zed settings (editor
+  UI/runtime edits), Ghostty config (app-opened live config), and iCloud-backed
+  history files.
+- **In-store**: fish `functions/` and `conf.d/`, eza theme, Ruby dotfiles,
+  pi theme sources and helper script, generated SSH/Lima config, `.hushlogin`,
+  and other Home Manager generated config.
+
+This keeps the default deterministic while preserving writable/live configs for
+agents and editors where read-only store paths get in the way.
 
 ### Neovim plugins stay in vim.pack
 
