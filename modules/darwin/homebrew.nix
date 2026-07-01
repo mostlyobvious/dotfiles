@@ -42,6 +42,7 @@ in
     ];
 
     casks = [
+      "adguard"
       "discord"
       "figma"
       "ghostty"
