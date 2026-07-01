@@ -15,17 +15,13 @@
   home.file.".pi/agent/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/pi/settings.json";
 
-  # Live system theme support: pi hot-reloads the active custom theme file, so the
-  # watcher rewrites ~/.pi/agent/themes/rose-pine.json when macOS flips
-  # light/dark mode. Keep the rewritten theme unmanaged runtime state so system
-  # appearance changes do not dirty the dotfiles working tree.
-  home.file.".pi/agent/themes/.keep".text = "";
-  home.file.".pi/agent/theme-sources/rose-pine-dark.json".source =
-    ../../config/pi/theme-sources/rose-pine-dark.json;
-  home.file.".pi/agent/theme-sources/rose-pine-light.json".source =
-    ../../config/pi/theme-sources/rose-pine-light.json;
-  home.file.".pi/agent/bin/pi-system-theme-watch" = {
-    source = ../../config/pi/bin/pi-system-theme-watch;
-    executable = true;
+  # Pi has built-in automatic theme switching for settings of the form
+  # "light-theme/dark-theme". Install both variants as normal custom themes so
+  # Pi can switch them live from terminal color-scheme notifications.
+  home.file.".pi/agent/themes/rose-pine.json" = {
+    source = ../../config/pi/theme-sources/rose-pine-dark.json;
+    force = true;
   };
+  home.file.".pi/agent/themes/rose-pine-dawn.json".source =
+    ../../config/pi/theme-sources/rose-pine-light.json;
 }

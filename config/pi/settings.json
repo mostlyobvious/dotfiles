@@ -7,6 +7,6 @@
     "npm:pi-edit-hooks",
     "npm:pi-autoresearch"
   ],
-  "theme": "rose-pine",
+  "theme": "rose-pine-dawn/rose-pine",
   "quietStartup": true
 }
