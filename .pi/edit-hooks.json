@@ -1,0 +1,5 @@
+{
+  "onStop": {
+    "*": "cd {projectRoot} && nix flake check"
+  }
+}
