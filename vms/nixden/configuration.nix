@@ -81,9 +81,14 @@
     home = "/home/${username}.guest";
     createHome = true;
     description = "Paweł Pacana";
-    extraGroups = [ "wheel" ];
+    extraGroups = [
+      "docker"
+      "wheel"
+    ];
     shell = pkgs.fish;
   };
+
+  virtualisation.docker.enable = true;
 
   security.sudo.wheelNeedsPassword = false;
 
