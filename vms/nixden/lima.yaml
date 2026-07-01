@@ -1,0 +1,44 @@
+# Generated from juspay/nixden v0.4.0, then owned by this repo.
+images:
+- location: https://github.com/juspay/nixden/releases/download/v0.4.0/nixden-v0.4.0-aarch64.qcow2
+  arch: aarch64
+  digest: sha512:540b2d2eccc8f910a4406c14ad97e62769a0cb6d96f10bdbc1269a6fcc5474b32e9f8ccfe029e9ce4fdc392e4457ef5ca4185143b390ea1be15287f2c58bef0c
+- location: https://github.com/juspay/nixden/releases/download/v0.4.0/nixden-v0.4.0-x86_64.qcow2
+  arch: x86_64
+  digest: sha512:8c871c196603d767db36d5a23bfdb13851ed0aba2d7c21de1e7f71cf039f882f5356bcb78d35da0ebead46d5853729fdcc763352fc0449b57c161ad23959a7d6
+mounts:
+- location: /tmp/lima-nixden
+  mountPoint: /tmp/lima-nixden
+  writable: true
+  9p:
+    cache: mmap
+memory: 20GiB
+portForwards:
+# Tell Lima's port-forwarding to ignore port 68 to prevent interception of host DHCP packets
+# Apparently this is an issue with NixOS that does not occur on other Linux distros
+# See: https://github.com/nixos-lima/nixos-lima/issues/50
+- proto: udp
+  guestPort: 68
+  guestIP: 0.0.0.0
+  ignore: true
+containerd:
+  system: false
+  user: false
+vmOpts:
+  vz:
+    rosetta:
+      enabled: true
+      binfmt: true
+message: |
+  nixden is ready.
+
+  Open a shell:
+    limactl shell --workdir=. {{.Name}}
+
+  This template intentionally does not mount your macOS home directory.
+  Clone repositories inside the VM, for example under ~/code.
+
+  To transfer files intentionally, use /tmp/lima-nixden on the host and
+  inside the VM.
+cpus: 10
+disk: 60GiB

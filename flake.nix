@@ -151,6 +151,41 @@
         let
           darwinRebuild = "${nix-darwin.packages.${system}.darwin-rebuild}/bin/darwin-rebuild";
           mkApp = mkDarwinApp system;
+          vmSwitchScript = ''
+            VMS="''${VMS:-nixden}"
+
+            for VM in $VMS; do
+              case "$VM" in
+                nixden)
+                  NIXOSCFG="nixden"
+                  TEMPLATE="${./vms/nixden/lima.yaml}"
+                  VM_WORKDIR="/tmp/lima-nixden/dotfiles"
+                  ;;
+                *)
+                  echo "Unknown VM: $VM" >&2
+                  exit 1
+                  ;;
+              esac
+
+              mkdir -p "$(dirname "$VM_WORKDIR")"
+
+              STATUS="$(limactl list --format '{{.Name}}	{{.Status}}' | awk -v vm="$VM" '$1 == vm { print $2 }')"
+              if [ -z "$STATUS" ]; then
+                limactl start --name="$VM" "$TEMPLATE"
+              elif [ "$STATUS" != "Running" ]; then
+                limactl start "$VM"
+              fi
+
+              rsync -a --delete \
+                --exclude .git \
+                --exclude .direnv \
+                --exclude result \
+                ./ "$VM_WORKDIR/"
+
+              limactl shell --workdir="$VM_WORKDIR" "$VM" -- \
+                sudo nixos-rebuild switch --flake ".#$NIXOSCFG"
+            done
+          '';
         in
         {
           bootstrap = mkApp "dotfiles-bootstrap" ''
@@ -178,9 +213,13 @@
               bash -lc "nix build .#homeConfigurations.$HMCFG.activationPackage && ./result/activate"
           '';
 
+          vm-switch = mkApp "dotfiles-vm-switch" vmSwitchScript;
+
           switch = mkApp "dotfiles-switch" ''
             HOST="''${HOST:-pro}"
             sudo -H ${darwinRebuild} switch --flake ${self}#"$HOST"
+
+            ${vmSwitchScript}
           '';
 
           update = mkApp "dotfiles-update" ''
@@ -191,6 +230,16 @@
     in
     {
       darwinConfigurations.pro = mkDarwin { hostname = "pro"; };
+
+      nixosConfigurations.nixden = lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = { inherit username inputs; };
+        modules = [
+          home-manager.nixosModules.home-manager
+          { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
+          ./vms/nixden/configuration.nix
+        ];
+      };
 
       # Linux VMs. Portable subset only — no darwin, no brew.
       homeConfigurations.${username} = mkLinuxHome { };

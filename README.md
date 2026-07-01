@@ -1,6 +1,6 @@
 # dotfiles
 
-Nix + home-manager managed. One flake defines the macOS host, Linux VM homes,
+Nix + home-manager managed. One flake defines the macOS host, Linux VMs,
 checks, dev shell, and operational apps.
 
 Important outputs:
@@ -8,22 +8,25 @@ Important outputs:
 - `darwinConfigurations.pro` — macOS host (nix-darwin → home-manager +
   Homebrew + macOS defaults).
 - `homeConfigurations.mostlyobvious` — standalone portable home-manager profile.
-- `homeConfigurations.nixden` — Lima VM home-manager profile.
-- `apps.aarch64-darwin.{bootstrap,switch,update,home}` — operational commands.
+- `nixosConfigurations.nixden` — Lima VM system + home-manager profile.
+- `homeConfigurations.nixden` — standalone VM home-manager profile.
+- `apps.aarch64-darwin.{bootstrap,switch,update,home,vm-switch}` — operational commands.
 
 ## Apply
 
 ```sh
-nix run .#switch   # host: activate .#pro  (HM + brew + macOS)
-nix run .#home     # VM: sync repo into Lima and activate .#homeConfigurations.nixden
-nix run .#update   # nix flake update, then switch
-nix flake check    # format/dead-code checks + Darwin system build
+nix run .#switch     # host: activate .#pro, then converge configured VMs
+nix run .#vm-switch  # VM only: create/start, sync repo, nixos-rebuild switch
+nix run .#home       # VM only: standalone HM activation escape hatch
+nix run .#update     # nix flake update, then switch
+nix flake check      # format/dead-code checks + Darwin system build
 ```
 
-`HOST`, `VM`, and `HMCFG` can override the defaults:
+`HOST`, `VMS`, `VM`, and `HMCFG` can override the defaults:
 
 ```sh
 HOST=pro nix run .#switch
+VMS=nixden nix run .#vm-switch
 VM=nixden HMCFG=nixden nix run .#home
 ```
 
@@ -53,14 +56,14 @@ chsh -s $(which fish)
 
 ### One flake, shared home module
 
-The flake exposes `darwinConfigurations.pro` for the Mac and standalone
-home-manager configurations for portable Linux use. Both paths import
-`modules/home/common.nix`.
+The flake exposes `darwinConfigurations.pro` for the Mac,
+`nixosConfigurations.nixden` for the Lima VM, and standalone home-manager
+configurations for portable Linux use. All paths import `modules/home/common.nix`.
 
-Declarative Homebrew wants nix-darwin; VM reuse wants plain home-manager. One
-flake serves both without forcing brew or Darwin into the VM. Host-only concerns
-stay in the Darwin output, so the shared module evaluates identically on host and
-VM.
+Declarative Homebrew wants nix-darwin; VM system customization wants NixOS plus
+home-manager. One flake serves both without forcing brew or Darwin into the VM.
+Host-only concerns stay in the Darwin output, so the shared module evaluates
+identically on host and VM.
 
 ### Determinate owns Nix
 
