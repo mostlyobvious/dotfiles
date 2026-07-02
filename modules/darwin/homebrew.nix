@@ -6,6 +6,7 @@ let
     "Photomator" = 1444636541;
     "Amphetamine" = 937984704;
     "ActionBar" = 6758538752;
+    "AdGuard: Ad Blocker for Safari" = 1440147259;
   };
 in
 {
@@ -42,7 +43,6 @@ in
     ];
 
     casks = [
-      "adguard"
       "discord"
       "figma"
       "ghostty"
