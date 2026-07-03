@@ -5,9 +5,6 @@
   ...
 }:
 
-let
-  diffHighlight = "${pkgs.git}/share/git/contrib/diff-highlight/diff-highlight";
-in
 {
   programs.git = {
     enable = true;
@@ -75,14 +72,14 @@ in
         core = {
           editor = "nvim";
           quotepath = false;
-          pager = "less -iXFR";
+          pager = "hunk pager";
         };
         merge.tool = "nvim -d";
         color.ui = true;
         pager = {
-          log = "${diffHighlight} | less";
-          show = "${diffHighlight} | less";
-          diff = "${diffHighlight} | less";
+          log = "hunk pager";
+          show = "hunk pager";
+          diff = "hunk pager";
         };
         github.user = "mostlyobvious";
         push.default = "current";
