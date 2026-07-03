@@ -6,6 +6,8 @@
 }:
 
 {
+  home.packages = [ pkgs.tig ];
+
   programs.git = {
     enable = true;
 
