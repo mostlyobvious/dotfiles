@@ -24,11 +24,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hunk = {
-      url = "github:modem-dev/hunk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
     # `nix flake update skills-*` to bump. Consumed by modules/home/skills.nix.
     skills-mattpocock = {

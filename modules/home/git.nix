@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  diffHighlight = "${pkgs.git}/share/git/contrib/diff-highlight/diff-highlight";
+in
 {
   home.packages = [ pkgs.tig ];
 
@@ -74,14 +77,14 @@
         core = {
           editor = "nvim";
           quotepath = false;
-          pager = "hunk pager";
+          pager = "less -iXFR";
         };
         merge.tool = "nvim -d";
         color.ui = true;
         pager = {
-          log = "hunk pager";
-          show = "hunk pager";
-          diff = "hunk pager";
+          log = "${diffHighlight} | less";
+          show = "${diffHighlight} | less";
+          diff = "${diffHighlight} | less";
         };
         github.user = "mostlyobvious";
         push.default = "current";

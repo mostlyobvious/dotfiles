@@ -3,7 +3,6 @@
   lib,
   pkgs,
   username,
-  inputs,
   ...
 }:
 
@@ -17,7 +16,6 @@
     ./pi.nix
     ./eza.nix
     ./skills.nix
-    inputs.hunk.homeManagerModules.default
   ];
 
   # Working-copy path for out-of-store symlinks. Override if the repo lives elsewhere.
@@ -60,14 +58,5 @@
     programs.ripgrep.enable = true;
 
     programs.fzf.enable = true;
-
-    programs.hunk = {
-      enable = true;
-      settings = {
-        theme = "auto";
-        mode = "auto";
-        line_numbers = true;
-      };
-    };
   };
 }
