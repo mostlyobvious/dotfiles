@@ -22,13 +22,19 @@
       # terminal-driven while matching the chrome to the shared palette.
       "dark" = true;
       "navigate" = true;
-      "line-numbers" = true;
       "side-by-side" = true;
       "syntax-theme" = "ansi";
       "true-color" = "always";
+      # Keep `git log -p` close to difftastic: syntax colour only, no filled
+      # add/remove backgrounds or line-number gutters. This also avoids theme
+      # font styles such as italic comments.
       "zero-style" = "syntax";
-      "minus-style" = "syntax #3e252f";
-      "plus-style" = "syntax #23362f";
+      "minus-style" = "syntax";
+      "minus-emph-style" = "syntax";
+      "minus-non-emph-style" = "syntax";
+      "plus-style" = "syntax";
+      "plus-emph-style" = "syntax";
+      "plus-non-emph-style" = "syntax";
       "file-style" = "bold #c4a7e7";
       "hunk-header-style" = "file line-number syntax bold";
       "hunk-header-decoration-style" = "#ebbcba";
@@ -90,9 +96,6 @@
           dc = "diff --cached -w --patience --word-diff=color";
           cp = "cherry-pick";
           df = "diff -w --patience --word-diff=color";
-          dft = "!f() { GIT_EXTERNAL_DIFF=difft git diff --ext-diff \"$@\"; }; f";
-          showft = "!f() { GIT_EXTERNAL_DIFF=difft git show --ext-diff \"$@\"; }; f";
-          logft = "!f() { GIT_EXTERNAL_DIFF=difft git log -p --ext-diff \"$@\"; }; f";
           ca = "commit --amend --reuse-message=HEAD --no-verify";
           pu = "pull";
           pr = "pull --rebase";
@@ -124,6 +127,7 @@
           ];
         };
         diff = {
+          external = "difft";
           indentHeuristic = true;
           noprefix = true;
           tool = "nvim_difftool";
