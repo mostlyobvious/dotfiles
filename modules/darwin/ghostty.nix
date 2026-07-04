@@ -1,9 +1,20 @@
-{ config, ... }:
+{ ... }:
 
 {
-  # macOS Ghostty loads ~/Library/Application Support last, so it overrides the
-  # XDG path — manage it directly. Out-of-store: edits are live (reload in app,
-  # no rebuild). Host-only; Ghostty is a macOS cask, absent on the VM.
-  home.file."Library/Application Support/com.mitchellh.ghostty/config".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/ghostty/config";
+  programs.ghostty = {
+    enable = true;
+    package = null; # installed as a cask
+    settings = {
+      theme = "dark:Rose Pine, light: Rose Pine Dawn";
+      window-colorspace = "display-p3";
+      window-padding-x = 16;
+      window-padding-y = 16;
+      font-size = 16;
+      font-family = "Berkeley Mono";
+      copy-on-select = "clipboard";
+      macos-titlebar-proxy-icon = "hidden";
+      window-height = 50;
+      window-width = 170;
+    };
+  };
 }
