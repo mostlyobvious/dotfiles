@@ -31,6 +31,8 @@ let
   workDir = "${root}/_work";
   secretSpec = ../../secretspec.toml;
   secretspec = lib.getExe pkgs.secretspec;
+  # /opt/homebrew/bin is where Apple `container` lives; the rest lets the job's
+  # `nix develop` and system tools (sw_vers) resolve.
   binPath = lib.makeBinPath (
     with pkgs;
     [
@@ -45,7 +47,7 @@ let
   runScript = pkgs.writeShellApplication {
     name = "github-runner-mrs-run";
     text = ''
-      export PATH="${binPath}:/usr/bin:/bin:/usr/sbin:/sbin"
+      export PATH="${binPath}:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       export RUNNER_ROOT="${root}"
       mkdir -p "${root}" "${workDir}"
 
