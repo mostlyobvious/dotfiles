@@ -18,13 +18,6 @@
     # nix.enable = false; this module wires in the Determinate integration.
     determinate.url = "github:DeterminateSystems/determinate";
 
-    github-nix-ci.url = "github:juspay/github-nix-ci";
-
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Declarative agent-skill management (discovery, prefixing, both-agent targets).
     agent-skills = {
       url = "github:Kyure-A/agent-skills-nix";
@@ -115,8 +108,6 @@
           specialArgs = { inherit username hostname; };
           modules = [
             determinate.darwinModules.default
-            inputs.agenix.darwinModules.default
-            inputs.github-nix-ci.darwinModules.default
             {
               disabledModules = [ "${nix-darwin}/modules/services/github-runner/service.nix" ];
               imports = [ ./modules/darwin/github-runner-determinate.nix ];
@@ -124,14 +115,6 @@
             ./modules/darwin
             home-manager.darwinModules.home-manager
             { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
-            {
-              services.github-nix-ci.personalRunners = {
-                "mbj/mrs" = {
-                  num = 1;
-                  tokenFile = "/var/lib/github-nix-ci/mbj.token";
-                };
-              };
-            }
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

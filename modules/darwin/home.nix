@@ -8,5 +8,6 @@
     ./ssh.nix
     ./ghostty.nix
     ./zed.nix
+    ./github-runner-mrs.nix
   ];
 }

@@ -35,6 +35,7 @@
     home.packages = with pkgs; [
       stylua
       lua-language-server
+      secretspec
     ];
 
     programs.home-manager.enable = true;
