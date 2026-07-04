@@ -28,7 +28,7 @@
     "dock": "left",
   },
   "outline_panel": {
-    "dock": "left",
+    "dock": "right",
   },
   "collaboration_panel": {
     "dock": "left",
