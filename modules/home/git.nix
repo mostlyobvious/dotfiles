@@ -5,6 +5,45 @@
   ...
 }:
 
+let
+  stripAnsiItalic = pkgs.writeText "strip-ansi-italic.pl" ''
+    sub sgr {
+      my @in = split /;/, shift;
+      my @out;
+      for (my $i = 0; $i < @in; $i++) {
+        my $p = $in[$i];
+        if (($p eq "38" || $p eq "48") && (($in[$i + 1] // "") eq "2")) {
+          push @out, @in[$i .. $i + 4];
+          $i += 4;
+          next;
+        }
+        if (($p eq "38" || $p eq "48") && (($in[$i + 1] // "") eq "5")) {
+          push @out, @in[$i .. $i + 2];
+          $i += 2;
+          next;
+        }
+        next if $p eq "3" || $p eq "03" || $p eq "23";
+        push @out, $p if $p ne "";
+      }
+      return "\e[" . (@out ? join(";", @out) : "0") . "m";
+    }
+    s/\e\[([0-9;]*)m/sgr($1)/eg;
+  '';
+  difftNoItalic = pkgs.writeShellApplication {
+    name = "difft-no-italic";
+    runtimeInputs = with pkgs; [
+      difftastic
+      perl
+    ];
+    text = ''
+      set +e
+      difft "$@" | perl -CS -p ${stripAnsiItalic}
+      status="''${PIPESTATUS[0]}"
+      set -e
+      exit "$status"
+    '';
+  };
+in
 {
   home.packages = [ pkgs.tig ];
 
@@ -17,17 +56,11 @@
     enable = true;
     enableGitIntegration = true;
     options = {
-      # Rosé Pine-flavoured decorations around delta's syntax output.
-      # Delta does not ship a Rosé Pine syntect theme, so keep syntax colours
-      # terminal-driven while matching the chrome to the shared palette.
       "dark" = true;
       "navigate" = true;
       "side-by-side" = true;
       "syntax-theme" = "ansi";
       "true-color" = "always";
-      # Keep `git log -p` close to difftastic: syntax colour only, no filled
-      # add/remove backgrounds or line-number gutters. This also avoids theme
-      # font styles such as italic comments.
       "zero-style" = "syntax";
       "minus-style" = "syntax";
       "minus-emph-style" = "syntax";
@@ -93,9 +126,9 @@
           mg = "merge";
           br = "branch";
           co = "checkout";
-          dc = "diff --cached -w --patience --word-diff=color";
+          dc = "diff --cached";
           cp = "cherry-pick";
-          df = "diff -w --patience --word-diff=color";
+          df = "diff";
           ca = "commit --amend --reuse-message=HEAD --no-verify";
           pu = "pull";
           pr = "pull --rebase";
@@ -104,8 +137,8 @@
           ri = "rebase --interactive --no-verify";
           rs = "reset --soft HEAD~1";
           rh = "reset --hard";
-          lg = "log -p";
-          ls = ''log --pretty=format:"%C(yellow)%h%Cred%d\ %Cblue%ci\ %Creset%s%Cblue\ [%cn]" --decorate'';
+          lg = "log -p --ext-diff";
+          ls = ''log --ext-diff --pretty=format:"%C(yellow)%h%Cred%d\ %Cblue%ci\ %Creset%s%Cblue\ [%cn]" --decorate'';
         };
 
         core = {
@@ -127,7 +160,7 @@
           ];
         };
         diff = {
-          external = "difft";
+          external = lib.getExe difftNoItalic;
           indentHeuristic = true;
           noprefix = true;
           tool = "nvim_difftool";

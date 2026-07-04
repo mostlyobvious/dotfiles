@@ -1,9 +1,7 @@
 function git
     set -l args $argv
 
-    # diff.external=difft covers `git diff`, but Git only consults external
-    # diff for log/show when --ext-diff is present. Add that flag at the shell
-    # seam instead of asking every call site to remember it.
+    # log/show need --ext-diff to use diff.external.
     if test (count $args) -ge 2
         set -l command $args[1]
         set -l has_patch 0
