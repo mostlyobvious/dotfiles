@@ -37,7 +37,7 @@ let
     ];
     text = ''
       set +e
-      difft "$@" | perl -CS -p ${stripAnsiItalic}
+      difft --color=always --background=dark "$@" | perl -CS -p ${stripAnsiItalic}
       status="''${PIPESTATUS[0]}"
       set -e
       exit "$status"
@@ -49,33 +49,6 @@ in
 
   programs.difftastic = {
     enable = true;
-    options.color = "always";
-  };
-
-  programs.delta = {
-    enable = true;
-    enableGitIntegration = true;
-    options = {
-      "dark" = true;
-      "navigate" = true;
-      "side-by-side" = true;
-      "syntax-theme" = "ansi";
-      "true-color" = "always";
-      "zero-style" = "syntax";
-      "minus-style" = "syntax";
-      "minus-emph-style" = "syntax";
-      "minus-non-emph-style" = "syntax";
-      "plus-style" = "syntax";
-      "plus-emph-style" = "syntax";
-      "plus-non-emph-style" = "syntax";
-      "file-style" = "bold #c4a7e7";
-      "hunk-header-style" = "file line-number syntax bold";
-      "hunk-header-decoration-style" = "#ebbcba";
-      "line-numbers-left-style" = "#908caa";
-      "line-numbers-right-style" = "#908caa";
-      "line-numbers-minus-style" = "#eb6f92";
-      "line-numbers-plus-style" = "#9ccfd8";
-    };
   };
 
   programs.git = {
@@ -144,7 +117,7 @@ in
         core = {
           editor = "nvim";
           quotepath = false;
-          pager = "delta";
+          pager = "less -R";
         };
         merge.tool = "nvim -d";
         color.ui = true;

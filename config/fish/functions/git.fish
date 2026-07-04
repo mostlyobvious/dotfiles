@@ -1,27 +1,11 @@
 function git
     set -l args $argv
 
-    # log/show need --ext-diff to use diff.external.
-    if test (count $args) -ge 2
+    # show/log honor diff.external only with --ext-diff; show implies a patch.
+    if test (count $args) -ge 1
         set -l command $args[1]
-        set -l has_patch 0
-        set -l has_ext_diff 0
-
-        for arg in $args
-            switch $arg
-                case -p --patch
-                    set has_patch 1
-                case --ext-diff
-                    set has_ext_diff 1
-            end
-        end
-
-        if contains -- $command log show; and test $has_patch -eq 1
-            if test $has_ext_diff -eq 0
-                set args $args[1] --ext-diff $args[2..-1]
-            end
-            env LC_ALL=en_US.UTF-8 command git $args
-            return $status
+        if contains -- $command show log whatchanged; and not contains -- --ext-diff $args
+            set args $args[1] --ext-diff $args[2..-1]
         end
     end
 
