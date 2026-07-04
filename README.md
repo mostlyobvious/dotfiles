@@ -54,6 +54,12 @@ chsh -s $(which fish)
 
 ## Design
 
+### Theme preference
+
+Rosé Pine is the default visual language across terminals, editors, CLI tools,
+and agent UI. Prefer matching new configuration to <https://rosepinetheme.com/>
+when the tool supports theming.
+
 ### One flake, shared home module
 
 The flake exposes `darwinConfigurations.pro` for the Mac,
