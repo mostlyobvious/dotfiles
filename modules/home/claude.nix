@@ -8,4 +8,6 @@
   # straight in the working copy. The rest of ~/.claude is runtime state, unmanaged.
   home.file.".claude/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/claude/settings.json";
+
+  home.file.".claude/CLAUDE.md".source = ../../config/agents/AGENTS.md;
 }
