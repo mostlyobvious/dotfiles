@@ -5,11 +5,39 @@
   ...
 }:
 
-let
-  diffHighlight = "${pkgs.git}/share/git/contrib/diff-highlight/diff-highlight";
-in
 {
   home.packages = [ pkgs.tig ];
+
+  programs.difftastic = {
+    enable = true;
+    options.color = "always";
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      # Rosé Pine-flavoured decorations around delta's syntax output.
+      # Delta does not ship a Rosé Pine syntect theme, so keep syntax colours
+      # terminal-driven while matching the chrome to the shared palette.
+      "dark" = true;
+      "navigate" = true;
+      "line-numbers" = true;
+      "side-by-side" = true;
+      "syntax-theme" = "ansi";
+      "true-color" = "always";
+      "zero-style" = "syntax";
+      "minus-style" = "syntax #3e252f";
+      "plus-style" = "syntax #23362f";
+      "file-style" = "bold #c4a7e7";
+      "hunk-header-style" = "file line-number syntax bold";
+      "hunk-header-decoration-style" = "#ebbcba";
+      "line-numbers-left-style" = "#908caa";
+      "line-numbers-right-style" = "#908caa";
+      "line-numbers-minus-style" = "#eb6f92";
+      "line-numbers-plus-style" = "#9ccfd8";
+    };
+  };
 
   programs.git = {
     enable = true;
@@ -62,6 +90,9 @@ in
           dc = "diff --cached -w --patience --word-diff=color";
           cp = "cherry-pick";
           df = "diff -w --patience --word-diff=color";
+          dft = "!f() { GIT_EXTERNAL_DIFF=difft git diff --ext-diff \"$@\"; }; f";
+          showft = "!f() { GIT_EXTERNAL_DIFF=difft git show --ext-diff \"$@\"; }; f";
+          logft = "!f() { GIT_EXTERNAL_DIFF=difft git log -p --ext-diff \"$@\"; }; f";
           ca = "commit --amend --reuse-message=HEAD --no-verify";
           pu = "pull";
           pr = "pull --rebase";
@@ -77,15 +108,10 @@ in
         core = {
           editor = "nvim";
           quotepath = false;
-          pager = "less -iXFR";
+          pager = "delta";
         };
         merge.tool = "nvim -d";
         color.ui = true;
-        pager = {
-          log = "${diffHighlight} | less";
-          show = "${diffHighlight} | less";
-          diff = "${diffHighlight} | less";
-        };
         github.user = "mostlyobvious";
         push.default = "current";
         branch.autosetupmerge = true;
