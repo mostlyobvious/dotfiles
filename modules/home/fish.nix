@@ -10,6 +10,11 @@
     enable = true;
     shellInit = ''
       set fish_greeting
+
+      if status is-interactive; and type -q devenv
+        set --global --export DEVENV_SHELL_TYPE fish
+        devenv hook fish | source
+      end
     ''
     + lib.optionalString pkgs.stdenv.isDarwin ''
       # nix-darwin wires these into PATH via /etc/profile hooks that fish does

@@ -36,6 +36,7 @@
       stylua
       lua-language-server
       secretspec
+      devenv
     ];
 
     programs.home-manager.enable = true;
