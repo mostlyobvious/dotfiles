@@ -1,3 +1,5 @@
+{ pkgs, ... }:
+
 {
   # Host-only home-manager modules — config for macOS-only tools (casks, iCloud,
   # SSH host identity). These are home-manager, NOT nix-darwin system modules;
@@ -9,5 +11,10 @@
     ./ghostty.nix
     ./zed.nix
     ./github-runner-mrs.nix
+  ];
+
+  home.packages = with pkgs; [
+    lima
+    rtl_433
   ];
 }

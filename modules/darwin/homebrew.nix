@@ -36,8 +36,6 @@ in
 
     # CLI tooling is in Nix; only host-only tools remain here.
     brews = [
-      "rtl_433"
-      "lima"
       "container"
       "mas"
     ];
