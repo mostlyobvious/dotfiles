@@ -11,6 +11,7 @@
     ./system.nix
     ./sudo.nix
     ./sshd.nix
+    ./cm.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
