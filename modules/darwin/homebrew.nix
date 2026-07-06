@@ -50,6 +50,7 @@ in
       "autodesk-fusion"
       "blender"
       "brave-browser"
+      "google-chrome"
       "codexbar"
       "slack"
       "signal"
