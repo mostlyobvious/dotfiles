@@ -60,6 +60,11 @@ in
       "insta360-studio"
       "ia-presenter"
       "whatsapp"
+      "notion"
+      "1password"
+      # Cask, not the Nix package: desktop-app integration needs 1Password's
+      # officially signed CLI.
+      "1password-cli"
     ];
 
     # App Store apps (no cask). Requires being signed into the App Store; mas can
