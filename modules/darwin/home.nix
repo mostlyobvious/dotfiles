@@ -1,16 +1,15 @@
 { pkgs, ... }:
 
 {
-  # Host-only home-manager modules — config for macOS-only tools (casks, iCloud,
-  # SSH host identity). These are home-manager, NOT nix-darwin system modules;
-  # the system modules are aggregated by ./default.nix. Wired into the host's
-  # home-manager.users via flake.nix, never loaded on the VM.
+  # Shared darwin home layer — macOS-only tools (iCloud, SSH host identity).
+  # home-manager modules, NOT nix-darwin system modules; those are aggregated by
+  # ./default.nix. Wired into home-manager.users via flake.nix, never on the VM.
+  # Account-specific modules (github-runner-mrs) are imported per-user there too.
   imports = [
     ./history.nix
     ./ssh.nix
     ./ghostty.nix
     ./zed.nix
-    ./github-runner-mrs.nix
   ];
 
   home.packages = with pkgs; [

@@ -72,9 +72,12 @@
         "aarch64-linux"
       ];
 
-      mkLinuxHome =
+      # Standalone home-manager. Pass the darwin home layer via homeModules.
+      mkHome =
         {
+          user,
           system ? "aarch64-linux",
+          homeModules ? [ ./modules/home/common.nix ],
           dotfilesDir ? null,
           homeDirectory ? null,
           extraModules ? [ ],
@@ -84,11 +87,14 @@
             inherit system;
             config.allowUnfreePredicate = allowUnfreePred;
           };
-          extraSpecialArgs = { inherit username inputs; };
+          extraSpecialArgs = {
+            username = user;
+            inherit inputs;
+          };
           modules = [
             inputs.agent-skills.homeManagerModules.default
-            ./modules/home/common.nix
           ]
+          ++ homeModules
           ++ lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
           ++ lib.optional (homeDirectory != null) {
             home.homeDirectory = homeDirectory;
@@ -125,6 +131,8 @@
                 inputs.agent-skills.homeManagerModules.default
                 ./modules/home/common.nix
                 ./modules/darwin/home.nix
+                # Bound to this account; kept out of the shared darwin layer.
+                ./modules/darwin/github-runner-mrs.nix
               ];
             }
           ]
@@ -246,8 +254,9 @@
       };
 
       # Linux VMs. Portable subset only — no darwin, no brew.
-      homeConfigurations.${username} = mkLinuxHome { };
-      homeConfigurations.nixden = mkLinuxHome {
+      homeConfigurations.${username} = mkHome { user = username; };
+      homeConfigurations.nixden = mkHome {
+        user = username;
         dotfilesDir = "/tmp/lima-nixden/dotfiles";
         homeDirectory = "/home/mostlyobvious.guest";
         extraModules = [
@@ -257,6 +266,16 @@
               installRemoteServer = true;
             };
           }
+        ];
+      };
+
+      # Sudo-less second account. Standalone home-manager, shared darwin layer.
+      homeConfigurations.cm = mkHome {
+        user = "cm";
+        system = "aarch64-darwin";
+        homeModules = [
+          ./modules/home/common.nix
+          ./modules/darwin/home.nix
         ];
       };
 
