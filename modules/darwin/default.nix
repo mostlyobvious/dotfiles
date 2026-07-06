@@ -10,6 +10,7 @@
     ./homebrew.nix
     ./system.nix
     ./sudo.nix
+    ./sshd.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
