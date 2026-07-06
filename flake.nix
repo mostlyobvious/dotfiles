@@ -225,6 +225,13 @@
               bash -lc "nix build .#homeConfigurations.$HMCFG.activationPackage && ./result/activate"
           '';
 
+          # Activate the sudo-less cm account's home config on the local host:
+          # `nix run .#cm-switch`.
+          cm-switch = mkApp "dotfiles-cm-switch" ''
+            nix build ${self}#homeConfigurations.cm.activationPackage
+            ./result/activate
+          '';
+
           vm-switch = mkApp "dotfiles-vm-switch" vmSwitchScript;
 
           switch = mkApp "dotfiles-switch" ''
