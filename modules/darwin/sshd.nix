@@ -10,6 +10,17 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFai8QY2psbXCIconVn7fLRxtWmIpsasY03qgBVA8NdS mostlyobvious@pro"
   ];
 
+  # sshd's PAM stack (/etc/pam.d/sshd) gates access on the com.apple.access_ssh
+  # Service ACL via pam_sacl. That group is normally populated by the System
+  # Settings "Remote Login" toggle, which the loopback daemon bypasses — so
+  # without this cm authenticates but the account phase denies it and the
+  # connection drops. Add cm explicitly.
+  system.activationScripts.postActivation.text = ''
+    if ! dseditgroup -o checkmember -m cm com.apple.access_ssh > /dev/null 2>&1; then
+      dseditgroup -o edit -a cm -t user com.apple.access_ssh
+    fi
+  '';
+
   # Loopback-only sshd for same-host access to other local accounts (e.g. cm).
   # Apple's sshd is socket-activated, so `ListenAddress` in sshd_config is
   # ignored — the launchd socket must be bound to loopback instead. This owns its
