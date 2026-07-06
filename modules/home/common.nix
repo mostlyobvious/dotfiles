@@ -37,6 +37,7 @@
       lua-language-server
       secretspec
       devenv
+      glab
     ];
 
     programs.home-manager.enable = true;
