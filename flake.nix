@@ -229,7 +229,9 @@
           # `nix run .#cm-switch`.
           cm-switch = mkApp "dotfiles-cm-switch" ''
             nix build ${self}#homeConfigurations.cm.activationPackage
-            ./result/activate
+            # Back up colliding files instead of aborting, matching the host's
+            # home-manager.backupFileExtension.
+            HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
           '';
 
           vm-switch = mkApp "dotfiles-vm-switch" vmSwitchScript;
