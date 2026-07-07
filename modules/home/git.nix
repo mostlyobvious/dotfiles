@@ -56,7 +56,7 @@ in
 
     signing = lib.mkIf pkgs.stdenv.isDarwin {
       format = "ssh";
-      key = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+      key = config.my.signingKey;
       signByDefault = true;
     };
 

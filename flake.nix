@@ -80,6 +80,7 @@
           homeModules ? [ ./modules/home/common.nix ],
           dotfilesDir ? null,
           homeDirectory ? null,
+          signingKey ? null,
           extraModules ? [ ],
         }:
         home-manager.lib.homeManagerConfiguration {
@@ -96,6 +97,7 @@
           ]
           ++ homeModules
           ++ lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
+          ++ lib.optional (signingKey != null) { my.signingKey = signingKey; }
           ++ lib.optional (homeDirectory != null) {
             home.homeDirectory = homeDirectory;
           }
@@ -283,6 +285,7 @@
         user = "cm";
         system = "aarch64-darwin";
         dotfilesDir = "/Users/cm/dotfiles";
+        signingKey = "/Users/cm/.ssh/id_ed25519.cm.pub";
         homeModules = [
           ./modules/home/common.nix
           ./modules/darwin/home.nix

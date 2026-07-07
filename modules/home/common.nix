@@ -25,6 +25,13 @@
     description = "Absolute path to the dotfiles working copy.";
   };
 
+  # SSH public key used for commit signing. Override per account.
+  options.my.signingKey = lib.mkOption {
+    type = lib.types.str;
+    default = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+    description = "Absolute path to the SSH public key used to sign commits.";
+  };
+
   config = {
     home.username = username;
     home.homeDirectory = lib.mkDefault (
