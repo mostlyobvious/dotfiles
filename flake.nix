@@ -282,6 +282,7 @@
       homeConfigurations.cm = mkHome {
         user = "cm";
         system = "aarch64-darwin";
+        dotfilesDir = "/Users/cm/dotfiles";
         homeModules = [
           ./modules/home/common.nix
           ./modules/darwin/home.nix
