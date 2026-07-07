@@ -15,18 +15,11 @@ in
   environment.shells = [ pkgs.fish ];
   programs.fish.enable = true;
 
+  # Dock/window user prefs moved to the home layer (./macos-defaults.nix) so the
+  # sudo-less cm account gets them too. Only truly system-scoped keys stay here.
   system.defaults = {
-    dock.mineffect = "scale";
-    dock.show-recents = false;
     screencapture.type = "png";
     screencapture.location = shotsDir;
-
-    # Kill UI animations for snappier window/dock interaction.
-    NSGlobalDomain.NSAutomaticWindowAnimationsEnabled = false;
-    NSGlobalDomain.NSWindowResizeTime = 0.001;
-    dock.launchanim = false;
-    dock.expose-animation-duration = 0.0;
-    dock.autohide-time-modifier = 0.0;
   };
 
   # screencapture silently falls back to the Desktop if the target is missing.

@@ -10,6 +10,7 @@
     ./ssh.nix
     ./ghostty.nix
     ./zed.nix
+    ./macos-defaults.nix
   ];
 
   home.packages = with pkgs; [
