@@ -88,7 +88,7 @@ in
       {
         user = {
           name = "Paweł Pacana";
-          email = "pawel.pacana@gmail.com";
+          email = config.my.userEmail;
         };
 
         alias = {

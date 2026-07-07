@@ -35,7 +35,7 @@ profiles/          # the USER axis (home-manager recipes)
   base.nix         # composes cross-platform modules/home/* (todays common.nix role)
   darwin.nix       # composes modules/hm-darwin/* (todays modules/darwin/home.nix role)
   mostlyobvious.nix# base + darwin + mrs-runner + identity/signing
-  cm.nix           # base + darwin + signing/dotfilesDir
+  cm.nix           # base + darwin + signing/dotfilesDir/email
   ci.nix           # minimal: no editors/skills/identity
 modules/
   home/            # unchanged module library (git, fish, neovim, ruby, claude, pi, eza, skills)

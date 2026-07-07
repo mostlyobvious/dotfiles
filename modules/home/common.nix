@@ -32,6 +32,13 @@
     description = "Absolute path to the SSH public key used to sign commits.";
   };
 
+  # Git commit author email. Override per account.
+  options.my.userEmail = lib.mkOption {
+    type = lib.types.str;
+    default = "pawel.pacana@gmail.com";
+    description = "Email address used as the git commit author.";
+  };
+
   config = {
     home.username = username;
     home.homeDirectory = lib.mkDefault (
