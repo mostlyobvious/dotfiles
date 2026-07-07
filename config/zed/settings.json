@@ -46,8 +46,8 @@
   "buffer_font_size": 15,
   "theme": {
     "mode": "system",
-    "light": "Dawnfox - opaque",
-    "dark": "Nightfox - opaque",
+    "light": "Rosé Pine Dawn",
+    "dark": "Rosé Pine",
   },
   "languages": {
     "Ruby": {
