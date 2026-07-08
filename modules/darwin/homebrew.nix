@@ -47,6 +47,7 @@ in
       "logseq"
       "onyx"
       "zed"
+      "rubymine"
       "autodesk-fusion"
       "blender"
       "brave-browser"
