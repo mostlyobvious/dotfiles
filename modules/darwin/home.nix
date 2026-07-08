@@ -6,7 +6,6 @@
   # ./default.nix. Wired into home-manager.users via flake.nix, never on the VM.
   # Account-specific modules (github-runner-mrs) are imported per-user there too.
   imports = [
-    ./history.nix
     ./ssh.nix
     ./ghostty.nix
     ./zed.nix

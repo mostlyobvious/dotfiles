@@ -137,6 +137,9 @@
                 ./modules/darwin/home.nix
                 # Bound to this account; kept out of the shared darwin layer.
                 ./modules/darwin/github-runner-mrs.nix
+                # iCloud history sync — only the primary account has iCloud, so
+                # keep it off the shared layer (cm) and the VMs.
+                ./modules/darwin/history.nix
               ];
             }
           ]
