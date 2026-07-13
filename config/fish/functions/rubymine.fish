@@ -11,6 +11,6 @@ function rubymine --wraps rubymine --description 'Launch RubyMine inheriting the
     set --local target $argv
     test (count $target) -eq 0; and set target .
 
-    $bin $target &
+    $bin $target >/dev/null 2>&1 &
     disown
 end
