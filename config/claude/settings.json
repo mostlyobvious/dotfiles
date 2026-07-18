@@ -8,6 +8,19 @@
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-dangerous-git.sh"
+          }
+        ]
+      }
+    ]
+  },
   "enabledPlugins": {
     "ruby-lsp@claude-plugins-official": true
   },

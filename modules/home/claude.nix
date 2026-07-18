@@ -17,4 +17,10 @@
     source = ../../config/claude/statusline-command.sh;
     executable = true;
   };
+
+  # PreToolUse hook blocking dangerous git commands; referenced by settings.json.
+  home.file.".claude/hooks/block-dangerous-git.sh" = {
+    source = ../../config/claude/hooks/block-dangerous-git.sh;
+    executable = true;
+  };
 }
