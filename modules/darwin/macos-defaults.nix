@@ -16,6 +16,7 @@
     NSGlobalDomain = {
       NSAutomaticWindowAnimationsEnabled = false;
       NSWindowResizeTime = 0.001;
+      NSConvolutionOverride1 = 10; # window corner radius; Tahoe default 16, Sequoia ~10
     };
   };
 
