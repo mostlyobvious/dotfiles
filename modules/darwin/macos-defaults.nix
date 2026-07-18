@@ -21,6 +21,7 @@ in
       _FXSortFoldersFirst = true;
       FXEnableExtensionChangeWarning = false;
       ShowExternalHardDrivesOnDesktop = false;
+      ShowRemovableMediaOnDesktop = false;
     };
 
     NSGlobalDomain = {
