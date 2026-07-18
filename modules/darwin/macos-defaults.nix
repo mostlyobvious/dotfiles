@@ -10,6 +10,7 @@ in
   # system.defaults only ever reach system.primaryUser.
   targets.darwin.defaults = {
     "com.apple.dock" = {
+      autohide = true;
       mineffect = "scale";
       show-recents = false;
       launchanim = false;
