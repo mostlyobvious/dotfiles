@@ -16,6 +16,7 @@ in
       launchanim = false;
       expose-animation-duration = 0.0;
       autohide-time-modifier = 0.0;
+      tilesize = 64;
     };
 
     "com.apple.finder" = {
