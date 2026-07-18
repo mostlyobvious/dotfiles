@@ -3,22 +3,12 @@
     "commit": "",
     "pr": ""
   },
-  "permissions": {
-    "allow": [
-      "mcp__pencil"
-    ],
-    "defaultMode": "auto"
-  },
-  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh"
   },
-  "enabledPlugins": {},
-  "extraKnownMarketplaces": {},
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
-  "theme": "auto",
-  "preferredNotifChannel": "ghostty",
-  "skipAutoPermissionPrompt": true
+  "enabledPlugins": {
+    "ruby-lsp@claude-plugins-official": true
+  },
+  "theme": "auto"
 }
