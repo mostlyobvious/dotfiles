@@ -296,6 +296,19 @@
           ./modules/home/common.nix
           ./modules/darwin/home.nix
         ];
+        extraModules = [
+          (
+            { pkgs, ... }:
+            {
+              home.packages = [
+                pkgs.kubectl
+                (pkgs.google-cloud-sdk.withExtraComponents [
+                  pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
+                ])
+              ];
+            }
+          )
+        ];
       };
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
