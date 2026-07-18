@@ -39,7 +39,7 @@ if git -C "$cwd" --no-optional-locks rev-parse --show-toplevel >/dev/null 2>&1; 
   dirty=""
   if ! git -C "$cwd" --no-optional-locks diff-index --quiet HEAD 2>/dev/null \
     || [ -n "$(git -C "$cwd" --no-optional-locks ls-files --others --exclude-standard)" ]; then
-    dirty="•"
+    dirty=" •"
   fi
 
   upstream=""
