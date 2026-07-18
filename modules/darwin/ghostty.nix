@@ -12,6 +12,7 @@
       font-size = 16;
       font-family = "Berkeley Mono";
       copy-on-select = "clipboard";
+      macos-option-as-alt = true;
       macos-titlebar-proxy-icon = "hidden";
       window-height = 50;
       window-width = 170;
