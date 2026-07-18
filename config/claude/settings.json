@@ -1,12 +1,10 @@
 {
-  "autoMemoryEnabled": false,
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline-command.sh"
+  "permissions": {
+    "defaultMode": "auto"
   },
   "hooks": {
     "PreToolUse": [
@@ -21,8 +19,13 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-command.sh"
+  },
   "enabledPlugins": {
     "ruby-lsp@claude-plugins-official": true
   },
+  "autoMemoryEnabled": false,
   "theme": "auto"
 }
