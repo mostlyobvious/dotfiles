@@ -42,6 +42,10 @@ in
         ControlMaster = "auto";
         ControlPath = "/tmp/ssh-%r@%h:%p";
         ControlPersist = "600";
+        # UseKeychain reads a stored passphrase but never writes one, and macOS
+        # starts the agent empty at boot. Seed each key into the login keychain
+        # once (per account): `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`.
+        # Then the first ssh after a reboot loads it with no prompt.
         UseKeychain = "yes";
         Compression = "no";
         HashKnownHosts = "no";
