@@ -19,6 +19,7 @@ in
 
     "com.apple.finder" = {
       _FXSortFoldersFirst = true;
+      FXEnableExtensionChangeWarning = false;
     };
 
     NSGlobalDomain = {
