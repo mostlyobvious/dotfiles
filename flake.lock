@@ -116,6 +116,22 @@
         "url": "https://flakehub.com/f/hercules-ci/flake-parts/0.1"
       }
     },
+    "fonts": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784389195,
+        "narHash": "sha256-s+afcOad53ospjMjNP1v9WCXMXPjpV0lHiD9uykdXf8=",
+        "ref": "refs/heads/master",
+        "rev": "0f35399b845fd57d7347f48bf8de17635f3c4180",
+        "revCount": 1,
+        "type": "git",
+        "url": "ssh://git@github.com/mostlyobvious/fonts.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/mostlyobvious/fonts.git"
+      }
+    },
     "git-hooks-nix": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -304,6 +320,7 @@
       "inputs": {
         "agent-skills": "agent-skills",
         "determinate": "determinate",
+        "fonts": "fonts",
         "home-manager": "home-manager_2",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs_3",

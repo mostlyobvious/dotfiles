@@ -42,6 +42,14 @@
       url = "github:vladikk/modularity";
       flake = false;
     };
+
+    # Private repo carrying purchased, non-redistributable font zips. Fetched
+    # over SSH so no token is stored; pinned in flake.lock. Consumed by
+    # modules/darwin/fonts.nix.
+    fonts = {
+      url = "git+ssh://git@github.com/mostlyobvious/fonts.git";
+      flake = false;
+    };
   };
 
   outputs =
@@ -65,7 +73,13 @@
       # Narrow unfree allowance — only the packages we knowingly accept, not a
       # blanket allowUnfree. Set at pkgs instantiation: both useGlobalPkgs (host)
       # and the VM's directly-passed pkgs bypass home-manager's nixpkgs.config.
-      allowUnfreePred = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "claude-code" ];
+      allowUnfreePred =
+        pkg:
+        builtins.elem (nixpkgs.lib.getName pkg) [
+          "claude-code"
+          "berkeley-mono"
+          "pragmatapro"
+        ];
 
       forAllSystems = lib.genAttrs [
         "aarch64-darwin"

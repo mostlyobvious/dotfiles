@@ -9,6 +9,7 @@
     ./ssh.nix
     ./ghostty.nix
     ./zed.nix
+    ./fonts.nix
     ./macos-defaults.nix
   ];
 
