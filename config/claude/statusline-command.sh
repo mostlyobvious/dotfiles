@@ -56,7 +56,7 @@ if git -C "$cwd" --no-optional-locks rev-parse --show-toplevel >/dev/null 2>&1; 
     fi
   fi
 
-  git_out=" ${DIM}\$${RESET}${branch}${dirty}${upstream}"
+  git_out=" ${branch}${dirty}${upstream}"
 fi
 
 printf "%b%b ${DIM}[%s]${RESET}" "$path_out" "$git_out" "$model"
