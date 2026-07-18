@@ -5,7 +5,7 @@
     enable = true;
     package = null; # installed as a cask
     settings = {
-      theme = "dark:Rose Pine, light: Rose Pine Dawn";
+      theme = "dark:Duskfox, light:Dawnfox";
       window-colorspace = "display-p3";
       window-padding-x = 16;
       window-padding-y = 16;
