@@ -17,6 +17,10 @@ in
       autohide-time-modifier = 0.0;
     };
 
+    "com.apple.finder" = {
+      _FXSortFoldersFirst = true;
+    };
+
     NSGlobalDomain = {
       NSAutomaticWindowAnimationsEnabled = false;
       NSWindowResizeTime = 0.001;
@@ -32,6 +36,11 @@ in
   # targets.darwin.defaults writes prefs but does not reload the Dock.
   home.activation.restartDock = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     /usr/bin/killall Dock 2>/dev/null || true
+  '';
+
+  # Finder must relaunch to pick up its prefs.
+  home.activation.restartFinder = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    /usr/bin/killall Finder 2>/dev/null || true
   '';
 
   # screencapture silently falls back to the Desktop if the target is missing.
