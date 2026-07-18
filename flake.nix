@@ -304,7 +304,7 @@
         user = "cm";
         system = "aarch64-darwin";
         dotfilesDir = "/Users/cm/dotfiles";
-        signingKey = "/Users/cm/.ssh/id_ed25519.cm.pub";
+        signingKey = "/Users/cm/.ssh/id_ed25519.pub";
         email = "pawel.pacana@chattermill.io";
         homeModules = [
           ./modules/home/common.nix

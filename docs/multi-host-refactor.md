@@ -136,4 +136,4 @@ nix run .#pro:cm          # just one user
 - Each stage stays green: `nix flake check` (nixfmt + deadnix + `darwin-pro`
   build), plus dry-builds of affected targets.
 - Commit per stage; each is independently revertible via git.
-- Signing works now (`id_ed25519.cm.pub`); no `--no-gpg-sign` needed.
+- Signing works now (`id_ed25519.pub`); no `--no-gpg-sign` needed.
