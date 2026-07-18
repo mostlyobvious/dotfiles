@@ -20,6 +20,7 @@ in
     "com.apple.finder" = {
       _FXSortFoldersFirst = true;
       FXEnableExtensionChangeWarning = false;
+      ShowExternalHardDrivesOnDesktop = false;
     };
 
     NSGlobalDomain = {
