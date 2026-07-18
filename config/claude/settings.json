@@ -10,6 +10,10 @@
     "defaultMode": "auto"
   },
   "model": "opus",
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-command.sh"
+  },
   "enabledPlugins": {},
   "extraKnownMarketplaces": {},
   "alwaysThinkingEnabled": true,
