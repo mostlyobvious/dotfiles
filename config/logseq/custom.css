@@ -1,93 +1,75 @@
 /* Nightfox for Logseq: Duskfox (dark) / Dawnfox (light), to match ghostty/nvim.
-   Logseq defines its palette at html[data-theme=x][data-color=logseq]; !important
-   overrides it regardless of the active accent. */
+   This build resolves surfaces through radix tokens (--lx-gray-*, --lx-accent-*)
+   and the shadcn --primary/--accent HSLs; the legacy --ls-* vars are only dead
+   fallbacks. So the ramps below are the levers, forced with !important to beat
+   the app's html[data-theme=x][data-color=y] defaults regardless of accent. */
 
 html[data-theme="dark"] {
-  --ls-primary-background-color: #232136 !important;
-  --ls-secondary-background-color: #2d2a45 !important;
-  --ls-tertiary-background-color: #373354 !important;
-  --ls-quaternary-background-color: #433c59 !important;
-  --ls-table-tr-even-background-color: #2d2a45 !important;
+  --lx-gray-01: #191726 !important;
+  --lx-gray-02: #232136 !important;
+  --lx-gray-03: #2d2a45 !important;
+  --lx-gray-04: #373354 !important;
+  --lx-gray-05: #433c59 !important;
+  --lx-gray-06: #4b4673 !important;
+  --lx-gray-07: #63577d !important;
+  --lx-gray-08: #6e6a86 !important;
+  --lx-gray-09: #817c9c !important;
+  --lx-gray-10: #938eb0 !important;
+  --lx-gray-11: #cdcbe0 !important;
+  --lx-gray-12: #e0def4 !important;
 
-  --ls-primary-text-color: #e0def4 !important;
-  --ls-secondary-text-color: #817c9c !important;
-  --ls-title-text-color: #e0def4 !important;
+  --lx-accent-03: #2d3a45 !important;
+  --lx-accent-04: #33454f !important;
+  --lx-accent-05: #3a4f5a !important;
+  --lx-accent-09: #569fba !important;
+  --lx-accent-10: #65b1cd !important;
+  --lx-accent-11: #9ccfd8 !important;
+  --lx-accent-12: #c9e5ea !important;
 
-  --ls-border-color: #373354 !important;
-  --ls-secondary-border-color: #2d2a45 !important;
-  --ls-tertiary-border-color: #433c59 !important;
-
-  --ls-active-primary-color: #c4a7e7 !important;
-  --ls-active-secondary-color: #569fba !important;
-
-  --ls-block-bullet-color: #817c9c !important;
-  --ls-block-bullet-border-color: #63577d !important;
-  --ls-block-highlight-color: #2d2a45 !important;
-  --ls-block-ref-link-text-color: #9ccfd8 !important;
-
-  --ls-link-text-color: #9ccfd8 !important;
-  --ls-link-ref-text-color: #9ccfd8 !important;
-
-  --ls-tag-text-color: #569fba !important;
+  --primary: 197 40% 53% !important;
+  --accent: 197 40% 53% !important;
+  --ring: 197 40% 60% !important;
+  --primary-foreground: 249 34% 16% !important;
+  --accent-foreground: 249 34% 16% !important;
 
   --ls-selection-background-color: #433c59 !important;
-
   --ls-page-inline-code-color: #ea9a97 !important;
   --ls-page-mark-color: #232136 !important;
   --ls-page-mark-bg-color: #f6c177 !important;
-  --ls-page-properties-background-color: #2d2a45 !important;
-  --ls-block-properties-background-color: #2d2a45 !important;
-
-  --ls-scrollbar-foreground-color: #433c59 !important;
-  --ls-scrollbar-background-color: #232136 !important;
-  --ls-scrollbar-thumb-hover-color: #63577d !important;
-
-  --ls-header-button-background: #2d2a45 !important;
-  --ls-a-chosen-bg: #2d2a45 !important;
   --ls-cloze-text-color: #eb6f92 !important;
 }
 
 html[data-theme="light"] {
-  --ls-primary-background-color: #faf4ed !important;
-  --ls-secondary-background-color: #ebe5df !important;
-  --ls-tertiary-background-color: #ebdfe4 !important;
-  --ls-quaternary-background-color: #d0d8d8 !important;
-  --ls-table-tr-even-background-color: #ebe5df !important;
+  --lx-gray-01: #faf4ed !important;
+  --lx-gray-02: #f4eee7 !important;
+  --lx-gray-03: #ebe5df !important;
+  --lx-gray-04: #ebe0df !important;
+  --lx-gray-05: #ebdfe4 !important;
+  --lx-gray-06: #ded7cf !important;
+  --lx-gray-07: #d0d8d8 !important;
+  --lx-gray-08: #bdbfc9 !important;
+  --lx-gray-09: #b8cece !important;
+  --lx-gray-10: #a8a3b3 !important;
+  --lx-gray-11: #625c87 !important;
+  --lx-gray-12: #575279 !important;
 
-  --ls-primary-text-color: #575279 !important;
-  --ls-secondary-text-color: #9893a5 !important;
-  --ls-title-text-color: #575279 !important;
+  --lx-accent-03: #dbe7e9 !important;
+  --lx-accent-04: #cfe0e3 !important;
+  --lx-accent-05: #c2d8dc !important;
+  --lx-accent-09: #56949f !important;
+  --lx-accent-10: #4a838d !important;
+  --lx-accent-11: #286983 !important;
+  --lx-accent-12: #1c4a5e !important;
 
-  --ls-border-color: #bdbfc9 !important;
-  --ls-secondary-border-color: #ebe0df !important;
-  --ls-tertiary-border-color: #d0d8d8 !important;
-
-  --ls-active-primary-color: #907aa9 !important;
-  --ls-active-secondary-color: #286983 !important;
-
-  --ls-block-bullet-color: #9893a5 !important;
-  --ls-block-bullet-border-color: #b8cece !important;
-  --ls-block-highlight-color: #ebe0df !important;
-  --ls-block-ref-link-text-color: #56949f !important;
-
-  --ls-link-text-color: #56949f !important;
-  --ls-link-ref-text-color: #56949f !important;
-
-  --ls-tag-text-color: #286983 !important;
+  --primary: 197 53% 33% !important;
+  --accent: 197 53% 33% !important;
+  --ring: 197 40% 45% !important;
+  --primary-foreground: 37 44% 96% !important;
+  --accent-foreground: 37 44% 96% !important;
 
   --ls-selection-background-color: #d0d8d8 !important;
-
   --ls-page-inline-code-color: #d7827e !important;
   --ls-page-mark-color: #faf4ed !important;
   --ls-page-mark-bg-color: #ea9d34 !important;
-  --ls-page-properties-background-color: #ebe5df !important;
-  --ls-block-properties-background-color: #ebe5df !important;
-
-  --ls-scrollbar-foreground-color: #d0d8d8 !important;
-  --ls-scrollbar-background-color: #faf4ed !important;
-  --ls-scrollbar-thumb-hover-color: #b8cece !important;
-
-  --ls-header-button-background: #ebe5df !important;
-  --ls-a-chosen-bg: #ebe0df !important;
   --ls-cloze-text-color: #b4637a !important;
 }
