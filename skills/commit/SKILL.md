@@ -17,6 +17,7 @@ description: Create a git commit following project conventions. Use this skill w
 - Blank line between subject and body. Body wrapped at 72 cols.
 - Prefer `*` bullet points in the body over prose paragraphs. Hanging indent for wrapped lines. Blank lines between points.
 - Body explains **why** (and, when non-obvious, **how** and **what effects** — benchmarks, side effects, follow-ups). Skip questions that don't apply. Never restate the diff.
+- Link the source when it has a URL: the reference article or blog post that informed the change, the guide or documentation it follows, or the decision behind it (task, issue, message).
 
 ## Scope
 
