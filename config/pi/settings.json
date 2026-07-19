@@ -4,10 +4,10 @@
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
   "packages": [
-    "npm:@zenobius/pi-rose-pine",
+    "npm:@juancrg90/nightfox-themes",
     "npm:pi-edit-hooks",
     "npm:pi-autoresearch"
   ],
-  "theme": "rose-pine-dawn/rose-pine",
+  "theme": "dawnfox/duskfox",
   "quietStartup": true
 }
