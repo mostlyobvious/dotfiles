@@ -16,7 +16,7 @@
   ],
   "vim_mode": true,
   "auto_install_extensions": {
-    "rose-pine-theme": true
+    "nvim-nightfox": true
   },
   "agent_servers": {
     "claude-acp": {
@@ -49,8 +49,8 @@
   "buffer_font_size": 15,
   "theme": {
     "mode": "system",
-    "light": "Rosé Pine Dawn",
-    "dark": "Rosé Pine",
+    "light": "Dawnfox - opaque",
+    "dark": "Duskfox - opaque",
   },
   "languages": {
     "Ruby": {
