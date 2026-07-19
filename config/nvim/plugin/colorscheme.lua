@@ -1,12 +1,13 @@
 vim.pack.add({
-  "https://github.com/rose-pine/neovim",
+  "https://github.com/EdenEast/nightfox.nvim",
 })
 
-require("rose-pine").setup({
-  -- dark_variant = "moon",
-  styles = {
-    italic = false,
-  },
-});
+require("nightfox").setup();
 
-vim.cmd("colorscheme rose-pine")
+-- Mirror ghostty's `dark:Duskfox, light:Dawnfox`, following the terminal background.
+local function apply()
+  vim.cmd.colorscheme(vim.o.background == "light" and "dawnfox" or "duskfox")
+end
+
+vim.api.nvim_create_autocmd("OptionSet", { pattern = "background", callback = apply })
+apply()
