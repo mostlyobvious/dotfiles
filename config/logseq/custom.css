@@ -1,0 +1,93 @@
+/* Nightfox for Logseq: Duskfox (dark) / Dawnfox (light), to match ghostty/nvim.
+   Logseq defines its palette at html[data-theme=x][data-color=logseq]; !important
+   overrides it regardless of the active accent. */
+
+html[data-theme="dark"] {
+  --ls-primary-background-color: #232136 !important;
+  --ls-secondary-background-color: #2d2a45 !important;
+  --ls-tertiary-background-color: #373354 !important;
+  --ls-quaternary-background-color: #433c59 !important;
+  --ls-table-tr-even-background-color: #2d2a45 !important;
+
+  --ls-primary-text-color: #e0def4 !important;
+  --ls-secondary-text-color: #817c9c !important;
+  --ls-title-text-color: #e0def4 !important;
+
+  --ls-border-color: #373354 !important;
+  --ls-secondary-border-color: #2d2a45 !important;
+  --ls-tertiary-border-color: #433c59 !important;
+
+  --ls-active-primary-color: #c4a7e7 !important;
+  --ls-active-secondary-color: #569fba !important;
+
+  --ls-block-bullet-color: #817c9c !important;
+  --ls-block-bullet-border-color: #63577d !important;
+  --ls-block-highlight-color: #2d2a45 !important;
+  --ls-block-ref-link-text-color: #9ccfd8 !important;
+
+  --ls-link-text-color: #9ccfd8 !important;
+  --ls-link-ref-text-color: #9ccfd8 !important;
+
+  --ls-tag-text-color: #569fba !important;
+
+  --ls-selection-background-color: #433c59 !important;
+
+  --ls-page-inline-code-color: #ea9a97 !important;
+  --ls-page-mark-color: #232136 !important;
+  --ls-page-mark-bg-color: #f6c177 !important;
+  --ls-page-properties-background-color: #2d2a45 !important;
+  --ls-block-properties-background-color: #2d2a45 !important;
+
+  --ls-scrollbar-foreground-color: #433c59 !important;
+  --ls-scrollbar-background-color: #232136 !important;
+  --ls-scrollbar-thumb-hover-color: #63577d !important;
+
+  --ls-header-button-background: #2d2a45 !important;
+  --ls-a-chosen-bg: #2d2a45 !important;
+  --ls-cloze-text-color: #eb6f92 !important;
+}
+
+html[data-theme="light"] {
+  --ls-primary-background-color: #faf4ed !important;
+  --ls-secondary-background-color: #ebe5df !important;
+  --ls-tertiary-background-color: #ebdfe4 !important;
+  --ls-quaternary-background-color: #d0d8d8 !important;
+  --ls-table-tr-even-background-color: #ebe5df !important;
+
+  --ls-primary-text-color: #575279 !important;
+  --ls-secondary-text-color: #9893a5 !important;
+  --ls-title-text-color: #575279 !important;
+
+  --ls-border-color: #bdbfc9 !important;
+  --ls-secondary-border-color: #ebe0df !important;
+  --ls-tertiary-border-color: #d0d8d8 !important;
+
+  --ls-active-primary-color: #907aa9 !important;
+  --ls-active-secondary-color: #286983 !important;
+
+  --ls-block-bullet-color: #9893a5 !important;
+  --ls-block-bullet-border-color: #b8cece !important;
+  --ls-block-highlight-color: #ebe0df !important;
+  --ls-block-ref-link-text-color: #56949f !important;
+
+  --ls-link-text-color: #56949f !important;
+  --ls-link-ref-text-color: #56949f !important;
+
+  --ls-tag-text-color: #286983 !important;
+
+  --ls-selection-background-color: #d0d8d8 !important;
+
+  --ls-page-inline-code-color: #d7827e !important;
+  --ls-page-mark-color: #faf4ed !important;
+  --ls-page-mark-bg-color: #ea9d34 !important;
+  --ls-page-properties-background-color: #ebe5df !important;
+  --ls-block-properties-background-color: #ebe5df !important;
+
+  --ls-scrollbar-foreground-color: #d0d8d8 !important;
+  --ls-scrollbar-background-color: #faf4ed !important;
+  --ls-scrollbar-thumb-hover-color: #b8cece !important;
+
+  --ls-header-button-background: #ebe5df !important;
+  --ls-a-chosen-bg: #ebe0df !important;
+  --ls-cloze-text-color: #b4637a !important;
+}
