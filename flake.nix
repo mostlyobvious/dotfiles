@@ -154,6 +154,14 @@
                 # iCloud history sync — only the primary account has iCloud, so
                 # keep it off the shared layer (cm) and the VMs.
                 ./modules/darwin/history.nix
+                # Per-account Logseq graphs; the iCloud graph is left out to
+                # avoid syncing a store symlink across devices.
+                {
+                  my.logseqGraphs = [
+                    "Notes/mostlyobvious"
+                    "Notes/hraba.gs"
+                  ];
+                }
               ];
             }
           ]
@@ -314,6 +322,7 @@
           (
             { pkgs, ... }:
             {
+              my.logseqGraphs = [ "Documents/CM" ];
               home.packages = [
                 pkgs.kubectl
                 pkgs.argo-workflows

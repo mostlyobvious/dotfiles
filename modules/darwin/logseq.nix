@@ -1,8 +1,15 @@
 { config, ... }:
 
+let
+  # Out-of-store so the app can rewrite it in place; Logseq has no global
+  # custom.css, so it is linked into each graph's own logseq/ dir.
+  css = config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/logseq/custom.css";
+in
 {
-  # Logseq loads custom.css from the graph's own logseq/ dir; the sole graph
-  # lives at ~/Documents/CM. Out-of-store so the app can rewrite it in place.
-  home.file."Documents/CM/logseq/custom.css".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/logseq/custom.css";
+  home.file = builtins.listToAttrs (
+    map (graph: {
+      name = "${graph}/logseq/custom.css";
+      value.source = css;
+    }) config.my.logseqGraphs
+  );
 }

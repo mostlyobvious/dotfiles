@@ -39,6 +39,14 @@
     description = "Email address used as the git commit author.";
   };
 
+  # Home-relative Logseq graph dirs to receive the nightfox custom.css. Per
+  # account, since graphs differ and custom.css is loaded per-graph.
+  options.my.logseqGraphs = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    description = "Home-relative Logseq graph directories to theme.";
+  };
+
   config = {
     home.username = username;
     home.homeDirectory = lib.mkDefault (
