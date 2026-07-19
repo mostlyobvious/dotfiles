@@ -56,9 +56,9 @@ chsh -s $(which fish)
 
 ### Theme preference
 
-Rosé Pine is the default visual language across terminals, editors, CLI tools,
-and agent UI. Prefer matching new configuration to <https://rosepinetheme.com/>
-when the tool supports theming.
+Nightfox (Duskfox dark, Dawnfox light) is the default visual language across
+terminals, editors, CLI tools, and agent UI. Prefer matching new configuration
+to <https://github.com/EdenEast/nightfox.nvim> when the tool supports theming.
 
 ### One flake, shared home module
 
