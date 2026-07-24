@@ -53,7 +53,7 @@ in
       };
 
       # The sudo-less cm account, reachable via the loopback-only sshd on this
-      # host (see modules/darwin/sshd.nix). `ssh cm`.
+      # host (see modules/sshd.nix). `ssh cm`.
       cm = {
         HostName = "127.0.0.1";
         User = "cm";

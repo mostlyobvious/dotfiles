@@ -92,7 +92,7 @@
         {
           user,
           system ? "aarch64-linux",
-          homeModules ? [ ./modules/home/common.nix ],
+          homeModules ? [ ./modules/common.nix ],
           dotfilesDir ? null,
           homeDirectory ? null,
           signingKey ? null,
@@ -133,7 +133,12 @@
           specialArgs = { inherit username hostname; };
           modules = [
             determinate.darwinModules.default
-            ./modules/darwin
+            ./modules/darwin-core.nix
+            ./modules/system.nix
+            ./modules/sudo.nix
+            ./modules/sshd.nix
+            ./modules/homebrew.nix
+            ./modules/cm.nix
             home-manager.darwinModules.home-manager
             { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
             {
@@ -144,11 +149,25 @@
               home-manager.extraSpecialArgs = { inherit username hostname inputs; };
               home-manager.users.${username}.imports = [
                 inputs.agent-skills.homeManagerModules.default
-                ./modules/home/common.nix
-                ./modules/darwin/home.nix
+                ./modules/common.nix
+                ./modules/ssh.nix
+                ./modules/ghostty.nix
+                ./modules/zed.nix
+                ./modules/logseq.nix
+                ./modules/fonts.nix
+                ./modules/macos-defaults.nix
                 # iCloud history sync — only the primary account has iCloud, so
                 # keep it off the shared layer (cm) and the VMs.
-                ./modules/darwin/history.nix
+                ./modules/history.nix
+                (
+                  { pkgs, ... }:
+                  {
+                    home.packages = [
+                      pkgs.lima
+                      pkgs.rtl_433
+                    ];
+                  }
+                )
                 # Per-account Logseq graphs; the iCloud graph is left out to
                 # avoid syncing a store symlink across devices.
                 {
@@ -310,8 +329,13 @@
         signingKey = "/Users/cm/.ssh/id_ed25519.pub";
         email = "pawel.pacana@chattermill.io";
         homeModules = [
-          ./modules/home/common.nix
-          ./modules/darwin/home.nix
+          ./modules/common.nix
+          ./modules/ssh.nix
+          ./modules/ghostty.nix
+          ./modules/zed.nix
+          ./modules/logseq.nix
+          ./modules/fonts.nix
+          ./modules/macos-defaults.nix
         ];
         extraModules = [
           (

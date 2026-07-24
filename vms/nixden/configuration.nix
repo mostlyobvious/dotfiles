@@ -102,7 +102,7 @@
   home-manager.extraSpecialArgs = { inherit username inputs; };
   home-manager.users.${username}.imports = [
     inputs.agent-skills.homeManagerModules.default
-    ../../modules/home/common.nix
+    ../../modules/common.nix
     {
       my.dotfilesDir = "/tmp/lima-nixden/dotfiles";
       home.homeDirectory = "/home/${username}.guest";

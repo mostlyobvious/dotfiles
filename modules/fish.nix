@@ -25,8 +25,8 @@
 
   # Config files default to in-store. conf.d is linked per-file so HM-generated
   # conf.d entries don't collide with the directory.
-  xdg.configFile."fish/functions".source = ../../config/fish/functions;
+  xdg.configFile."fish/functions".source = ../config/fish/functions;
 
-  xdg.configFile."fish/conf.d/hydro.fish".source = ../../config/fish/conf.d/hydro.fish;
-  xdg.configFile."fish/conf.d/spring.fish".source = ../../config/fish/conf.d/spring.fish;
+  xdg.configFile."fish/conf.d/hydro.fish".source = ../config/fish/conf.d/hydro.fish;
+  xdg.configFile."fish/conf.d/spring.fish".source = ../config/fish/conf.d/spring.fish;
 }

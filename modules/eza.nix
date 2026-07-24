@@ -7,5 +7,5 @@
   programs.fish.shellAliases.tree = "eza --tree";
 
   # Colours come from config/eza/theme.yml (Duskfox).
-  xdg.configFile."eza/theme.yml".source = ../../config/eza/theme.yml;
+  xdg.configFile."eza/theme.yml".source = ../config/eza/theme.yml;
 }

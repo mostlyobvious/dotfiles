@@ -6,14 +6,6 @@
 }:
 
 {
-  imports = [
-    ./homebrew.nix
-    ./system.nix
-    ./sudo.nix
-    ./sshd.nix
-    ./cm.nix
-  ];
-
   nixpkgs.hostPlatform = "aarch64-darwin";
 
   # Uniform across macOS's three host identifiers: ComputerName (Sharing UI),
