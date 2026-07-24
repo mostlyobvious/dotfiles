@@ -133,10 +133,6 @@
           specialArgs = { inherit username hostname; };
           modules = [
             determinate.darwinModules.default
-            {
-              disabledModules = [ "${nix-darwin}/modules/services/github-runner/service.nix" ];
-              imports = [ ./modules/darwin/github-runner-determinate.nix ];
-            }
             ./modules/darwin
             home-manager.darwinModules.home-manager
             { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
@@ -150,8 +146,6 @@
                 inputs.agent-skills.homeManagerModules.default
                 ./modules/home/common.nix
                 ./modules/darwin/home.nix
-                # Bound to this account; kept out of the shared darwin layer.
-                ./modules/darwin/github-runner-mrs.nix
                 # iCloud history sync — only the primary account has iCloud, so
                 # keep it off the shared layer (cm) and the VMs.
                 ./modules/darwin/history.nix
