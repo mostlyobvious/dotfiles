@@ -25,7 +25,7 @@
     };
 
     # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
-    # `nix flake update skills-*` to bump. Consumed by modules/home/skills.nix.
+    # `nix flake update skills-*` to bump. Consumed by modules/skills.nix.
     skills-mattpocock = {
       url = "github:mattpocock/skills";
       flake = false;
@@ -45,7 +45,7 @@
 
     # Private repo carrying purchased, non-redistributable font zips. Fetched
     # over SSH so no token is stored; pinned in flake.lock. Consumed by
-    # modules/darwin/fonts.nix.
+    # modules/fonts.nix.
     fonts = {
       url = "git+ssh://git@github.com/mostlyobvious/fonts.git";
       flake = false;
@@ -87,213 +87,37 @@
         "aarch64-linux"
       ];
 
-      # Standalone home-manager. Pass the darwin home layer via homeModules.
-      mkHome =
-        {
-          user,
-          system ? "aarch64-linux",
-          homeModules ? [ ./modules/common.nix ],
-          dotfilesDir ? null,
-          homeDirectory ? null,
-          signingKey ? null,
-          email ? null,
-          extraModules ? [ ],
-        }:
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfreePredicate = allowUnfreePred;
-          };
-          extraSpecialArgs = {
-            username = user;
-            inherit inputs;
-          };
-          modules = [
-            inputs.agent-skills.homeManagerModules.default
-          ]
-          ++ homeModules
-          ++ lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
-          ++ lib.optional (signingKey != null) { my.signingKey = signingKey; }
-          ++ lib.optional (email != null) { my.userEmail = email; }
-          ++ lib.optional (homeDirectory != null) {
-            home.homeDirectory = homeDirectory;
-          }
-          ++ extraModules;
-        };
+      mkHome = import ./lib/mk-home.nix {
+        inherit
+          nixpkgs
+          home-manager
+          inputs
+          lib
+          allowUnfreePred
+          ;
+      };
 
-      # Per-host config (extra casks, host-only modules) goes in extraModules.
-      mkDarwin =
-        {
-          hostname,
-          system ? "aarch64-darwin",
-          extraModules ? [ ],
-        }:
-        nix-darwin.lib.darwinSystem {
-          inherit system;
-          specialArgs = { inherit username hostname; };
-          modules = [
-            determinate.darwinModules.default
-            ./modules/darwin-core.nix
-            ./modules/system.nix
-            ./modules/sudo.nix
-            ./modules/sshd.nix
-            ./modules/homebrew.nix
-            ./modules/cm.nix
-            home-manager.darwinModules.home-manager
-            { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              # Back up colliding files instead of aborting the switch.
-              home-manager.backupFileExtension = "hm-bak";
-              home-manager.extraSpecialArgs = { inherit username hostname inputs; };
-              home-manager.users.${username}.imports = [
-                inputs.agent-skills.homeManagerModules.default
-                ./modules/common.nix
-                ./modules/ssh.nix
-                ./modules/ghostty.nix
-                ./modules/zed.nix
-                ./modules/logseq.nix
-                ./modules/fonts.nix
-                ./modules/macos-defaults.nix
-                # iCloud history sync — only the primary account has iCloud, so
-                # keep it off the shared layer (cm) and the VMs.
-                ./modules/history.nix
-                (
-                  { pkgs, ... }:
-                  {
-                    home.packages = [
-                      pkgs.lima
-                      pkgs.rtl_433
-                    ];
-                  }
-                )
-                # Per-account Logseq graphs; the iCloud graph is left out to
-                # avoid syncing a store symlink across devices.
-                {
-                  my.logseqGraphs = [
-                    "Notes/mostlyobvious"
-                    "Notes/hraba.gs"
-                  ];
-                }
-              ];
-            }
-          ]
-          ++ extraModules;
-        };
+      mkDarwin = import ./lib/mk-darwin.nix {
+        inherit
+          home-manager
+          nix-darwin
+          determinate
+          inputs
+          username
+          allowUnfreePred
+          ;
+      };
 
-      mkDarwinApp =
-        system: name: text:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          type = "app";
-          program = "${
-            pkgs.writeShellApplication {
-              inherit name text;
-              runtimeInputs = with pkgs; [
-                curl
-                lima
-                rsync
-              ];
-            }
-          }/bin/${name}";
-        };
-
-      darwinApps =
-        system:
-        let
-          darwinRebuild = "${nix-darwin.packages.${system}.darwin-rebuild}/bin/darwin-rebuild";
-          mkApp = mkDarwinApp system;
-          vmSwitchScript = ''
-            VMS="''${VMS:-nixden}"
-
-            for VM in $VMS; do
-              case "$VM" in
-                nixden)
-                  NIXOSCFG="nixden"
-                  TEMPLATE="${./vms/nixden/lima.yaml}"
-                  VM_WORKDIR="/tmp/lima-nixden/dotfiles"
-                  ;;
-                *)
-                  echo "Unknown VM: $VM" >&2
-                  exit 1
-                  ;;
-              esac
-
-              mkdir -p "$(dirname "$VM_WORKDIR")"
-
-              STATUS="$(limactl list --format '{{.Name}}	{{.Status}}' | awk -v vm="$VM" '$1 == vm { print $2 }')"
-              if [ -z "$STATUS" ]; then
-                limactl start --name="$VM" "$TEMPLATE"
-              elif [ "$STATUS" != "Running" ]; then
-                limactl start "$VM"
-              fi
-
-              rsync -a --delete \
-                --exclude .git \
-                --exclude .direnv \
-                --exclude result \
-                ./ "$VM_WORKDIR/"
-
-              limactl shell --workdir="$VM_WORKDIR" "$VM" -- \
-                sudo nixos-rebuild switch --flake ".#$NIXOSCFG"
-            done
-          '';
-        in
-        {
-          bootstrap = mkApp "dotfiles-bootstrap" ''
-            HOST="''${HOST:-pro}"
-
-            if ! test -x /opt/homebrew/bin/brew; then
-              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            fi
-
-            sudo -H ${darwinRebuild} switch --flake ${self}#"$HOST"
-          '';
-
-          home = mkApp "dotfiles-home" ''
-            VM="''${VM:-nixden}"
-            HMCFG="''${HMCFG:-nixden}"
-            VM_WORKDIR="/tmp/lima-$VM/dotfiles"
-
-            rsync -a --delete \
-              --exclude .git \
-              --exclude .direnv \
-              --exclude result \
-              ./ "/tmp/lima-$VM/dotfiles/"
-
-            limactl shell --workdir="$VM_WORKDIR" "$VM" -- \
-              bash -lc "nix build .#homeConfigurations.$HMCFG.activationPackage && ./result/activate"
-          '';
-
-          # Activate the sudo-less cm account's home config on the local host:
-          # `nix run .#cm-switch`.
-          cm-switch = mkApp "dotfiles-cm-switch" ''
-            nix build ${self}#homeConfigurations.cm.activationPackage
-            # Back up colliding files instead of aborting, matching the host's
-            # home-manager.backupFileExtension.
-            HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
-          '';
-
-          vm-switch = mkApp "dotfiles-vm-switch" vmSwitchScript;
-
-          switch = mkApp "dotfiles-switch" ''
-            HOST="''${HOST:-pro}"
-            sudo -H ${darwinRebuild} switch --flake ${self}#"$HOST"
-
-            ${vmSwitchScript}
-          '';
-
-          update = mkApp "dotfiles-update" ''
-            nix flake update
-            nix run .#switch
-          '';
-        };
+      darwinApps = import ./lib/apps.nix { inherit nixpkgs nix-darwin self; };
     in
     {
-      darwinConfigurations.pro = mkDarwin { hostname = "pro"; };
+      darwinConfigurations.pro = mkDarwin {
+        hostname = "pro";
+        nonAdminAccounts = [ "cm" ];
+        adminKeys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFai8QY2psbXCIconVn7fLRxtWmIpsasY03qgBVA8NdS mostlyobvious@pro"
+        ];
+      };
 
       nixosConfigurations.nixden = lib.nixosSystem {
         system = "aarch64-linux";
@@ -329,30 +153,28 @@
         signingKey = "/Users/cm/.ssh/id_ed25519.pub";
         email = "pawel.pacana@chattermill.io";
         homeModules = [
-          ./modules/common.nix
+          ./modules/core.nix
+          ./modules/cli.nix
+          ./modules/git.nix
+          ./modules/fish.nix
+          ./modules/neovim.nix
+          ./modules/ruby.nix
+          ./modules/claude.nix
+          ./modules/pi.nix
+          ./modules/eza.nix
+          ./modules/skills.nix
           ./modules/ssh.nix
           ./modules/ghostty.nix
           ./modules/zed.nix
           ./modules/logseq.nix
           ./modules/fonts.nix
           ./modules/macos-defaults.nix
+          ./modules/kubernetes.nix
+          ./modules/vault.nix
+          ./modules/redocly.nix
         ];
         extraModules = [
-          (
-            { pkgs, ... }:
-            {
-              my.logseqGraphs = [ "Documents/CM" ];
-              home.packages = [
-                pkgs.kubectl
-                pkgs.argo-workflows
-                pkgs.redocly
-                pkgs.vault
-                (pkgs.google-cloud-sdk.withExtraComponents [
-                  pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
-                ])
-              ];
-            }
-          )
+          { my.logseqGraphs = [ "Documents/CM" ]; }
         ];
       };
 
