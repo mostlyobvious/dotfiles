@@ -1,7 +1,6 @@
 {
   lib,
   pkgs,
-  username,
   ...
 }:
 
@@ -17,9 +16,9 @@
       end
     ''
     + lib.optionalString pkgs.stdenv.isDarwin ''
-      # nix-darwin wires these into PATH via /etc/profile hooks that fish does
-      # not read. Prepend them ourselves so Nix-provided CLI tools win over brew.
-      fish_add_path --global --prepend /run/current-system/sw/bin /etc/profiles/per-user/${username}/bin
+      # nix-darwin wires this into PATH via an /etc/profile hook that fish does
+      # not read. Prepend it ourselves so Nix-provided CLI tools win over brew.
+      fish_add_path --global --prepend /run/current-system/sw/bin
     '';
   };
 

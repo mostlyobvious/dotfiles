@@ -2,31 +2,15 @@
   nixpkgs,
   home-manager,
   inputs,
-  lib,
   allowUnfreePred,
 }:
 
-# Standalone home-manager. Pass the darwin home layer via homeModules.
+# Standalone home-manager. `modules` is one account's (or VM guest's) flat
+# module list — everything it gets, including its own identity module.
 {
   user,
-  system ? "aarch64-linux",
-  homeModules ? [
-    ../modules/core.nix
-    ../modules/cli.nix
-    ../modules/git.nix
-    ../modules/fish.nix
-    ../modules/neovim.nix
-    ../modules/ruby.nix
-    ../modules/claude.nix
-    ../modules/pi.nix
-    ../modules/eza.nix
-    ../modules/skills.nix
-  ],
-  dotfilesDir ? null,
-  homeDirectory ? null,
-  signingKey ? null,
-  email ? null,
-  extraModules ? [ ],
+  system,
+  modules,
 }:
 home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs {
@@ -40,12 +24,5 @@ home-manager.lib.homeManagerConfiguration {
   modules = [
     inputs.agent-skills.homeManagerModules.default
   ]
-  ++ homeModules
-  ++ lib.optional (dotfilesDir != null) { my.dotfilesDir = dotfilesDir; }
-  ++ lib.optional (signingKey != null) { my.signingKey = signingKey; }
-  ++ lib.optional (email != null) { my.userEmail = email; }
-  ++ lib.optional (homeDirectory != null) {
-    home.homeDirectory = homeDirectory;
-  }
-  ++ extraModules;
+  ++ modules;
 }

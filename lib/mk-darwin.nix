@@ -1,86 +1,48 @@
 {
-  home-manager,
   nix-darwin,
   determinate,
-  inputs,
-  username,
   allowUnfreePred,
+  lib,
 }:
 
-# Per-host config (extra casks, host-only modules) goes in extraModules.
-{
-  hostname,
-  system ? "aarch64-darwin",
-  nonAdminAccounts ? [ ],
-  adminKeys ? [ ],
-  extraModules ? [ ],
-}:
+# Builds one host's nix-darwin system from its tree entry (arch, system
+# module, users map). Every account's home is standalone (see mk-home.nix);
+# this only wires the OS-level system + account provisioning.
+hostName: host:
+let
+  admins = lib.filterAttrs (_: u: u.admin or false) host.users;
+  adminNames = builtins.attrNames admins;
+
+  # system.primaryUser is the sole admin automatically; a multi-admin host
+  # must mark exactly one account primary = true.
+  primaryUser =
+    if adminNames == [ ] then
+      throw "host ${hostName} has no admin account"
+    else if builtins.length adminNames == 1 then
+      builtins.head adminNames
+    else
+      let
+        primaries = builtins.filter (name: admins.${name}.primary or false) adminNames;
+      in
+      assert lib.assertMsg (
+        builtins.length primaries == 1
+      ) "host ${hostName}: multi-admin hosts must mark exactly one account primary = true";
+      builtins.head primaries;
+
+  nonAdminAccounts = builtins.attrNames (lib.filterAttrs (_: u: !(u.admin or false)) host.users);
+
+  adminKeys = builtins.filter (k: k != null) (map (name: admins.${name}.key or null) adminNames);
+in
 nix-darwin.lib.darwinSystem {
-  inherit system;
+  system = host.arch;
   specialArgs = {
-    inherit
-      username
-      hostname
-      nonAdminAccounts
-      adminKeys
-      ;
+    username = primaryUser;
+    hostname = hostName;
+    inherit nonAdminAccounts adminKeys;
   };
   modules = [
     determinate.darwinModules.default
-    ../modules/darwin-core.nix
-    ../modules/system.nix
-    ../modules/sudo.nix
-    ../modules/sshd.nix
-    ../modules/homebrew.nix
-    ../modules/account.nix
-    home-manager.darwinModules.home-manager
     { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
-    {
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      # Back up colliding files instead of aborting the switch.
-      home-manager.backupFileExtension = "hm-bak";
-      home-manager.extraSpecialArgs = { inherit username hostname inputs; };
-      home-manager.users.${username}.imports = [
-        inputs.agent-skills.homeManagerModules.default
-        ../modules/core.nix
-        ../modules/cli.nix
-        ../modules/git.nix
-        ../modules/fish.nix
-        ../modules/neovim.nix
-        ../modules/ruby.nix
-        ../modules/claude.nix
-        ../modules/pi.nix
-        ../modules/eza.nix
-        ../modules/skills.nix
-        ../modules/ssh.nix
-        ../modules/ghostty.nix
-        ../modules/zed.nix
-        ../modules/logseq.nix
-        ../modules/fonts.nix
-        ../modules/macos-defaults.nix
-        # iCloud history sync — only the primary account has iCloud, so
-        # keep it off the shared layer (cm) and the VMs.
-        ../modules/history.nix
-        (
-          { pkgs, ... }:
-          {
-            home.packages = [
-              pkgs.lima
-              pkgs.rtl_433
-            ];
-          }
-        )
-        # Per-account Logseq graphs; the iCloud graph is left out to
-        # avoid syncing a store symlink across devices.
-        {
-          my.logseqGraphs = [
-            "Notes/mostlyobvious"
-            "Notes/hraba.gs"
-          ];
-        }
-      ];
-    }
-  ]
-  ++ extraModules;
+    host.system
+  ];
 }

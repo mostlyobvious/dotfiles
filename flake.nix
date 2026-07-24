@@ -62,7 +62,6 @@
       ...
     }:
     let
-      username = "mostlyobvious";
       lib = nixpkgs.lib;
 
       nixSource = lib.fileset.toSource {
@@ -87,96 +86,113 @@
         "aarch64-linux"
       ];
 
+      # The host is the root of the tree: one file per machine, its whole
+      # system + every account + every VM. See docs/multi-host-refactor.md.
+      hosts = {
+        pro = import ./hosts/pro.nix;
+      };
+
       mkHome = import ./lib/mk-home.nix {
         inherit
           nixpkgs
           home-manager
           inputs
-          lib
           allowUnfreePred
           ;
       };
 
       mkDarwin = import ./lib/mk-darwin.nix {
         inherit
-          home-manager
           nix-darwin
           determinate
-          inputs
-          username
           allowUnfreePred
+          lib
           ;
       };
 
-      darwinApps = import ./lib/apps.nix { inherit nixpkgs nix-darwin self; };
+      mkApps = import ./lib/apps.nix {
+        inherit
+          nixpkgs
+          nix-darwin
+          lib
+          self
+          ;
+      };
+
+      # homeConfigurations."<host>-<user>" for every account on every host.
+      hostUserHomeConfigs = lib.concatMapAttrs (
+        hostName: host:
+        lib.mapAttrs' (
+          userName: user:
+          lib.nameValuePair "${hostName}-${userName}" (mkHome {
+            user = userName;
+            system = host.arch;
+            modules = user.modules;
+          })
+        ) host.users
+      ) hosts;
+
+      # homeConfigurations.<vm> for every VM's single-user guest.
+      vmHomeConfigs = lib.concatMapAttrs (
+        _hostName: host:
+        lib.mapAttrs (
+          _vmName: vm:
+          mkHome {
+            user = vm.user;
+            system = vm.arch;
+            modules = vm.home;
+          }
+        ) (host.vms or { })
+      ) hosts;
+
+      # nixosConfigurations.<vm> for every VM's system.
+      vmNixosConfigs = lib.concatMapAttrs (
+        _hostName: host:
+        lib.mapAttrs (
+          _vmName: vm:
+          lib.nixosSystem {
+            system = vm.arch;
+            specialArgs = {
+              username = vm.user;
+              inherit inputs;
+            };
+            modules = [
+              home-manager.nixosModules.home-manager
+              { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
+              vm.system
+            ];
+          }
+        ) (host.vms or { })
+      ) hosts;
+
+      # checks.aarch64-darwin: every host's system + every account's home.
+      darwinChecks = lib.concatMapAttrs (
+        hostName: host:
+        {
+          "darwin-${hostName}" = self.darwinConfigurations.${hostName}.system;
+        }
+        // lib.mapAttrs' (
+          userName: _:
+          lib.nameValuePair "home-${hostName}-${userName}"
+            self.homeConfigurations."${hostName}-${userName}".activationPackage
+        ) host.users
+      ) hosts;
+
+      # checks.aarch64-linux: every VM's system + guest home.
+      linuxChecks = lib.concatMapAttrs (
+        _hostName: host:
+        lib.concatMapAttrs (vmName: _vm: {
+          "nixos-${vmName}" = self.nixosConfigurations.${vmName}.config.system.build.toplevel;
+          "home-${vmName}" = self.homeConfigurations.${vmName}.activationPackage;
+        }) (host.vms or { })
+      ) hosts;
     in
     {
-      darwinConfigurations.pro = mkDarwin {
-        hostname = "pro";
-        nonAdminAccounts = [ "cm" ];
-        adminKeys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFai8QY2psbXCIconVn7fLRxtWmIpsasY03qgBVA8NdS mostlyobvious@pro"
-        ];
-      };
+      darwinConfigurations = lib.mapAttrs mkDarwin hosts;
 
-      nixosConfigurations.nixden = lib.nixosSystem {
-        system = "aarch64-linux";
-        specialArgs = { inherit username inputs; };
-        modules = [
-          home-manager.nixosModules.home-manager
-          { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
-          ./vms/nixden/configuration.nix
-        ];
-      };
+      homeConfigurations = hostUserHomeConfigs // vmHomeConfigs;
 
-      # Linux VMs. Portable subset only — no darwin, no brew.
-      homeConfigurations.${username} = mkHome { user = username; };
-      homeConfigurations.nixden = mkHome {
-        user = username;
-        dotfilesDir = "/tmp/lima-nixden/dotfiles";
-        homeDirectory = "/home/mostlyobvious.guest";
-        extraModules = [
-          {
-            programs.zed-editor = {
-              enable = true;
-              installRemoteServer = true;
-            };
-          }
-        ];
-      };
-
-      # Sudo-less second account. Standalone home-manager, shared darwin layer.
-      homeConfigurations.cm = mkHome {
-        user = "cm";
-        system = "aarch64-darwin";
-        dotfilesDir = "/Users/cm/dotfiles";
-        signingKey = "/Users/cm/.ssh/id_ed25519.pub";
-        email = "pawel.pacana@chattermill.io";
-        homeModules = [
-          ./modules/core.nix
-          ./modules/cli.nix
-          ./modules/git.nix
-          ./modules/fish.nix
-          ./modules/neovim.nix
-          ./modules/ruby.nix
-          ./modules/claude.nix
-          ./modules/pi.nix
-          ./modules/eza.nix
-          ./modules/skills.nix
-          ./modules/ssh.nix
-          ./modules/ghostty.nix
-          ./modules/zed.nix
-          ./modules/logseq.nix
-          ./modules/fonts.nix
-          ./modules/macos-defaults.nix
-          ./modules/kubernetes.nix
-          ./modules/vault.nix
-          ./modules/redocly.nix
-        ];
-        extraModules = [
-          { my.logseqGraphs = [ "Documents/CM" ]; }
-        ];
-      };
+      nixosConfigurations = vmNixosConfigs;
 
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
@@ -196,12 +212,11 @@
             touch $out
           '';
         }
-        // lib.optionalAttrs (system == "aarch64-darwin") {
-          darwin-pro = self.darwinConfigurations.pro.system;
-        }
+        // lib.optionalAttrs (system == "aarch64-darwin") darwinChecks
+        // lib.optionalAttrs (system == "aarch64-linux") linuxChecks
       );
 
-      apps = forAllSystems (system: lib.optionalAttrs (system == "aarch64-darwin") (darwinApps system));
+      apps = forAllSystems (system: lib.optionalAttrs (system == "aarch64-darwin") (mkApps hosts system));
 
       # Loaded on cd via .envrc + nix-direnv.
       devShells = forAllSystems (
