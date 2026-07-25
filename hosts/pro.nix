@@ -103,7 +103,7 @@
         ../modules/eza.nix
         ../modules/skills.nix
         {
-          home.homeDirectory = "/home/mostlyobvious.guest";
+          home.homeDirectory = "/home/mostlyobvious";
           my.dotfilesDir = "/mnt/dotfiles"; # the read-only lima mount
           programs.zed-editor = {
             enable = true;
