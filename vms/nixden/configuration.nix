@@ -85,7 +85,7 @@
     isSystemUser = true;
     uid = 501;
     group = "users";
-    home = "/home/${username}";
+    home = "/home/${username}.guest";
     createHome = true;
     description = "Paweł Pacana";
     extraGroups = [
