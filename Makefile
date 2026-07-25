@@ -11,4 +11,7 @@ bootstrap:
 switch:
 	$(NIX) run .#switch
 
-.PHONY: bootstrap switch
+check:
+	$(NIX) flake check
+
+.PHONY: bootstrap switch check
