@@ -8,6 +8,6 @@
     "npm:pi-edit-hooks",
     "npm:pi-autoresearch"
   ],
-  "theme": "dawnfox/duskfox",
+  "theme": "duskfox",
   "quietStartup": true
 }
