@@ -1,6 +1,6 @@
 NIX = /nix/var/nix/profiles/default/bin/nix
 
-.DEFAULT_GOAL := bootstrap
+.DEFAULT_GOAL := switch
 
 bootstrap:
 	@test -x $(NIX) || \
@@ -8,4 +8,7 @@ bootstrap:
 	    | sh -s -- install --determinate --no-confirm
 	$(NIX) run .#bootstrap
 
-.PHONY: bootstrap
+switch:
+	$(NIX) run .#switch
+
+.PHONY: bootstrap switch
