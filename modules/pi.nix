@@ -9,5 +9,8 @@
   home.file.".pi/agent/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/pi/settings.json";
 
+  home.file.".pi/agent/extensions".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/pi/extensions";
+
   home.file.".pi/agent/AGENTS.md".source = ../config/agents/AGENTS.md;
 }

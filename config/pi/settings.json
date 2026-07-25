@@ -8,6 +8,9 @@
     "npm:pi-edit-hooks",
     "npm:pi-autoresearch"
   ],
+  "extensions": [
+    "extensions"
+  ],
   "theme": "duskfox",
   "quietStartup": true
 }
