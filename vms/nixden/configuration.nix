@@ -74,6 +74,13 @@
   programs.fish.enable = true;
   programs.starship.enable = lib.mkForce false;
 
+  # switch's VM step builds the guest home with a bare `nix build …#…`, which
+  # needs these enabled; nixos-rebuild --flake injects them for itself.
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
   users.users.${username} = {
     isSystemUser = true;
     uid = 501;
