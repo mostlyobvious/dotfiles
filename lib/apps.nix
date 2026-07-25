@@ -52,6 +52,8 @@ let
 
     limactl shell "${vmName}" -- sudo nixos-rebuild switch --flake /mnt/dotfiles#${vmName}
 
+    # single-quoted on purpose: $RESULT and the $(...) run in the guest, not here
+    # shellcheck disable=SC2016
     limactl shell "${vmName}" -- bash -c '
       set -euo pipefail
       RESULT="$(nix build /mnt/dotfiles#homeConfigurations.${vmName}.activationPackage --no-link --print-out-paths)"
