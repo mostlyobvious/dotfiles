@@ -7,9 +7,9 @@ images:
   arch: x86_64
   digest: sha512:8c871c196603d767db36d5a23bfdb13851ed0aba2d7c21de1e7f71cf039f882f5356bcb78d35da0ebead46d5853729fdcc763352fc0449b57c161ad23959a7d6
 mounts:
-- location: /tmp/lima-nixden
-  mountPoint: /tmp/lima-nixden
-  writable: true
+- location: /Users/mostlyobvious/Code/dotfiles
+  mountPoint: /mnt/dotfiles
+  writable: false
   9p:
     cache: mmap
 memory: 20GiB
@@ -38,7 +38,6 @@ message: |
   This template intentionally does not mount your macOS home directory.
   Clone repositories inside the VM, for example under ~/code.
 
-  To transfer files intentionally, use /tmp/lima-nixden on the host and
-  inside the VM.
+  The dotfiles repo is mounted read-only at /mnt/dotfiles.
 cpus: 10
 disk: 60GiB

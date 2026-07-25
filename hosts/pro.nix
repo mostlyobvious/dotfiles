@@ -104,7 +104,7 @@
         ../modules/skills.nix
         {
           home.homeDirectory = "/home/mostlyobvious.guest";
-          my.dotfilesDir = "/tmp/lima-nixden/dotfiles"; # rsync staging; the read-only mount lands in stage 4
+          my.dotfilesDir = "/mnt/dotfiles"; # the read-only lima mount
           programs.zed-editor = {
             enable = true;
             installRemoteServer = true;

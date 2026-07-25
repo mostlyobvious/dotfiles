@@ -154,10 +154,8 @@
             system = vm.arch;
             specialArgs = {
               username = vm.user;
-              inherit inputs;
             };
             modules = [
-              home-manager.nixosModules.home-manager
               { nixpkgs.config.allowUnfreePredicate = allowUnfreePred; }
               vm.system
             ];

@@ -21,7 +21,6 @@ let
         runtimeInputs = with pkgs; [
           curl
           lima
-          rsync
         ];
       }
     }/bin/${name}";
@@ -41,7 +40,8 @@ let
     fi
   '';
 
-  # Every VM: start it, rebuild its system from the rsynced working copy.
+  # Every VM: start it, then rebuild its system and its guest home straight
+  # from the read-only dotfiles mount (no rsync staging).
   vmScript = vmName: ''
     STATUS="$(limactl list --format '{{.Name}}	{{.Status}}' | awk -v vm="${vmName}" '$1 == vm { print $2 }')"
     if [ -z "$STATUS" ]; then
@@ -50,15 +50,13 @@ let
       limactl start "${vmName}"
     fi
 
-    mkdir -p "/tmp/lima-${vmName}"
-    rsync -a --delete \
-      --exclude .git \
-      --exclude .direnv \
-      --exclude result \
-      ./ "/tmp/lima-${vmName}/dotfiles/"
+    limactl shell "${vmName}" -- sudo nixos-rebuild switch --flake /mnt/dotfiles#${vmName}
 
-    limactl shell --workdir="/tmp/lima-${vmName}/dotfiles" "${vmName}" -- \
-      sudo nixos-rebuild switch --flake ".#${vmName}"
+    limactl shell "${vmName}" -- bash -c '
+      set -euo pipefail
+      RESULT="$(nix build /mnt/dotfiles#homeConfigurations.${vmName}.activationPackage --no-link --print-out-paths)"
+      HOME_MANAGER_BACKUP_EXT=hm-bak "$RESULT/activate"
+    '
   '';
 
   hostScript = hostName: host: ''

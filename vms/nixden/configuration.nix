@@ -3,7 +3,6 @@
   lib,
   pkgs,
   username,
-  inputs,
   ...
 }:
 
@@ -58,11 +57,11 @@
     fsType = "virtiofs";
   };
 
-  fileSystems."/tmp/lima-nixden" = {
-    device = "lima-dd882cae3d472735";
+  fileSystems."/mnt/dotfiles" = {
+    device = "lima-a8135cdc1ccc6d1e";
     fsType = "virtiofs";
     options = [
-      "rw"
+      "ro"
       "nofail"
     ];
   };
@@ -95,32 +94,6 @@
 
   services.openssh.enable = true;
   services.dbus.implementation = "dbus";
-
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "hm-bak";
-  home-manager.extraSpecialArgs = { inherit username inputs; };
-  home-manager.users.${username}.imports = [
-    inputs.agent-skills.homeManagerModules.default
-    ../../modules/core.nix
-    ../../modules/cli.nix
-    ../../modules/git.nix
-    ../../modules/fish.nix
-    ../../modules/neovim.nix
-    ../../modules/ruby.nix
-    ../../modules/claude.nix
-    ../../modules/pi.nix
-    ../../modules/eza.nix
-    ../../modules/skills.nix
-    {
-      my.dotfilesDir = "/tmp/lima-nixden/dotfiles";
-      home.homeDirectory = "/home/${username}.guest";
-      programs.zed-editor = {
-        enable = true;
-        installRemoteServer = true;
-      };
-    }
-  ];
 
   assertions = [
     {
