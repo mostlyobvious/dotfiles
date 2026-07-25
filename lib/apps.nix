@@ -45,7 +45,7 @@ let
   vmScript = vmName: ''
     STATUS="$(limactl list --format '{{.Name}}	{{.Status}}' | awk -v vm="${vmName}" '$1 == vm { print $2 }')"
     if [ -z "$STATUS" ]; then
-      limactl start --name="${vmName}" "${self + "/vms/${vmName}/lima.yaml"}"
+      limactl start --tty=false --name="${vmName}" "${self + "/vms/${vmName}/lima.yaml"}"
     elif [ "$STATUS" != "Running" ]; then
       limactl start "${vmName}"
     fi
