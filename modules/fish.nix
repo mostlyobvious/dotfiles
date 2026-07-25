@@ -9,11 +9,6 @@
     enable = true;
     shellInit = ''
       set fish_greeting
-
-      if status is-interactive; and type -q devenv
-        set --global --export DEVENV_SHELL_TYPE fish
-        devenv hook fish | source
-      end
     ''
     + lib.optionalString pkgs.stdenv.isDarwin ''
       # Pinned copy of `brew shellenv fish` to skip exec'ing brew per shell;
