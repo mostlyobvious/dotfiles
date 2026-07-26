@@ -7,6 +7,8 @@
 {
   programs.fish = {
     enable = true;
+    shellAliases.less = "less -R";
+
     shellInit = ''
       set fish_greeting
     ''
