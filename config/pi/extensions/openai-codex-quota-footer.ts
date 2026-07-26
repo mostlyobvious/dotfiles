@@ -1,12 +1,27 @@
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 
-type RateLimitBucket = {
-	limit: number;
-	remaining: number;
-	resetMs?: number;
+type CodexRateWindow = {
+	reset_at?: number;
+	limit_window_seconds?: number;
+	used_percent?: number;
+	window_minutes?: number;
+};
+
+type CodexUsageResponse = {
+	rate_limit?: {
+		primary_window?: CodexRateWindow;
+		secondary_window?: CodexRateWindow;
+	};
+};
+
+type CodexCredentials = {
+	accessToken: string;
+	accountId?: string;
 };
 
 let quotaStatus: string | undefined;
@@ -34,80 +49,95 @@ function formatCwd(cwd: string, home: string | undefined): string {
 	return relativeToHome === "" ? "~" : `~${sep}${relativeToHome}`;
 }
 
-function parseNumber(value: string | undefined): number | undefined {
-	if (!value) return undefined;
-	const match = value.match(/\d+(?:\.\d+)?/);
-	if (!match) return undefined;
-	const parsed = Number(match[0]);
-	return Number.isFinite(parsed) ? parsed : undefined;
+function loadCodexCredentials(): CodexCredentials | undefined {
+	const authPath = join(homedir(), ".pi", "agent", "auth.json");
+	if (!existsSync(authPath)) return undefined;
+
+	try {
+		const data = JSON.parse(readFileSync(authPath, "utf8")) as {
+			"openai-codex"?: { access?: string; accountId?: string };
+		};
+		const codexAuth = data["openai-codex"];
+		if (!codexAuth?.access) return undefined;
+		return { accessToken: codexAuth.access, accountId: codexAuth.accountId };
+	} catch {
+		return undefined;
+	}
 }
 
-function parseResetMs(value: string | undefined): number | undefined {
-	if (!value) return undefined;
-
-	const epoch = Number(value);
-	if (Number.isFinite(epoch) && epoch > 1_000_000_000) {
-		return epoch * 1000 - Date.now();
-	}
-
-	const seconds = value.match(/^(\d+(?:\.\d+)?)s?$/i);
-	if (seconds) return Number(seconds[1]) * 1000;
-
-	const minutes = value.match(/^(\d+(?:\.\d+)?)m$/i);
-	if (minutes) return Number(minutes[1]) * 60_000;
-
-	const hours = value.match(/^(\d+(?:\.\d+)?)h$/i);
-	if (hours) return Number(hours[1]) * 3_600_000;
-
+function windowSeconds(window: CodexRateWindow): number | undefined {
+	if (typeof window.limit_window_seconds === "number") return window.limit_window_seconds;
+	if (typeof window.window_minutes === "number") return window.window_minutes * 60;
 	return undefined;
 }
 
-function normalizeHeaders(headers: Record<string, string>): Map<string, string> {
-	const normalized = new Map<string, string>();
-	for (const [key, value] of Object.entries(headers)) {
-		normalized.set(key.toLowerCase(), value);
-	}
-	return normalized;
+function formatWindowLabel(window: CodexRateWindow): string {
+	const seconds = windowSeconds(window);
+	if (!seconds || seconds <= 0) return "5h";
+	const hours = Math.round(seconds / 3600);
+	if (hours >= 144) return "Week";
+	if (hours >= 24) return "Day";
+	return `${hours}h`;
 }
 
-function bucketFromHeaders(headers: Record<string, string>): RateLimitBucket | undefined {
-	const normalized = normalizeHeaders(headers);
-	const buckets: RateLimitBucket[] = [];
-
-	for (const [key, value] of normalized) {
-		const match = key.match(/(?:^|-)ratelimit-limit[-_]?(.+)?$/);
-		if (!match) continue;
-
-		const suffix = match[1] ?? "";
-		const limit = parseNumber(value);
-		const remainingKey = key.replace(/limit([-_]?.*)?$/, "remaining$1");
-		const remaining =
-			parseNumber(normalized.get(remainingKey)) ??
-			(suffix ? parseNumber(normalized.get(`x-ratelimit-remaining-${suffix}`)) : undefined) ??
-			(suffix ? parseNumber(normalized.get(`ratelimit-remaining-${suffix}`)) : undefined);
-		if (limit === undefined || remaining === undefined || limit <= 0) continue;
-
-		const resetKey = key.replace(/limit([-_]?.*)?$/, "reset$1");
-		const resetMs =
-			parseResetMs(normalized.get(resetKey)) ??
-			(suffix ? parseResetMs(normalized.get(`x-ratelimit-reset-${suffix}`)) : undefined) ??
-			(suffix ? parseResetMs(normalized.get(`ratelimit-reset-${suffix}`)) : undefined);
-		buckets.push({ limit, remaining, resetMs });
-	}
-
-	return (
-		buckets.find((bucket) => bucket.resetMs !== undefined && bucket.resetMs > 30 * 60_000 && bucket.resetMs <= 6 * 60 * 60_000) ??
-		buckets.find((bucket) => bucket.limit > 100 && bucket.limit < 100_000) ??
-		buckets[0]
-	);
+function isSessionWindow(window: CodexRateWindow | undefined): window is CodexRateWindow {
+	if (!window || typeof window.used_percent !== "number" || !Number.isFinite(window.used_percent)) return false;
+	const seconds = windowSeconds(window);
+	return !seconds || seconds <= 24 * 60 * 60;
 }
 
-function quotaFromHeaders(headers: Record<string, string>): string | undefined {
-	const bucket = bucketFromHeaders(headers);
-	if (!bucket) return undefined;
+function formatCodexWindow(window: CodexRateWindow): string {
+	const usedPercent = Math.max(0, Math.min(100, window.used_percent ?? 0));
+	return `${formatWindowLabel(window)} ${usedPercent.toFixed(0)}%`;
+}
 
-	const usedPercent = Math.max(0, Math.min(100, ((bucket.limit - bucket.remaining) / bucket.limit) * 100));
-	return `5h ${usedPercent.toFixed(0)}%`;
+function formatCodexQuota(data: CodexUsageResponse): string | undefined {
+	const window = [data.rate_limit?.primary_window, data.rate_limit?.secondary_window].find(isSessionWindow);
+	return window ? formatCodexWindow(window) : undefined;
+}
+
+function codexWindowFromHeaders(headers: Record<string, string>, prefix: "primary" | "secondary"): CodexRateWindow | undefined {
+	const normalized = new Map(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
+	const used = Number(normalized.get(`x-codex-${prefix}-used-percent`));
+	if (!Number.isFinite(used)) return undefined;
+
+	const minutes = Number(normalized.get(`x-codex-${prefix}-window-minutes`));
+	return {
+		used_percent: used,
+		window_minutes: Number.isFinite(minutes) ? minutes : undefined,
+	};
+}
+
+function codexQuotaFromHeaders(headers: Record<string, string>): string | undefined {
+	const window = [codexWindowFromHeaders(headers, "primary"), codexWindowFromHeaders(headers, "secondary")].find(isSessionWindow);
+	return window ? formatCodexWindow(window) : undefined;
+}
+
+async function fetchCodexQuota(): Promise<string | undefined> {
+	const credentials = loadCodexCredentials();
+	if (!credentials) return undefined;
+
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 10_000);
+	try {
+		const headers: Record<string, string> = {
+			Authorization: `Bearer ${credentials.accessToken}`,
+			Accept: "application/json",
+		};
+		if (credentials.accountId) headers["ChatGPT-Account-Id"] = credentials.accountId;
+
+		const response = await fetch("https://chatgpt.com/backend-api/wham/usage", {
+			headers,
+			signal: controller.signal,
+		});
+		if (!response.ok) return undefined;
+
+		return formatCodexQuota((await response.json()) as CodexUsageResponse);
+	} catch {
+		return undefined;
+	} finally {
+		clearTimeout(timeout);
+	}
 }
 
 function sanitizeStatus(text: string): string {
@@ -115,18 +145,48 @@ function sanitizeStatus(text: string): string {
 }
 
 export default function (pi: ExtensionAPI) {
+	let refreshTimer: ReturnType<typeof setInterval> | undefined;
+	let refreshing = false;
+
 	pi.on("after_provider_response", (event, ctx) => {
 		if (ctx.model?.provider !== "openai-codex") return;
 
-		const next = quotaFromHeaders(event.headers);
+		const next = codexQuotaFromHeaders(event.headers);
 		if (!next || next === quotaStatus) return;
 
 		quotaStatus = next;
 		requestRender?.();
 	});
 
+	async function refreshCodexQuota(): Promise<void> {
+		if (refreshing) return;
+		refreshing = true;
+		try {
+			const next = await fetchCodexQuota();
+			if (!next || next === quotaStatus) return;
+			quotaStatus = next;
+			requestRender?.();
+		} finally {
+			refreshing = false;
+		}
+	}
+
+	pi.on("message_end", (event, ctx) => {
+		if (event.message.role !== "assistant" || ctx.model?.provider !== "openai-codex") return;
+		void refreshCodexQuota();
+	});
+
+	pi.on("session_shutdown", () => {
+		if (refreshTimer) clearInterval(refreshTimer);
+		refreshTimer = undefined;
+		requestRender = undefined;
+	});
+
 	pi.on("session_start", (_event, ctx) => {
 		if (ctx.mode !== "tui") return;
+
+		void refreshCodexQuota();
+		refreshTimer = setInterval(() => void refreshCodexQuota(), 5 * 60_000);
 
 		ctx.ui.setFooter((tui, theme, footerData) => {
 			requestRender = () => tui.requestRender();
