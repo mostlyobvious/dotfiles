@@ -1,12 +1,9 @@
-# Multi-host refactor — remaining work
+# Multi-host refactor
 
 The flake is restructured around the host tree: `hosts/<host>.nix` is the root
 for a machine (its `arch`, `system`, `users`, and `vms`), `lib/` walks the tree
 to derive every darwin/home/nixos target and the two commands (`bootstrap
-<host>`, `switch`), and `modules/` is one flat file-per-feature directory. That
-work (stages 0–4, including the standalone linux guest on a read-only
-`/mnt/dotfiles` mount) is done and lives in the code and git history; only the
-arrival of the work host remains.
+<host>`, `switch`), and `modules/` is one flat file-per-feature directory.
 
 ## Assumptions (stated, not enforced)
 
@@ -18,15 +15,14 @@ arrival of the work host remains.
 
 ## Stage 5 — Bring up host `cm`
 
-- `hosts/cm.nix` — a single `mostlyobvious` account with `admin = true`,
+- `hosts/cm.nix` has a single `mostlyobvious` account with `admin = true`,
   mirroring `pro`'s `cm` account (work email, `Documents/CM` graph, work tool
   files); no non-admin accounts, no VMs yet.
 - On the new machine: install nix + homebrew, then `nix run .#bootstrap -- cm`.
-- `darwinConfigurations.cm` and its account home are already in `checks` from
-  stage 3's tree walk, so they can't rot before the machine arrives.
+- `darwinConfigurations.cm` and `homeConfigurations.cm-mostlyobvious` are in
+  `checks` via the host tree walk.
 - With no non-admin accounts, `account.nix` authorizes nothing; the admin's
-  own `key` is irrelevant until this host gains a non-admin account, so it can
-  be filled in later. `account.nix` must tolerate an admin whose `key` is null.
+  own `key` is irrelevant until this host gains a non-admin account.
 
 ## What the finished design supports without further work
 

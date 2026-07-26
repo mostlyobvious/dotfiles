@@ -90,6 +90,7 @@
       # system + every account + every VM. See docs/multi-host-refactor.md.
       hosts = {
         pro = import ./hosts/pro.nix;
+        cm = import ./hosts/cm.nix;
       };
 
       mkHome = import ./lib/mk-home.nix {
