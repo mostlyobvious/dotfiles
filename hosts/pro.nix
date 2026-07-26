@@ -19,6 +19,38 @@
     mostlyobvious = {
       admin = true;
       key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFai8QY2psbXCIconVn7fLRxtWmIpsasY03qgBVA8NdS mostlyobvious@pro"; # authorized on non-admin accounts
+      homebrew = {
+        casks = [
+          "discord"
+          "figma"
+          "ghostty"
+          "logseq"
+          "onyx"
+          "zed"
+          "autodesk-fusion"
+          "blender"
+          "brave-browser"
+          "google-chrome"
+          "slack"
+          "signal"
+          "affinity"
+          "deckset"
+          "claude"
+          "insta360-studio"
+          "ia-presenter"
+          "whatsapp"
+          "notion"
+          "1password"
+          "1password-cli"
+        ];
+        masApps = {
+          "iA Writer" = 775737590;
+          "Photomator" = 1444636541;
+          "Amphetamine" = 937984704;
+          "ActionBar" = 6758538752;
+          "AdGuard: Ad Blocker for Safari" = 1440147259;
+        };
+      };
       modules = [
         ../modules/core.nix
         ../modules/cli.nix
