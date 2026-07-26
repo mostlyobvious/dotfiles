@@ -87,7 +87,7 @@
       ];
 
       # The host is the root of the tree: one file per machine, its whole
-      # system + every account + every VM. See docs/multi-host-refactor.md.
+      # system + every account + every VM.
       hosts = {
         pro = import ./hosts/pro.nix;
         cm = import ./hosts/cm.nix;
