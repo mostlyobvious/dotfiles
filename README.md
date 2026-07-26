@@ -32,19 +32,20 @@ VM=nixden HMCFG=nixden nix run .#home
 
 ## Bootstrap fresh Mac
 
-Stock macOS only needs `make` after the Xcode Command Line Tools are available:
+Stock macOS only needs the host name (one of `hosts/`):
 
 ```sh
-xcode-select --install
-make
+make bootstrap HOST=pro
 ```
 
-`make` is intentionally only a pre-Nix bootstrap shim. It installs Nix with the
-Determinate Systems installer if needed, then delegates to `nix run .#bootstrap`.
-The flake app installs Homebrew if absent and runs the first nix-darwin switch.
+`make bootstrap` is intentionally only a pre-Nix shim. It starts the Xcode
+Command Line Tools installer if they are missing, installs Nix with the
+Determinate Systems installer if needed, then delegates to
+`nix run .#bootstrap -- <host>`. The flake app installs Homebrew if absent
+and runs the first nix-darwin switch.
 
 Open a new terminal afterwards so the freshly installed tools are on `PATH`.
-Thereafter use the flake apps above.
+Thereafter plain `make` (= `nix run .#switch`) converges the machine.
 
 If the login shell does not change automatically, run once:
 
