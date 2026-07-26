@@ -142,7 +142,7 @@ GUI casks and a few host-only CLI tools (rtl_433, lima, container) that have no
 portable VM use. Everything else is Nix or dropped. `cleanup = "zap"` makes the
 declared lists the single source of truth; `autoUpdate`/`upgrade` off so a switch
 is fast and reproducible. nix-darwin does not install Homebrew — it must already
-exist, except during bootstrap where `nix run .#bootstrap` installs it if absent.
+exist; both `bootstrap` and `switch` install it first if absent.
 
 ### VM isolation
 

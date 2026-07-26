@@ -66,6 +66,12 @@ let
   '';
 
   hostScript = hostName: host: ''
+    # nix-darwin's homebrew module only manages an existing install and
+    # aborts activation when brew is missing.
+    if ! test -x /opt/homebrew/bin/brew; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+
     sudo -H ${darwinRebuild} switch --flake ${self}#${hostName}
 
     WHOAMI="$(whoami)"
@@ -86,10 +92,6 @@ in
 {
   bootstrap = mkApp "dotfiles-bootstrap" ''
     HOST="''${1:?usage: bootstrap <host>}"
-
-    if ! test -x /opt/homebrew/bin/brew; then
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
 
     case "$HOST" in
       ${hostCases}
