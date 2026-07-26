@@ -93,6 +93,14 @@ in
   bootstrap = mkApp "dotfiles-bootstrap" ''
     HOST="''${1:?usage: bootstrap <host>}"
 
+    # The Determinate installer writes a stock /etc/nix/nix.custom.conf.
+    # nix-darwin manages that path (as a symlink, via the determinate
+    # module) and aborts activation on a file it didn't write; park the
+    # original under the suffix its error message asks for.
+    if [ -f /etc/nix/nix.custom.conf ] && [ ! -L /etc/nix/nix.custom.conf ]; then
+      sudo mv /etc/nix/nix.custom.conf /etc/nix/nix.custom.conf.before-nix-darwin
+    fi
+
     case "$HOST" in
       ${hostCases}
       *)
