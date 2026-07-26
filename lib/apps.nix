@@ -50,14 +50,14 @@ let
       limactl start "${vmName}"
     fi
 
-    limactl shell "${vmName}" -- sudo nixos-rebuild switch --flake /mnt/dotfiles#${vmName}
+    limactl shell --workdir=/tmp "${vmName}" -- sudo nixos-rebuild switch --flake /mnt/dotfiles#${vmName}
 
     # single-quoted on purpose: the vars and $(...) run in the guest, not here.
     # HOME comes from passwd, not the login session: nixos-rebuild above may have
     # just changed the account's home, and a session opened before that still
     # carries the old value, which home-manager refuses to activate against.
     # shellcheck disable=SC2016
-    limactl shell "${vmName}" -- bash -c '
+    limactl shell --workdir=/tmp "${vmName}" -- bash -c '
       set -euo pipefail
       export HOME="$(getent passwd "$(id -un)" | cut -d: -f6)"
       RESULT="$(nix build /mnt/dotfiles#homeConfigurations.${vmName}.activationPackage --no-link --print-out-paths)"
