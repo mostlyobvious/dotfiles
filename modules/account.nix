@@ -1,5 +1,6 @@
 {
   lib,
+  allAccounts ? [ ],
   nonAdminAccounts ? [ ],
   adminKeys ? [ ],
   ...
@@ -19,20 +20,22 @@
     openssh.authorizedKeys.keys = adminKeys;
   });
 
-  system.activationScripts.postActivation.text = lib.concatMapStrings (name: ''
-    # sshd's PAM stack (/etc/pam.d/sshd) gates access on the com.apple.access_ssh
-    # Service ACL via pam_sacl. That group is normally populated by the System
-    # Settings "Remote Login" toggle, which the loopback daemon bypasses — so
-    # without this ${name} authenticates but the account phase denies it.
-    if ! dseditgroup -o checkmember -m ${name} com.apple.access_ssh > /dev/null 2>&1; then
-      dseditgroup -o edit -a ${name} -t user com.apple.access_ssh
-    fi
-
-    # Login shell. ${name}'s home config can't change the account's
-    # UserShell — that needs root. Match the admin's stable, /etc/shells
-    # listed fish path.
-    if [ "$(dscl . -read /Users/${name} UserShell 2>/dev/null)" != "UserShell: /run/current-system/sw/bin/fish" ]; then
-      dscl . -create /Users/${name} UserShell /run/current-system/sw/bin/fish
-    fi
-  '') nonAdminAccounts;
+  system.activationScripts.postActivation.text =
+    lib.concatMapStrings (name: ''
+      # sshd's PAM stack (/etc/pam.d/sshd) gates access on the com.apple.access_ssh
+      # Service ACL via pam_sacl. That group is normally populated by the System
+      # Settings "Remote Login" toggle, which the loopback daemon bypasses — so
+      # without this ${name} authenticates but the account phase denies it.
+      if ! dseditgroup -o checkmember -m ${name} com.apple.access_ssh > /dev/null 2>&1; then
+        dseditgroup -o edit -a ${name} -t user com.apple.access_ssh
+      fi
+    '') nonAdminAccounts
+    + lib.concatMapStrings (name: ''
+      # Login shell. users.users.*.shell only applies to accounts nix-darwin
+      # manages via users.knownUsers; every account here pre-exists, so set
+      # UserShell directly to the stable, /etc/shells listed fish path.
+      if [ "$(dscl . -read /Users/${name} UserShell 2>/dev/null)" != "UserShell: /run/current-system/sw/bin/fish" ]; then
+        dscl . -create /Users/${name} UserShell /run/current-system/sw/bin/fish
+      fi
+    '') allAccounts;
 }

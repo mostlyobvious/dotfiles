@@ -1,5 +1,4 @@
 {
-  pkgs,
   username,
   hostname,
   ...
@@ -21,9 +20,10 @@
   system.primaryUser = username;
   system.stateVersion = 6;
 
+  # The login shell is set with dscl in account.nix's activation script;
+  # users.users.*.shell would only apply to knownUsers-managed accounts.
   users.users.${username} = {
     name = username;
     home = "/Users/${username}";
-    shell = pkgs.fish;
   };
 }

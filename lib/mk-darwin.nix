@@ -41,6 +41,7 @@ nix-darwin.lib.darwinSystem {
     username = primaryUser;
     hostname = hostName;
     inherit nonAdminAccounts adminKeys;
+    allAccounts = builtins.attrNames host.users;
     homebrewCasks = primaryAccount.homebrew.casks or [ ];
     homebrewMasApps = primaryAccount.homebrew.masApps or { };
   };

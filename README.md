@@ -47,12 +47,6 @@ and runs the first nix-darwin switch.
 Open a new terminal afterwards so the freshly installed tools are on `PATH`.
 Thereafter plain `make` (= `nix run .#switch`) converges the machine.
 
-If the login shell does not change automatically, run once:
-
-```sh
-chsh -s $(which fish)
-```
-
 ## Design
 
 ### Theme preference
