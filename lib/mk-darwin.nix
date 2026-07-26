@@ -31,16 +31,12 @@ let
 
   primaryAccount = host.users.${primaryUser};
 
-  nonAdminAccounts = builtins.attrNames (lib.filterAttrs (_: u: !(u.admin or false)) host.users);
-
-  adminKeys = builtins.filter (k: k != null) (map (name: admins.${name}.key or null) adminNames);
 in
 nix-darwin.lib.darwinSystem {
   system = host.arch;
   specialArgs = {
     username = primaryUser;
     hostname = hostName;
-    inherit nonAdminAccounts adminKeys;
     allAccounts = builtins.attrNames host.users;
     homebrewCasks = primaryAccount.homebrew.casks or [ ];
     homebrewMasApps = primaryAccount.homebrew.masApps or { };

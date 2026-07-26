@@ -6,7 +6,6 @@
       ../modules/darwin-core.nix
       ../modules/system.nix
       ../modules/sudo.nix
-      ../modules/sshd.nix
       ../modules/homebrew.nix
       ../modules/account.nix
     ];

@@ -7,7 +7,6 @@
       ../modules/darwin-core.nix
       ../modules/system.nix
       ../modules/sudo.nix
-      ../modules/sshd.nix
       ../modules/homebrew.nix
       ../modules/account.nix
     ];
@@ -18,7 +17,6 @@
   users = {
     mostlyobvious = {
       admin = true;
-      key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFai8QY2psbXCIconVn7fLRxtWmIpsasY03qgBVA8NdS mostlyobvious@pro"; # authorized on non-admin accounts
       homebrew = {
         casks = [
           "discord"
