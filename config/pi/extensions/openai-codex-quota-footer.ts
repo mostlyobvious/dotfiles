@@ -80,16 +80,18 @@ function bucketFromHeaders(headers: Record<string, string>): RateLimitBucket | u
 
 		const suffix = match[1] ?? "";
 		const limit = parseNumber(value);
+		const remainingKey = key.replace(/limit([-_]?.*)?$/, "remaining$1");
 		const remaining =
-			parseNumber(normalized.get(key.replace("limit", "remaining"))) ??
-			parseNumber(normalized.get(`x-ratelimit-remaining-${suffix}`)) ??
-			parseNumber(normalized.get(`ratelimit-remaining-${suffix}`));
+			parseNumber(normalized.get(remainingKey)) ??
+			(suffix ? parseNumber(normalized.get(`x-ratelimit-remaining-${suffix}`)) : undefined) ??
+			(suffix ? parseNumber(normalized.get(`ratelimit-remaining-${suffix}`)) : undefined);
 		if (limit === undefined || remaining === undefined || limit <= 0) continue;
 
+		const resetKey = key.replace(/limit([-_]?.*)?$/, "reset$1");
 		const resetMs =
-			parseResetMs(normalized.get(key.replace("limit", "reset"))) ??
-			parseResetMs(normalized.get(`x-ratelimit-reset-${suffix}`)) ??
-			parseResetMs(normalized.get(`ratelimit-reset-${suffix}`));
+			parseResetMs(normalized.get(resetKey)) ??
+			(suffix ? parseResetMs(normalized.get(`x-ratelimit-reset-${suffix}`)) : undefined) ??
+			(suffix ? parseResetMs(normalized.get(`ratelimit-reset-${suffix}`)) : undefined);
 		buckets.push({ limit, remaining, resetMs });
 	}
 
