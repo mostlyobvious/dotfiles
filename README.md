@@ -108,6 +108,21 @@ Current split:
 This keeps the default deterministic while preserving writable/live configs for
 agents and editors where read-only store paths get in the way.
 
+Claude and pi settings are tracked but locally marked `skip-worktree` because the
+agents rewrite them during normal use. To intentionally commit a settings change,
+clear the bit, commit, then restore it:
+
+```sh
+git update-index --no-skip-worktree config/claude/settings.json config/pi/settings.json
+git add config/claude/settings.json config/pi/settings.json
+git commit
+git update-index --skip-worktree config/claude/settings.json config/pi/settings.json
+```
+
+Use `skip-worktree` for this case rather than `assume-unchanged`; the latter is
+mainly a performance hint, while `skip-worktree` says to keep local edits out of
+normal status/add flows.
+
 ### Neovim plugins stay in vim.pack
 
 Native `vim.pack` + `nvim-pack-lock.json` already pin plugins and work in a VM
