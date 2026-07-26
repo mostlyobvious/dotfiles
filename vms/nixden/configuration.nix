@@ -71,6 +71,11 @@
     fish
   ];
 
+  environment.etc."gitconfig".text = ''
+    [safe]
+      directory = /mnt/dotfiles
+  '';
+
   programs.fish.enable = true;
   programs.starship.enable = lib.mkForce false;
 
