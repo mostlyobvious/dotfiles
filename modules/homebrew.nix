@@ -26,14 +26,6 @@ in
 
     };
 
-    # Declared so zap keeps it (codexbar's tap).
-    taps = [
-      {
-        name = "steipete/tap";
-        trusted = true;
-      }
-    ];
-
     # CLI tooling is in Nix; only host-only tools remain here.
     brews = [
       "container"
@@ -47,18 +39,15 @@ in
       "logseq"
       "onyx"
       "zed"
-      "rubymine"
       "autodesk-fusion"
       "blender"
       "brave-browser"
       "google-chrome"
-      "codexbar"
       "slack"
       "signal"
       "affinity"
       "deckset"
       "claude"
-      "codex"
       "insta360-studio"
       "ia-presenter"
       "whatsapp"
