@@ -45,11 +45,6 @@
     '';
   };
 
-  # Config files default to in-store. Both dirs are linked per-file so
-  # HM-generated entries (plugins, programs.fish.functions) don't collide
-  # with a directory symlink.
-  xdg.configFile."fish/functions/pi.fish".source = ../config/fish/functions/pi.fish;
-
   # Named to sort before plugin-hydro.fish: hydro bakes hydro_symbol_prompt
   # into _hydro_status as its conf.d loads, so the overrides must exist first.
   xdg.configFile."fish/conf.d/hydro-theme.fish".text = ''
