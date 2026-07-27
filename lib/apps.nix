@@ -34,7 +34,7 @@ let
   accountScript = hostName: accountName: ''
     nix build ${self}#homeConfigurations."${hostName}-${accountName}".activationPackage
     if [ "$WHOAMI" = "${accountName}" ]; then
-      ./result/activate
+      HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
     else
       HOME_MANAGER_BACKUP_EXT=hm-bak sudo -u ${accountName} -H ./result/activate
     fi
