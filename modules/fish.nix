@@ -45,9 +45,11 @@
     '';
   };
 
-  # Config files default to in-store. conf.d is linked per-file so HM-generated
-  # conf.d entries don't collide with the directory.
-  xdg.configFile."fish/functions".source = ../config/fish/functions;
+  # Config files default to in-store. Both dirs are linked per-file so
+  # HM-generated entries (plugins, programs.fish.functions) don't collide
+  # with a directory symlink.
+  xdg.configFile."fish/functions/pi.fish".source = ../config/fish/functions/pi.fish;
+  xdg.configFile."fish/functions/rubymine.fish".source = ../config/fish/functions/rubymine.fish;
 
   xdg.configFile."fish/conf.d/spring.fish".source = ../config/fish/conf.d/spring.fish;
 

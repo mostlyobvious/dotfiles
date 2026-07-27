@@ -47,6 +47,20 @@ in
 {
   home.packages = [ pkgs.tig ];
 
+  # show/log honor diff.external (difftastic above) only with --ext-diff.
+  programs.fish.functions.git = ''
+    set -l args $argv
+
+    if test (count $args) -ge 1
+        set -l command $args[1]
+        if contains -- $command show log whatchanged; and not contains -- --ext-diff $args
+            set args $args[1] --ext-diff $args[2..-1]
+        end
+    end
+
+    env LC_ALL=en_US.UTF-8 command git $args
+  '';
+
   programs.difftastic = {
     enable = true;
   };
