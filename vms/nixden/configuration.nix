@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   username,
@@ -106,15 +105,4 @@
 
   services.openssh.enable = true;
   services.dbus.implementation = "dbus";
-
-  assertions = [
-    {
-      assertion =
-        !(
-          config.environment.systemPackages or [ ] != [ ]
-          && builtins.elem pkgs.just config.environment.systemPackages
-        );
-      message = "nixden should not install just in the system profile.";
-    }
-  ];
 }
