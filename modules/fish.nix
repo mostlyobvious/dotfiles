@@ -9,6 +9,15 @@
     enable = true;
     shellAliases.less = "less -R";
 
+    # Upstream hydro prompt; local deviations go through its public
+    # variables (see conf.d/hydro-theme.fish below), no forked functions.
+    plugins = [
+      {
+        name = "hydro";
+        inherit (pkgs.fishPlugins.hydro) src;
+      }
+    ];
+
     shellInit = ''
       set fish_greeting
     ''
@@ -40,6 +49,16 @@
   # conf.d entries don't collide with the directory.
   xdg.configFile."fish/functions".source = ../config/fish/functions;
 
-  xdg.configFile."fish/conf.d/hydro.fish".source = ../config/fish/conf.d/hydro.fish;
   xdg.configFile."fish/conf.d/spring.fish".source = ../config/fish/conf.d/spring.fish;
+
+  # Named to sort before plugin-hydro.fish: hydro bakes hydro_symbol_prompt
+  # into _hydro_status as its conf.d loads, so the overrides must exist first.
+  xdg.configFile."fish/conf.d/hydro-theme.fish".text = ''
+    set --global hydro_symbol_prompt \$
+    set --global hydro_symbol_git_dirty ' •'
+
+    if set --query SSH_CONNECTION; or set --query SSH_TTY
+        set --global hydro_symbol_start (prompt_hostname)' '
+    end
+  '';
 }
