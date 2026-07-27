@@ -29,8 +29,6 @@ let
       ) "host ${hostName}: multi-admin hosts must mark exactly one account primary = true";
       builtins.head primaries;
 
-  primaryAccount = host.users.${primaryUser};
-
 in
 nix-darwin.lib.darwinSystem {
   system = host.arch;
@@ -38,8 +36,8 @@ nix-darwin.lib.darwinSystem {
     username = primaryUser;
     hostname = hostName;
     allAccounts = builtins.attrNames host.users;
-    homebrewCasks = primaryAccount.homebrew.casks or [ ];
-    homebrewMasApps = primaryAccount.homebrew.masApps or { };
+    homebrewCasks = host.homebrew.casks or [ ];
+    homebrewMasApps = host.homebrew.masApps or { };
   };
   modules = [
     determinate.darwinModules.default

@@ -12,43 +12,45 @@
     ];
   };
 
+  # Homebrew installs are machine-wide, so casks/MAS apps are a host concern.
+  homebrew = {
+    casks = [
+      "discord"
+      "figma"
+      "ghostty"
+      "logseq"
+      "onyx"
+      "zed"
+      "autodesk-fusion"
+      "blender"
+      "brave-browser"
+      "google-chrome"
+      "slack"
+      "signal"
+      "affinity"
+      "deckset"
+      "claude"
+      "insta360-studio"
+      "ia-presenter"
+      "whatsapp"
+      "notion"
+      "1password"
+      "1password-cli"
+    ];
+    masApps = {
+      "iA Writer" = 775737590;
+      "Photomator" = 1444636541;
+      "Amphetamine" = 937984704;
+      "ActionBar" = 6758538752;
+      "AdGuard: Ad Blocker for Safari" = 1440147259;
+    };
+  };
+
   # every account on this machine; the invoking admin activates directly,
   # every other account via sudo -u
   users = {
     mostlyobvious = {
       admin = true;
-      homebrew = {
-        casks = [
-          "discord"
-          "figma"
-          "ghostty"
-          "logseq"
-          "onyx"
-          "zed"
-          "autodesk-fusion"
-          "blender"
-          "brave-browser"
-          "google-chrome"
-          "slack"
-          "signal"
-          "affinity"
-          "deckset"
-          "claude"
-          "insta360-studio"
-          "ia-presenter"
-          "whatsapp"
-          "notion"
-          "1password"
-          "1password-cli"
-        ];
-        masApps = {
-          "iA Writer" = 775737590;
-          "Photomator" = 1444636541;
-          "Amphetamine" = 937984704;
-          "ActionBar" = 6758538752;
-          "AdGuard: Ad Blocker for Safari" = 1440147259;
-        };
-      };
       modules = [
         ../modules/core.nix
         ../modules/cli.nix

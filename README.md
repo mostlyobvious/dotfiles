@@ -6,7 +6,7 @@ account, NixOS for Linux VMs. One flake, pinned by `flake.lock`.
 ## Layout
 
 - `hosts/` — the root of the tree, one file per machine: its system
-  modules, every account (home module list, Homebrew casks), its VMs.
+  modules, Homebrew casks, every account (home module list), its VMs.
 - `lib/` — turns the host tree into flake outputs: `mk-darwin.nix`
   (system), `mk-home.nix` (standalone home-manager per account),
   `apps.nix` (bootstrap/switch).
@@ -83,7 +83,7 @@ shared module only enables `direnv` + `nix-direnv`.
 
 ### Homebrew — GUI casks only, zap
 
-Casks and MAS apps are declared per account in `hosts/`; CLI tooling is
+Casks and MAS apps are declared per host in `hosts/`; CLI tooling is
 Nix except a couple of host-only tools. `cleanup = "zap"` makes the
 declared lists the single source of truth; auto-update/upgrade off so a
 switch is fast. nix-darwin never installs Homebrew — bootstrap and switch

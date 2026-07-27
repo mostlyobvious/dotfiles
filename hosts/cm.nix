@@ -11,23 +11,25 @@
     ];
   };
 
+  # Homebrew installs are machine-wide, so casks/MAS apps are a host concern.
+  homebrew = {
+    casks = [
+      "ghostty"
+      "logseq"
+      "zed"
+      "google-chrome"
+      "slack"
+      "signal"
+      "claude"
+      "notion"
+      "1password"
+      "1password-cli"
+    ];
+  };
+
   users = {
     mostlyobvious = {
       admin = true;
-      homebrew = {
-        casks = [
-          "ghostty"
-          "logseq"
-          "zed"
-          "google-chrome"
-          "slack"
-          "signal"
-          "claude"
-          "notion"
-          "1password"
-          "1password-cli"
-        ];
-      };
       modules = [
         ../modules/core.nix
         ../modules/cli.nix
