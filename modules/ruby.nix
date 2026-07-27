@@ -2,6 +2,25 @@
 
 {
   # No Ruby toolchain here: per-project Ruby comes from nix devshells via direnv.
+  home.sessionVariables.DISABLE_SPRING = "true";
+
+  # Exec the bundle binary directly, not `open -a`: LaunchServices would drop
+  # the devenv shell environment RubyMine needs to resolve the Ruby toolchain.
+  programs.fish.functions.rubymine = ''
+    set --local bin /Applications/RubyMine.app/Contents/MacOS/rubymine
+
+    if not test -x $bin
+        echo "rubymine: $bin not found" >&2
+        return 1
+    end
+
+    set --local target $argv
+    test (count $target) -eq 0; and set target .
+
+    $bin $target >/dev/null 2>&1 &
+    disown
+  '';
+
   home.file.".gemrc".text = "gem: --no-document\n";
 
   home.file.".irbrc".text = ''
