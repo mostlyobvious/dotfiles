@@ -104,7 +104,6 @@
         ../modules/redocly.nix
         {
           my.dotfilesDir = "/Users/cm/dotfiles";
-          my.signingKey = "/Users/cm/.ssh/id_ed25519.pub";
           my.userEmail = "pawel.pacana@chattermill.io";
           my.logseqGraphs = [ "Documents/CM" ];
         }

@@ -107,7 +107,7 @@ in
       alias = {
         aa = "add -A";
         st = "status";
-        ci = "commit -v --no-verify";
+        ci = "commit --no-verify";
         rv = "revert";
         mg = "merge";
         br = "branch";
@@ -133,10 +133,8 @@ in
         pager = "less -R";
       };
       merge.tool = "nvim -d";
-      color.ui = true;
       github.user = "mostlyobvious";
       push.default = "current";
-      branch.autosetupmerge = true;
       url."git@github.com:" = {
         insteadOf = "gh:";
         pushInsteadOf = [
@@ -147,7 +145,6 @@ in
       };
       diff = {
         external = lib.getExe difftNoItalic;
-        indentHeuristic = true;
         noprefix = true;
         tool = "nvim_difftool";
       };
