@@ -1,7 +1,6 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 let
-  limaInstances = [ "nixden" ];
   limaHost = name: ''
     Host ${name}
       HostName 127.0.0.1
@@ -56,5 +55,5 @@ in
 
   # Stable aliases for Lima VMs. The proxy reuses Lima's generated ssh.config,
   # so changing forwarded ports after a restart do not require regenerating this.
-  home.file.".ssh/config.d/lima".text = lib.concatMapStrings limaHost limaInstances;
+  home.file.".ssh/config.d/lima".text = lib.concatMapStrings limaHost config.my.limaVms;
 }

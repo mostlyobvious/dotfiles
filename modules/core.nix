@@ -28,6 +28,14 @@
     description = "Email address used as the git commit author.";
   };
 
+  # Lima VM names to expose as stable SSH host aliases. Set by the host file,
+  # which also declares the VMs; consumed by ssh.nix.
+  options.my.limaVms = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    description = "Lima VM instance names to alias in SSH config.";
+  };
+
   # Home-relative Logseq graph dirs to receive the nightfox custom.css. Per
   # account, since graphs differ and custom.css is loaded per-graph.
   options.my.logseqGraphs = lib.mkOption {
