@@ -65,16 +65,11 @@
         ../modules/zed.nix
         ../modules/ssh.nix
         ../modules/fonts.nix
-        ../modules/logseq.nix
         ../modules/macos-defaults.nix
         ../modules/history.nix # iCloud-backed; this account only
         ../modules/lima.nix
         {
           my.limaVms = [ "nixden" ]; # aliased in ssh config; declared in vms below
-          my.logseqGraphs = [
-            "Notes/mostlyobvious"
-            "Notes/hraba.gs"
-          ];
         }
       ];
     };
@@ -96,7 +91,6 @@
         ../modules/zed.nix
         ../modules/ssh.nix
         ../modules/fonts.nix
-        ../modules/logseq.nix
         ../modules/macos-defaults.nix
         ../modules/kubernetes.nix
         ../modules/vault.nix
@@ -104,7 +98,6 @@
         {
           my.dotfilesDir = "/Users/cm/dotfiles";
           my.userEmail = "pawel.pacana@chattermill.io";
-          my.logseqGraphs = [ "Documents/CM" ];
           programs.git.settings.init.defaultBranch = "main"; # work convention
         }
       ];

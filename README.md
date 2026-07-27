@@ -65,7 +65,7 @@ Config lives inline in modules/ — as program options or Nix strings — and
 is delivered through the store: read-only, rollback-able, matching the
 flake revision. `config/` holds only the out-of-store exceptions, where
 the app owns the file — it rewrites it, edits it from its UI, or needs a
-live edit loop (nvim, Zed, Logseq CSS, agent settings).
+live edit loop (nvim, Zed, agent settings).
 
 Claude and pi `settings.json` are tracked but locally marked
 `skip-worktree` because the agents rewrite them during normal use. To

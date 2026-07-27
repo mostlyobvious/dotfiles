@@ -44,14 +44,12 @@
         ../modules/zed.nix
         ../modules/ssh.nix
         ../modules/fonts.nix
-        ../modules/logseq.nix
         ../modules/macos-defaults.nix
         ../modules/kubernetes.nix
         ../modules/vault.nix
         ../modules/redocly.nix
         {
           my.userEmail = "pawel.pacana@chattermill.io";
-          my.logseqGraphs = [ "Documents/CM" ];
           programs.git.settings.init.defaultBranch = "main"; # work convention
         }
       ];

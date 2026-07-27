@@ -31,13 +31,6 @@
     description = "Lima VM instance names to alias in SSH config; set by the host file that declares the VMs.";
   };
 
-  # Logseq loads custom.css per graph, hence a list rather than one path.
-  options.my.logseqGraphs = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = [ ];
-    description = "Home-relative Logseq graph directories to theme.";
-  };
-
   config = {
     home.username = username;
     home.homeDirectory = lib.mkDefault (
