@@ -1,145 +1,101 @@
 # dotfiles
 
-Nix + home-manager managed. One flake defines the macOS host, Linux VMs,
-checks, dev shell, and operational apps.
+Nix-managed: nix-darwin for macOS system state, home-manager for every
+account, NixOS for Linux VMs. One flake, pinned by `flake.lock`.
 
-Important outputs:
+## Layout
 
-- `darwinConfigurations.pro` — macOS host (nix-darwin → home-manager +
-  Homebrew + macOS defaults).
-- `homeConfigurations.mostlyobvious` — standalone portable home-manager profile.
-- `nixosConfigurations.nixden` — Lima VM system + home-manager profile.
-- `homeConfigurations.nixden` — standalone VM home-manager profile.
-- `apps.aarch64-darwin.{bootstrap,switch,update,home,vm-switch}` — operational commands.
+- `hosts/` — the root of the tree, one file per machine: its system
+  modules, every account (home module list, Homebrew casks), its VMs.
+- `lib/` — turns the host tree into flake outputs: `mk-darwin.nix`
+  (system), `mk-home.nix` (standalone home-manager per account),
+  `apps.nix` (bootstrap/switch).
+- `modules/` — nix-darwin and home-manager modules; each account picks
+  its own list in `hosts/`.
+- `config/` — raw dotfiles the modules deliver.
+- `vms/` — Lima guests: NixOS config + `lima.yaml`.
+
+Outputs mirror the tree: `darwinConfigurations.<host>`,
+`homeConfigurations."<host>-<user>"` and `."<vm>"`,
+`nixosConfigurations.<vm>`, plus a check per system and home.
 
 ## Apply
 
 ```sh
-nix run .#switch     # host: activate .#pro, then converge configured VMs
-nix run .#vm-switch  # VM only: create/start, sync repo, nixos-rebuild switch
-nix run .#home       # VM only: standalone HM activation escape hatch
-nix run .#update     # nix flake update, then switch
-nix flake check      # format/dead-code checks + Darwin system build
+make         # = nix run .#switch
+make check   # = nix flake check
 ```
 
-`HOST`, `VMS`, `VM`, and `HMCFG` can override the defaults:
-
-```sh
-HOST=pro nix run .#switch
-VMS=nixden nix run .#vm-switch
-VM=nixden HMCFG=nixden nix run .#home
-```
+`switch` derives the host from `scutil --get LocalHostName` and converges
+everything in order: the nix-darwin system, each account's home (the
+invoking user directly, other accounts via `sudo -u`), then each VM
+(started via Lima, rebuilt from the read-only `/mnt/dotfiles` mount).
 
 ## Bootstrap fresh Mac
 
-Stock macOS only needs the host name (one of `hosts/`):
-
 ```sh
-make bootstrap HOST=pro
+make bootstrap HOST=<host>   # one of hosts/
 ```
 
-`make bootstrap` is intentionally only a pre-Nix shim. It starts the Xcode
-Command Line Tools installer if they are missing, installs Nix with the
-Determinate Systems installer if needed, then delegates to
-`nix run .#bootstrap -- <host>`. The flake app installs Homebrew if absent
-and runs the first nix-darwin switch.
-
-Open a new terminal afterwards so the freshly installed tools are on `PATH`.
-Thereafter plain `make` (= `nix run .#switch`) converges the machine.
+A pre-Nix shim only: starts the Xcode Command Line Tools installer if
+missing, installs Determinate Nix, then delegates to
+`nix run .#bootstrap -- <host>`, which installs Homebrew and runs the same
+convergence as switch. Open a new terminal afterwards; from then on plain
+`make`.
 
 ## Design
 
-### Theme preference
-
-Nightfox (Duskfox dark, Dawnfox light) is the default visual language across
-terminals, editors, CLI tools, and agent UI. Prefer matching new configuration
-to <https://github.com/EdenEast/nightfox.nvim> when the tool supports theming.
-
-### One flake, shared home module
-
-The flake exposes `darwinConfigurations.pro` for the Mac,
-`nixosConfigurations.nixden` for the Lima VM, and standalone home-manager
-configurations for portable Linux use. All paths import `modules/home/common.nix`.
-
-Declarative Homebrew wants nix-darwin; VM system customization wants NixOS plus
-home-manager. One flake serves both without forcing brew or Darwin into the VM.
-Host-only concerns stay in the Darwin output, so the shared module evaluates
-identically on host and VM.
-
 ### Determinate owns Nix
 
-The Determinate installer manages the daemon and `/etc/nix/nix.conf`. nix-darwin
-runs with `nix.enable = false` so the two never fight over the daemon or config.
-Extra Nix settings go through Determinate's `nix.custom.conf`, not nix-darwin.
+The Determinate installer manages the daemon and `/etc/nix/nix.conf`;
+nix-darwin runs with `nix.enable = false` so the two never fight. Extra
+daemon settings go through `determinateNix.customSettings`, which lands in
+`nix.custom.conf`.
 
 ### Unstable everywhere
 
-`nixos-unstable` for all outputs, with `home-manager`/`nix-darwin` set to
-`follows = "nixpkgs"` so there is a single nixpkgs in the closure. Determinism
-comes from `flake.lock`; upgrades are a deliberate `nix run .#update`. Same
-channel host and VM keeps the shared module evaluating identically.
+`nixos-unstable` for all outputs, `home-manager`/`nix-darwin` follow
+nixpkgs — one nixpkgs in the closure, and the shared modules evaluate
+identically on host and VM. Determinism comes from `flake.lock`; upgrading
+is a deliberate `nix flake update`.
 
 ### Dotfile delivery — in-store by default
 
-Rich hand-written config can stay as raw files; `programs.*` modules are used
-where they buy real portability (git, fish, fzf, direnv — they erase
-host-hardcoded paths). Raw files are still normally delivered through the Nix
-store so activation is read-only, rollback-able, and matches the flake revision.
+Raw config files are delivered through the Nix store: read-only,
+rollback-able, matching the flake revision. Out-of-store symlinks are the
+exception, used only when the app owns the file — it rewrites it, edits it
+from its UI, or needs a live edit loop (nvim, Zed, Ghostty, agent
+settings).
 
-Use **out-of-store** symlinks only when the target app reasonably owns the file:
-it rewrites the config, exposes UI/commands that edit it, or needs a tight
-interactive edit loop.
-
-Current split:
-
-- **Out-of-store**: `config/nvim/` (editor config + native plugin lockfile),
-  Claude and pi `settings.json` (agents rewrite settings), Zed settings (editor
-  UI/runtime edits), Ghostty config (app-opened live config), and iCloud-backed
-  history files.
-- **In-store**: fish `functions/` and `conf.d/`, eza theme, Ruby dotfiles,
-  pi theme sources and helper script, generated SSH/Lima config, `.hushlogin`,
-  and other Home Manager generated config.
-
-This keeps the default deterministic while preserving writable/live configs for
-agents and editors where read-only store paths get in the way.
-
-Claude and pi settings are tracked but locally marked `skip-worktree` because the
-agents rewrite them during normal use. To intentionally commit a settings change,
-clear the bit, commit, then restore it:
-
-```sh
-git update-index --no-skip-worktree config/claude/settings.json config/pi/settings.json
-git add config/claude/settings.json config/pi/settings.json
-git commit
-git update-index --skip-worktree config/claude/settings.json config/pi/settings.json
-```
-
-Use `skip-worktree` for this case rather than `assume-unchanged`; the latter is
-mainly a performance hint, while `skip-worktree` says to keep local edits out of
-normal status/add flows.
+Claude and pi `settings.json` are tracked but locally marked
+`skip-worktree` because the agents rewrite them during normal use. To
+commit a settings change: clear the bit, commit, restore it.
 
 ### Neovim plugins stay in vim.pack
 
-Native `vim.pack` + `nvim-pack-lock.json` already pin plugins and work in a VM
-(needs only `git` + `neovim`). Moving them to `pkgs.vimPlugins` buys no
-determinism the lockfile doesn't already give, and nixpkgs lags bleeding-edge
-plugins. Nix's job for nvim is just the binary and placing the config tree.
+`vim.pack` + `nvim-pack-lock.json` already pin plugins and work anywhere
+with git + neovim. Nix's job for nvim is the binary and the config tree.
 
 ### Ruby — per-project devshells
 
-Each project declares its Ruby via its own `flake.nix` + `.envrc`; `nix-direnv`
-wires it on `cd`. The shared module only enables `direnv` + `nix-direnv`.
+Projects declare their Ruby in their own `flake.nix` + `.envrc`; the
+shared module only enables `direnv` + `nix-direnv`.
 
-### Homebrew — host-only, zap
+### Homebrew — GUI casks only, zap
 
-GUI casks and a few host-only CLI tools (rtl_433, lima, container) that have no
-portable VM use. Everything else is Nix or dropped. `cleanup = "zap"` makes the
-declared lists the single source of truth; `autoUpdate`/`upgrade` off so a switch
-is fast and reproducible. nix-darwin does not install Homebrew — it must already
-exist; both `bootstrap` and `switch` install it first if absent.
+Casks and MAS apps are declared per account in `hosts/`; CLI tooling is
+Nix except a couple of host-only tools. `cleanup = "zap"` makes the
+declared lists the single source of truth; auto-update/upgrade off so a
+switch is fast. nix-darwin never installs Homebrew — bootstrap and switch
+do when absent.
 
 ### VM isolation
 
-Nothing identity-, credential-, or host-bound crosses into the shared layer. SSH
-keys/config stay on the host; the VM uses its own. That's why `.ssh/config` and
-iCloud history sync live in the Darwin layer, not `common.nix`.
+Nothing identity-, credential-, or host-bound crosses into modules shared
+with VMs. SSH keys and config stay on the host; the VM uses its own.
+
+### Theme
+
+Nightfox (Duskfox dark, Dawnfox light) across terminals, editors, CLI
+tools, and agent UI. Match new tool config to
+<https://github.com/EdenEast/nightfox.nvim> when it supports theming.
