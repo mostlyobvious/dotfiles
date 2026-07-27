@@ -154,7 +154,7 @@ in
         key = "Co-authored-by: ";
         ifmissing = "add";
       };
-      init.defaultBranch = "master";
+      init.defaultBranch = lib.mkDefault "master";
       branch.sort = "-committerdate";
       tag.sort = "version:refname";
       column.ui = "auto";

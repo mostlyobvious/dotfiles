@@ -53,6 +53,7 @@
         {
           my.userEmail = "pawel.pacana@chattermill.io";
           my.logseqGraphs = [ "Documents/CM" ];
+          programs.git.settings.init.defaultBranch = "main"; # work convention
         }
       ];
     };
