@@ -16,6 +16,11 @@
   # Determinate owns the Nix daemon and /etc/nix/nix.conf.
   nix.enable = false;
 
+  # Only the primary user, deliberately not @admin or cm: a trusted user can
+  # add substituters and import unsigned store paths (root-equivalent on the
+  # store). Needed by devenv, which passes daemon settings on eval.
+  determinateNix.customSettings.trusted-users = [ username ];
+
   # Required by nix-darwin for user-scoped options (homebrew, defaults).
   system.primaryUser = username;
   system.stateVersion = 6;
