@@ -28,6 +28,8 @@ in
     };
 
     NSGlobalDomain = {
+      KeyRepeat = 1; # fastest; GUI minimum is 2
+      InitialKeyRepeat = 10; # fastest; GUI minimum is 15
       NSAutomaticWindowAnimationsEnabled = false;
       NSWindowResizeTime = 0.001;
       NSConvolutionOverride1 = 10; # window corner radius; Tahoe default 16, Sequoia ~10
