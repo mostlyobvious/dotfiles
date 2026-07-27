@@ -65,10 +65,9 @@
     ];
   };
 
-  environment.systemPackages = with pkgs; [
-    devenv
-    fish
-  ];
+  # fish must be system-wide to serve as the account's login shell;
+  # everything else comes from the guest's home profile.
+  environment.systemPackages = [ pkgs.fish ];
 
   environment.etc."gitconfig".text = ''
     [safe]
