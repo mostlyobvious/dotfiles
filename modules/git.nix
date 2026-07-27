@@ -84,73 +84,70 @@ in
       ".nvim.lua"
     ];
 
-    settings = lib.mkMerge [
-      {
-        user = {
-          name = "Paweł Pacana";
-          email = config.my.userEmail;
-        };
+    settings = {
+      user = {
+        name = "Paweł Pacana";
+        email = config.my.userEmail;
+      };
 
-        alias = {
-          aa = "add -A";
-          st = "status";
-          ci = "commit -v --no-verify";
-          rv = "revert";
-          mg = "merge";
-          br = "branch";
-          co = "checkout";
-          dc = "diff --cached";
-          cp = "cherry-pick";
-          df = "diff";
-          ca = "commit --amend --reuse-message=HEAD --no-verify";
-          pu = "pull";
-          pr = "pull --rebase";
-          ra = "rebase --abort";
-          rc = "rebase --continue";
-          ri = "rebase --interactive --no-verify";
-          rs = "reset --soft HEAD~1";
-          rh = "reset --hard";
-          lg = "log -p --ext-diff";
-          ls = ''log --ext-diff --pretty=format:"%C(yellow)%h%Cred%d\ %Cblue%ci\ %Creset%s%Cblue\ [%cn]" --decorate'';
-        };
+      alias = {
+        aa = "add -A";
+        st = "status";
+        ci = "commit -v --no-verify";
+        rv = "revert";
+        mg = "merge";
+        br = "branch";
+        co = "checkout";
+        dc = "diff --cached";
+        cp = "cherry-pick";
+        df = "diff";
+        ca = "commit --amend --reuse-message=HEAD --no-verify";
+        pu = "pull";
+        pr = "pull --rebase";
+        ra = "rebase --abort";
+        rc = "rebase --continue";
+        ri = "rebase --interactive --no-verify";
+        rs = "reset --soft HEAD~1";
+        rh = "reset --hard";
+        lg = "log -p --ext-diff";
+        ls = ''log --ext-diff --pretty=format:"%C(yellow)%h%Cred%d\ %Cblue%ci\ %Creset%s%Cblue\ [%cn]" --decorate'';
+      };
 
-        core = {
-          editor = "nvim";
-          quotepath = false;
-          pager = "less -R";
-        };
-        merge.tool = "nvim -d";
-        color.ui = true;
-        github.user = "mostlyobvious";
-        push.default = "current";
-        branch.autosetupmerge = true;
-        url."git@github.com:" = {
-          insteadOf = "gh:";
-          pushInsteadOf = [
-            "https://github.com/"
-            "http://github.com/"
-            "gh:"
-          ];
-        };
-        diff = {
-          external = lib.getExe difftNoItalic;
-          indentHeuristic = true;
-          noprefix = true;
-          tool = "nvim_difftool";
-        };
-        pull.rebase = true;
-        commit.verbose = true;
-        trailer.coop = {
-          key = "Co-authored-by: ";
-          ifmissing = "add";
-        };
-        init.defaultBranch = "master";
-        branch.sort = "-committerdate";
-        tag.sort = "version:refname";
-        column.ui = "auto";
-        difftool.nvim_difftool.cmd = ''nvim -c "DiffTool $LOCAL $REMOTE"'';
-      }
-
-    ];
+      core = {
+        editor = "nvim";
+        quotepath = false;
+        pager = "less -R";
+      };
+      merge.tool = "nvim -d";
+      color.ui = true;
+      github.user = "mostlyobvious";
+      push.default = "current";
+      branch.autosetupmerge = true;
+      url."git@github.com:" = {
+        insteadOf = "gh:";
+        pushInsteadOf = [
+          "https://github.com/"
+          "http://github.com/"
+          "gh:"
+        ];
+      };
+      diff = {
+        external = lib.getExe difftNoItalic;
+        indentHeuristic = true;
+        noprefix = true;
+        tool = "nvim_difftool";
+      };
+      pull.rebase = true;
+      commit.verbose = true;
+      trailer.coop = {
+        key = "Co-authored-by: ";
+        ifmissing = "add";
+      };
+      init.defaultBranch = "master";
+      branch.sort = "-committerdate";
+      tag.sort = "version:refname";
+      column.ui = "auto";
+      difftool.nvim_difftool.cmd = ''nvim -c "DiffTool $LOCAL $REMOTE"'';
+    };
   };
 }
