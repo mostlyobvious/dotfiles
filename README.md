@@ -91,8 +91,10 @@ do when absent.
 
 ### VM isolation
 
-Nothing identity-, credential-, or host-bound crosses into modules shared
-with VMs. SSH keys and config stay on the host; the VM uses its own.
+Nothing credential- or host-bound crosses into modules shared with VMs.
+SSH keys and config stay on the host; the VM uses its own. Commit
+identity (name, email) does cross, deliberately: work done in a VM
+should be attributable.
 
 ### Theme
 
