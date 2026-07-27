@@ -1,5 +1,5 @@
-#!/bin/bash
-
+# Runs under writeShellApplication (set -euo pipefail), hence the
+# `|| true` guard where failing is fine (outside a repo).
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 
@@ -14,7 +14,7 @@ if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push'; then
   if echo "$COMMAND" | grep -qE '(^|[[:space:]])(-f|--force|--force-with-lease)([[:space:]=]|$)'; then
     block "is a force push."
   fi
-  current=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  current=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || true
   if [[ "$current" == master || "$current" == main ]] || echo "$COMMAND" | grep -qwE 'master|main'; then
     block "pushes a protected branch."
   fi

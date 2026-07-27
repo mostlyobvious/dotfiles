@@ -1,6 +1,7 @@
-#!/usr/bin/env bash
 # Mirrors the Hydro fish prompt: dim path with bold last segment,
 # git branch + dirty/ahead/behind markers, active model.
+# Runs under writeShellApplication (set -euo pipefail), hence the
+# `|| true` guards on assignments from commands allowed to fail.
 
 input=$(cat)
 
@@ -43,7 +44,7 @@ git_out=""
 if git -C "$cwd" --no-optional-locks rev-parse --show-toplevel >/dev/null 2>&1; then
   branch=$(git -C "$cwd" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null \
     || git -C "$cwd" --no-optional-locks describe --tags --exact-match HEAD 2>/dev/null \
-    || git -C "$cwd" --no-optional-locks rev-parse --short HEAD 2>/dev/null | sed 's/^/@/')
+    || git -C "$cwd" --no-optional-locks rev-parse --short HEAD 2>/dev/null | sed 's/^/@/') || true
 
   dirty=""
   if ! git -C "$cwd" --no-optional-locks diff-index --quiet HEAD 2>/dev/null \
@@ -52,7 +53,7 @@ if git -C "$cwd" --no-optional-locks rev-parse --show-toplevel >/dev/null 2>&1; 
   fi
 
   upstream=""
-  counts=$(git -C "$cwd" --no-optional-locks rev-list --count --left-right '@{upstream}...@' 2>/dev/null)
+  counts=$(git -C "$cwd" --no-optional-locks rev-list --count --left-right '@{upstream}...@' 2>/dev/null) || true
   if [ -n "$counts" ]; then
     behind=$(echo "$counts" | cut -f1)
     ahead=$(echo "$counts" | cut -f2)
