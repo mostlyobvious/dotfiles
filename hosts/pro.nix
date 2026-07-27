@@ -1,7 +1,6 @@
 {
   arch = "aarch64-darwin";
 
-  # nix-darwin system module for this machine
   system = {
     imports = [
       ../modules/darwin-core.nix
@@ -47,8 +46,7 @@
     };
   };
 
-  # every account on this machine; the invoking admin activates directly,
-  # every other account via sudo -u
+  # the invoking admin activates directly, every other account via sudo -u
   users = {
     mostlyobvious = {
       admin = true;
@@ -82,7 +80,7 @@
     };
 
     cm = {
-      # admin defaults false; no key — reached only via sudo -u from an admin
+      # admin defaults false; reached only via sudo -u from an admin
       modules = [
         ../modules/core.nix
         ../modules/cli.nix

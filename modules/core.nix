@@ -7,37 +7,31 @@
 }:
 
 {
-  # Working-copy path for out-of-store symlinks. Override if the repo lives elsewhere.
   options.my.dotfilesDir = lib.mkOption {
     type = lib.types.str;
     default = "${config.home.homeDirectory}/Code/dotfiles";
-    description = "Absolute path to the dotfiles working copy.";
+    description = "Absolute path to the dotfiles working copy, the target of out-of-store symlinks.";
   };
 
-  # SSH public key used for commit signing. Override per account.
   options.my.signingKey = lib.mkOption {
     type = lib.types.str;
     default = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
     description = "Absolute path to the SSH public key used to sign commits.";
   };
 
-  # Git commit author email. Override per account.
   options.my.userEmail = lib.mkOption {
     type = lib.types.str;
     default = "pawel.pacana@gmail.com";
     description = "Email address used as the git commit author.";
   };
 
-  # Lima VM names to expose as stable SSH host aliases. Set by the host file,
-  # which also declares the VMs; consumed by ssh.nix.
   options.my.limaVms = lib.mkOption {
     type = lib.types.listOf lib.types.str;
     default = [ ];
-    description = "Lima VM instance names to alias in SSH config.";
+    description = "Lima VM instance names to alias in SSH config; set by the host file that declares the VMs.";
   };
 
-  # Home-relative Logseq graph dirs to receive the nightfox custom.css. Per
-  # account, since graphs differ and custom.css is loaded per-graph.
+  # Logseq loads custom.css per graph, hence a list rather than one path.
   options.my.logseqGraphs = lib.mkOption {
     type = lib.types.listOf lib.types.str;
     default = [ ];

@@ -38,7 +38,6 @@ in
       };
     };
 
-    # Flat names preserved; path points at each skill's location in its source.
     skills.explicit = {
       grill-me = {
         from = "mattpocock";
