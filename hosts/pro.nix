@@ -69,20 +69,14 @@
         ../modules/logseq.nix
         ../modules/macos-defaults.nix
         ../modules/history.nix # iCloud-backed; this account only
-        (
-          { pkgs, ... }:
-          {
-            home.packages = [
-              pkgs.lima
-              pkgs.rtl_433
-            ]; # runs the VMs; radio tinkering
-            my.limaVms = [ "nixden" ]; # aliased in ssh config; declared in vms below
-            my.logseqGraphs = [
-              "Notes/mostlyobvious"
-              "Notes/hraba.gs"
-            ];
-          }
-        )
+        ../modules/lima.nix
+        {
+          my.limaVms = [ "nixden" ]; # aliased in ssh config; declared in vms below
+          my.logseqGraphs = [
+            "Notes/mostlyobvious"
+            "Notes/hraba.gs"
+          ];
+        }
       ];
     };
 
