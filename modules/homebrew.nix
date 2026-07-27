@@ -1,6 +1,8 @@
 {
+  lib,
   homebrewCasks ? [ ],
   homebrewMasApps ? { },
+  homebrewBrews ? [ ],
   ...
 }:
 
@@ -21,11 +23,9 @@
 
     };
 
-    # CLI tooling is in Nix; only host-only tools remain here.
-    brews = [
-      "container"
-      "mas"
-    ];
+    # CLI tooling is in Nix; only host-declared tools remain here. mas is
+    # the installer nix-darwin shells out to for masApps.
+    brews = homebrewBrews ++ lib.optional (homebrewMasApps != { }) "mas";
 
     casks = homebrewCasks;
 
