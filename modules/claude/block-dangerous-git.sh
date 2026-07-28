@@ -9,13 +9,12 @@ block() {
 }
 
 # git push: allow non-force pushes to feature branches, but block force pushes
-# and any push touching a protected branch.
+# and pushes that name a protected branch in the push command itself.
 if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push'; then
   if echo "$COMMAND" | grep -qE '(^|[[:space:]])(-f|--force|--force-with-lease)([[:space:]=]|$)'; then
     block "is a force push."
   fi
-  current=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || true
-  if [[ "$current" == master || "$current" == main ]] || echo "$COMMAND" | grep -qwE 'master|main'; then
+  if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push([^&|;]*[[:space:]:/])(refs/heads/)?(master|main)([[:space:]&|;:]|$)'; then
     block "pushes a protected branch."
   fi
   exit 0
