@@ -8,6 +8,7 @@
       ../modules/sudo.nix
       ../modules/homebrew.nix
       ../modules/account.nix
+      ../modules/rosetta.nix
     ];
   };
 
