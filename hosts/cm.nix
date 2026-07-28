@@ -12,6 +12,12 @@
   };
 
   homebrew = {
+    brews = [
+      {
+        name = "container";
+        start_service = true;
+      }
+    ];
     casks = [
       "ghostty"
       "logseq"
