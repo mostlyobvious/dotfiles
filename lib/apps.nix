@@ -36,7 +36,7 @@ let
     if [ "$WHOAMI" = "${accountName}" ]; then
       HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
     else
-      HOME_MANAGER_BACKUP_EXT=hm-bak sudo -u ${accountName} -H ./result/activate
+      sudo -u ${accountName} -H env HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
     fi
   '';
 
