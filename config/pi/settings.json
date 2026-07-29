@@ -6,7 +6,8 @@
   "packages": [
     "npm:@juancrg90/nightfox-themes",
     "npm:pi-edit-hooks",
-    "npm:pi-autoresearch"
+    "npm:pi-autoresearch",
+    "npm:pi-mcp-adapter"
   ],
   "extensions": [
     "extensions"
