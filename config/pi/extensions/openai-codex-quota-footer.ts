@@ -351,10 +351,11 @@ export default function (pi: ExtensionAPI) {
 					const pwdLine = truncateToWidth(theme.fg("dim", pwd), width, theme.fg("dim", "..."));
 					const lines = [pwdLine, theme.fg("dim", statsLine)];
 
-					const statuses = footerData.getExtensionStatuses();
-					if (statuses.size > 0) {
-						const statusLine = Array.from(statuses.entries())
-							.sort(([a], [b]) => a.localeCompare(b))
+					const statuses = Array.from(footerData.getExtensionStatuses().entries())
+						.filter(([name]) => name !== "mcp")
+						.sort(([a], [b]) => a.localeCompare(b));
+					if (statuses.length > 0) {
+						const statusLine = statuses
 							.map(([, text]) => sanitizeStatus(text))
 							.join(" ");
 						lines.push(truncateToWidth(statusLine, width, theme.fg("dim", "...")));
