@@ -73,35 +73,6 @@
         }
       ];
     };
-
-    cm = {
-      # admin defaults false; reached only via sudo -u from an admin
-      modules = [
-        ../modules/core.nix
-        ../modules/cli.nix
-        ../modules/git.nix
-        ../modules/fish.nix
-        ../modules/neovim.nix
-        ../modules/ruby.nix
-        ../modules/claude.nix
-        ../modules/pi.nix
-        ../modules/eza.nix
-        ../modules/skills.nix
-        ../modules/ghostty.nix
-        ../modules/zed.nix
-        ../modules/ssh.nix
-        ../modules/fonts.nix
-        ../modules/macos-defaults.nix
-        ../modules/kubernetes.nix
-        ../modules/vault.nix
-        ../modules/redocly.nix
-        {
-          my.dotfilesDir = "/Users/cm/dotfiles";
-          my.userEmail = "pawel.pacana@chattermill.io";
-          programs.git.settings.init.defaultBranch = "main"; # work convention
-        }
-      ];
-    };
   };
 
   vms = {
