@@ -39,7 +39,7 @@
     defaultCommand = "fd --hidden --exclude .git .";
     defaultOptions = [
       "--height=40%"
-      "--info=inline"
+      "--info=hidden"
       "--layout=reverse"
       "--marker=✓"
       "--no-separator"
