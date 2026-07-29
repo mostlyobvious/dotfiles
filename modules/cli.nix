@@ -43,8 +43,8 @@
       "--layout=reverse"
       "--marker=✓"
       "--no-separator"
-      "--pointer=›"
-      "--prompt=› "
+      "--pointer=•"
+      "--prompt="
     ];
     fileWidget.command = "fd --hidden --exclude .git .";
   };
