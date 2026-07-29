@@ -43,6 +43,22 @@
       # not read. Prepend it after brew so Nix-provided CLI tools win.
       fish_add_path --global --prepend /run/current-system/sw/bin
     '';
+
+    interactiveShellInit = lib.mkAfter ''
+      function fzf-history-widget -d "Show command history"
+          set -l fzf_query (commandline)
+          set -lx FZF_DEFAULT_OPTS "$FZF_DEFAULT_OPTS --scheme=history --read0 --print0 --no-multi-line --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS"
+          set -lx FZF_DEFAULT_OPTS_FILE
+
+          test -z "$fish_private_mode"; and builtin history merge
+
+          if set -l result (builtin history -z | fzf --query "$fzf_query" | string split0)
+              commandline -- $result
+          end
+
+          commandline --function repaint
+      end
+    '';
   };
 
   # Named to sort before plugin-hydro.fish: hydro bakes hydro_symbol_prompt
