@@ -11,7 +11,7 @@ in
   targets.darwin.defaults = {
     "com.apple.dock" = {
       autohide = true;
-      autohide-delay = 0.0;
+      autohide-delay = 2.0;
       mineffect = "scale";
       show-recents = false;
       launchanim = false;
