@@ -13,12 +13,7 @@
   };
 
   homebrew = {
-    brews = [
-      {
-        name = "container";
-        start_service = true;
-      }
-    ];
+    brews = [ "container" ];
     casks = [
       "ghostty"
       "logseq"
@@ -55,6 +50,7 @@
         ../modules/kubernetes.nix
         ../modules/vault.nix
         ../modules/redocly.nix
+        ../modules/container.nix
         {
           my.userEmail = "pawel.pacana@chattermill.io";
           programs.git.settings.init.defaultBranch = "main"; # work convention
