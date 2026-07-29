@@ -104,8 +104,7 @@
     };
   };
 
-  # each VM is a single-user linux guest; its account is declared by its nixos config
   vms = {
-    nixden = import ../vms/nixden.nix;
+    # nixden = import ../vms/nixden.nix;
   };
 }
