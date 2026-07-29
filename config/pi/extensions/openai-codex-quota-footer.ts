@@ -13,10 +13,17 @@ type CodexRateWindow = {
 };
 
 type CodexUsageResponse = {
-	rate_limit?: {
-		primary_window?: CodexRateWindow;
-		secondary_window?: CodexRateWindow;
-	};
+	rate_limit?: CodexRateLimit;
+	additional_rate_limits?: Array<{
+		limit_name?: string;
+		metered_feature?: string;
+		rate_limit?: CodexRateLimit;
+	}>;
+};
+
+type CodexRateLimit = {
+	primary_window?: CodexRateWindow;
+	secondary_window?: CodexRateWindow;
 };
 
 type CodexCredentials = {
@@ -74,16 +81,48 @@ function windowSeconds(window: CodexRateWindow): number | undefined {
 function formatWindowLabel(window: CodexRateWindow): string {
 	const seconds = windowSeconds(window);
 	if (!seconds || seconds <= 0) return "5h";
+	const minutes = Math.round(seconds / 60);
+	if (minutes === 300) return "5h";
+	if (minutes === 10080) return "W";
 	const hours = Math.round(seconds / 3600);
-	if (hours >= 144) return "Week";
-	if (hours >= 24) return "Day";
+	if (hours >= 144) return "W";
+	if (hours >= 24) return "D";
 	return `${hours}h`;
 }
 
+function hasQuotaUsage(window: CodexRateWindow | undefined): window is CodexRateWindow {
+	return !!window && typeof window.used_percent === "number" && Number.isFinite(window.used_percent);
+}
+
 function isSessionWindow(window: CodexRateWindow | undefined): window is CodexRateWindow {
-	if (!window || typeof window.used_percent !== "number" || !Number.isFinite(window.used_percent)) return false;
+	if (!hasQuotaUsage(window)) return false;
 	const seconds = windowSeconds(window);
 	return !seconds || seconds <= 24 * 60 * 60;
+}
+
+function windowRole(window: CodexRateWindow): "session" | "weekly" | "unknown" {
+	const minutes = windowSeconds(window);
+	if (!minutes) return "session";
+	switch (Math.round(minutes / 60)) {
+		case 300:
+			return "session";
+		case 10080:
+			return "weekly";
+		default:
+			return "unknown";
+	}
+}
+
+function normalizeWindows(primary: CodexRateWindow | undefined, secondary: CodexRateWindow | undefined) {
+	if (primary && secondary) {
+		const primaryRole = windowRole(primary);
+		const secondaryRole = windowRole(secondary);
+		if (primaryRole === "weekly" && secondaryRole !== "weekly") return { session: secondary, weekly: primary };
+		return { session: primary, weekly: secondary };
+	}
+	if (primary && windowRole(primary) === "weekly") return { session: undefined, weekly: primary };
+	if (secondary && windowRole(secondary) !== "weekly") return { session: secondary, weekly: undefined };
+	return { session: primary, weekly: secondary };
 }
 
 function formatCodexWindow(window: CodexRateWindow): string {
@@ -91,9 +130,24 @@ function formatCodexWindow(window: CodexRateWindow): string {
 	return `${formatWindowLabel(window)} ${usedPercent.toFixed(0)}%`;
 }
 
+function formatRateLimit(rateLimit: CodexRateLimit | undefined): string | undefined {
+	const windows = normalizeWindows(rateLimit?.primary_window, rateLimit?.secondary_window);
+	return [windows.session, windows.weekly].filter(hasQuotaUsage).map(formatCodexWindow).join(" ") || undefined;
+}
+
+function formatAdditionalRateLimit(limit: NonNullable<CodexUsageResponse["additional_rate_limits"]>[number]): string | undefined {
+	const status = formatRateLimit(limit.rate_limit);
+	if (!status) return undefined;
+	const name = limit.limit_name ?? limit.metered_feature;
+	if (!name) return status;
+	return `${name.replace(/^GPT-/, "").replace(/-Codex-/i, " ")} ${status}`;
+}
+
 function formatCodexQuota(data: CodexUsageResponse): string | undefined {
-	const window = [data.rate_limit?.primary_window, data.rate_limit?.secondary_window].find(isSessionWindow);
-	return window ? formatCodexWindow(window) : undefined;
+	const limits = [formatRateLimit(data.rate_limit), ...(data.additional_rate_limits ?? []).map(formatAdditionalRateLimit)].filter(
+		(status): status is string => !!status,
+	);
+	return limits.join(" • ") || undefined;
 }
 
 function codexWindowFromHeaders(headers: Record<string, string>, prefix: "primary" | "secondary"): CodexRateWindow | undefined {
@@ -109,8 +163,10 @@ function codexWindowFromHeaders(headers: Record<string, string>, prefix: "primar
 }
 
 function codexQuotaFromHeaders(headers: Record<string, string>): string | undefined {
-	const window = [codexWindowFromHeaders(headers, "primary"), codexWindowFromHeaders(headers, "secondary")].find(isSessionWindow);
-	return window ? formatCodexWindow(window) : undefined;
+	return formatRateLimit({
+		primary_window: codexWindowFromHeaders(headers, "primary"),
+		secondary_window: codexWindowFromHeaders(headers, "secondary"),
+	});
 }
 
 async function fetchCodexQuota(): Promise<string | undefined> {
