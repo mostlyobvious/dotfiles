@@ -80,6 +80,8 @@ in
       "*.sublime-workspace"
       ".DS_Store"
       ".byebug_history"
+      ".devenv"
+      ".direnv"
       ".env"
       ".generators"
       ".idea"

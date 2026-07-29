@@ -19,6 +19,10 @@
   programs.jq.enable = true;
   programs.ripgrep.enable = true;
 
-  programs.fzf.enable = true;
+  programs.fzf = {
+    enable = true;
+    defaultCommand = "fd --hidden --exclude .git .";
+    fileWidget.command = "fd --hidden --exclude .git .";
+  };
   programs.zoxide.enable = true;
 }
