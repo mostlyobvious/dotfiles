@@ -11,6 +11,9 @@
   home.file.".pi/agent/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/pi/settings.json";
 
+  home.file.".pi/agent/mcp.json".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/pi/mcp.json";
+
   home.file.".pi/agent/extensions".source =
     config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/pi/extensions";
 }
