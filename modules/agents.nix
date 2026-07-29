@@ -7,6 +7,7 @@ let
     # Agent instructions
 
     - Keep comments rare and concise; add one only when the why isn't obvious from the code — a hidden constraint, a subtle invariant, or a workaround for a specific case.
+    - All code repositories live in `~/Code`; check for local copies there first.
     - When no sharper rule applies, match the surrounding code — its formatting, naming, layout, and test structure. This governs how you write, not whether to add explanatory prose; comment density follows the rule above.
     - Pick the API whose behavior doesn't exceed what your tests constrain; extra capability is behavior no test pins down — the kind mutation testing surfaces as surviving mutants.
     - Keep config files free of keys whose value equals the tool's built-in default, unless the key is there to pin a value against an upstream change — note that intent in the commit.
