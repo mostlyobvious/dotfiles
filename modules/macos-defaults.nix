@@ -28,6 +28,7 @@ in
     };
 
     NSGlobalDomain = {
+      ApplePressAndHoldEnabled = false;
       KeyRepeat = 1; # fastest; GUI minimum is 2
       InitialKeyRepeat = 10; # fastest; GUI minimum is 15
       NSAutomaticWindowAnimationsEnabled = false;
@@ -41,13 +42,21 @@ in
     };
   };
 
-  # targets.darwin.defaults writes prefs but does not reload the Dock.
-  home.activation.restartDock = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  # targets.darwin.defaults writes prefs but does not reload readers.
+  home.activation.restartPreferenceDaemon = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
+    /usr/bin/killall cfprefsd 2>/dev/null || true
+  '';
+
+  home.activation.applyKeyboardRepeat = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
+    /usr/bin/hidutil property --set '{"HIDKeyRepeat":15000000,"HIDInitialKeyRepeat":150000000}' >/dev/null
+  '';
+
+  home.activation.restartDock = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
     /usr/bin/killall Dock 2>/dev/null || true
   '';
 
   # Finder must relaunch to pick up its prefs.
-  home.activation.restartFinder = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.restartFinder = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
     /usr/bin/killall Finder 2>/dev/null || true
   '';
 
