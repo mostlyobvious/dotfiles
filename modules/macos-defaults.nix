@@ -47,8 +47,8 @@ in
     /usr/bin/killall cfprefsd 2>/dev/null || true
   '';
 
-  home.activation.applyKeyboardRepeat = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
-    /usr/bin/hidutil property --set '{"HIDKeyRepeat":33333333,"HIDInitialKeyRepeat":250000000}' >/dev/null
+  home.activation.applyKeyboardSettings = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
+    /usr/bin/hidutil property --set '{"HIDKeyRepeat":33333333,"HIDInitialKeyRepeat":250000000,"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771300,"HIDKeyboardModifierMappingDst":30064771302}]}' >/dev/null
   '';
 
   home.activation.restartDock = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
