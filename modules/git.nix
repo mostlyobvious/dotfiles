@@ -47,18 +47,8 @@ in
 {
   home.packages = [ pkgs.tig ];
 
-  # show/log honor diff.external (difftastic above) only with --ext-diff.
   programs.fish.functions.git = ''
-    set -l args $argv
-
-    if test (count $args) -ge 1
-        set -l command $args[1]
-        if contains -- $command show log whatchanged; and not contains -- --ext-diff $args
-            set args $args[1] --ext-diff $args[2..-1]
-        end
-    end
-
-    env LC_ALL=en_US.UTF-8 command git $args
+    env LC_ALL=en_US.UTF-8 command git $argv
   '';
 
   programs.difftastic = {
@@ -114,9 +104,9 @@ in
         mg = "merge";
         br = "branch";
         co = "checkout";
-        dc = "diff --cached";
+        dc = "-c diff.external=${lib.getExe difftNoItalic} diff --cached --ext-diff";
         cp = "cherry-pick";
-        df = "diff";
+        df = "-c diff.external=${lib.getExe difftNoItalic} diff --ext-diff";
         ca = "commit --amend --reuse-message=HEAD --no-verify";
         pu = "pull";
         pr = "pull --rebase";
@@ -125,8 +115,8 @@ in
         ri = "rebase --interactive --no-verify";
         rs = "reset --soft HEAD~1";
         rh = "reset --hard";
-        lg = "log -p --ext-diff";
-        ls = ''log --ext-diff --pretty=format:"%C(yellow)%h%Cred%d\ %Cblue%ci\ %Creset%s%Cblue\ [%cn]" --decorate'';
+        lg = "-c diff.external=${lib.getExe difftNoItalic} log -p --ext-diff";
+        ls = ''-c diff.external=${lib.getExe difftNoItalic} log --ext-diff --pretty=format:"%C(yellow)%h%Cred%d\ %Cblue%ci\ %Creset%s%Cblue\ [%cn]" --decorate'';
       };
 
       core = {
@@ -146,7 +136,6 @@ in
         ];
       };
       diff = {
-        external = lib.getExe difftNoItalic;
         noprefix = true;
         tool = "nvim_difftool";
       };
