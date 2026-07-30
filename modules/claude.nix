@@ -17,6 +17,15 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/block-dangerous-git.sh;
   };
+  worktreeCreate = pkgs.writeShellApplication {
+    name = "worktree-create";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.git
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ./claude/worktree-create.sh;
+  };
 in
 {
   imports = [ ./agents.nix ];
@@ -32,4 +41,5 @@ in
   # Static scripts referenced by settings.json under stable ~/.claude paths.
   home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
   home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
+  home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
 }
