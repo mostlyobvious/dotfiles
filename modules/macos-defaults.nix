@@ -29,8 +29,8 @@ in
 
     NSGlobalDomain = {
       ApplePressAndHoldEnabled = false;
-      KeyRepeat = 1; # fastest; GUI minimum is 2
-      InitialKeyRepeat = 10; # fastest; GUI minimum is 15
+      KeyRepeat = 2;
+      InitialKeyRepeat = 15;
       NSAutomaticWindowAnimationsEnabled = false;
       NSWindowResizeTime = 0.001;
       NSConvolutionOverride1 = 10; # window corner radius; Tahoe default 16, Sequoia ~10
@@ -48,7 +48,7 @@ in
   '';
 
   home.activation.applyKeyboardRepeat = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
-    /usr/bin/hidutil property --set '{"HIDKeyRepeat":15000000,"HIDInitialKeyRepeat":150000000}' >/dev/null
+    /usr/bin/hidutil property --set '{"HIDKeyRepeat":33333333,"HIDInitialKeyRepeat":250000000}' >/dev/null
   '';
 
   home.activation.restartDock = lib.hm.dag.entryAfter [ "setDarwinDefaults" ] ''
