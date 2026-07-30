@@ -46,7 +46,7 @@
       "--marker=✓"
       "--no-separator"
       "--pointer=•"
-      "--prompt= "
+      "--prompt='  '"
     ];
     fileWidget.command = "fd --hidden --exclude .git .";
   };
