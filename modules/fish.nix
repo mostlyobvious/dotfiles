@@ -66,6 +66,8 @@
   xdg.configFile."fish/conf.d/hydro-theme.fish".text = ''
     set --global hydro_symbol_prompt \$
     set --global hydro_symbol_git_dirty ' •'
+    set --global hydro_multiline true
+    set --global fish_prompt_pwd_dir_length 10
 
     if set --query SSH_CONNECTION; or set --query SSH_TTY
         set --global hydro_symbol_start (prompt_hostname)' '
