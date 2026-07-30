@@ -38,6 +38,8 @@
     };
     defaultCommand = "fd --hidden --exclude .git .";
     defaultOptions = [
+      "--gutter=⠀"
+      "--gutter-raw=⠀"
       "--height=40%"
       "--info=hidden"
       "--layout=reverse"
