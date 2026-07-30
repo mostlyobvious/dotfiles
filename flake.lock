@@ -158,6 +158,22 @@
         "url": "https://flakehub.com/f/cachix/git-hooks.nix/0.1.941"
       }
     },
+    "glab-tui": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785193273,
+        "narHash": "sha256-bk/RkMtHDPUG9jWn0HtiO6xMr3p0BYNZ+9gGaSaYyb0=",
+        "owner": "rcieri",
+        "repo": "glab-tui",
+        "rev": "72b962f477dc17f7ed41e68a9aea57a3f80a2154",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rcieri",
+        "repo": "glab-tui",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -321,6 +337,7 @@
         "agent-skills": "agent-skills",
         "determinate": "determinate",
         "fonts": "fonts",
+        "glab-tui": "glab-tui",
         "home-manager": "home-manager_2",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs_3",
