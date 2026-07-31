@@ -15,6 +15,8 @@
       macos-titlebar-proxy-icon = "hidden";
       window-height = 50;
       window-width = 170;
+      working-directory = "/Users/mostlyobvious/Code";
+      tab-inherit-working-directory = false;
     };
   };
 }
