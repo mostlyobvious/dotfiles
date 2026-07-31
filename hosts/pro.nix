@@ -33,7 +33,6 @@
       "insta360-studio"
       "ia-presenter"
       "whatsapp"
-      "notion"
       "1password"
       "1password-cli"
     ];

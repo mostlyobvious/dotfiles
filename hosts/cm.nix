@@ -22,7 +22,7 @@
       "slack"
       "signal"
       "claude"
-      "notion"
+      "linear"
       "1password"
       "1password-cli"
     ];
