@@ -67,8 +67,13 @@
 
       set -l main_root (dirname "$common_dir")
       set -l repo (basename "$main_root")
-      set -l name (string replace -a / - -- "$branch")
+      set -l name (string replace -ar '[^A-Za-z0-9._-]' - -- "$branch")
       set -l dest "$HOME/Code/worktrees/$repo/$name"
+
+      if test -e "$dest"
+          echo "Worktree path already exists: $dest" >&2
+          return 1
+      end
 
       mkdir -p (dirname "$dest")
 

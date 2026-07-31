@@ -1,6 +1,6 @@
 # Runs under writeShellApplication (set -euo pipefail). Claude Code's
 # WorktreeCreate hook: it fully replaces the default `git worktree add`, so this
-# script both places the worktree under ~/Code/worktrees/<repo>/<name> and copies
+# script both places the worktree under ~/Code/worktrees/<repo>/<slug> and copies
 # local, gitignored config into it. The created path MUST be the last stdout
 # line; all other output goes to stderr; any non-zero exit aborts creation.
 
@@ -14,7 +14,8 @@ COMMON_DIR=$(git -C "$CWD" rev-parse --path-format=absolute --git-common-dir)
 MAIN_ROOT=$(dirname "$COMMON_DIR")
 REPO=$(basename "$MAIN_ROOT")
 
-DEST="$HOME/Code/worktrees/$REPO/$NAME"
+SLUG=$(printf '%s' "$NAME" | tr -c '[:alnum:]._-' '-')
+DEST="$HOME/Code/worktrees/$REPO/$SLUG"
 
 # Base ref: origin's default branch (fresh). Fall back to HEAD if there's no origin.
 ORIGIN_HEAD=$(git -C "$MAIN_ROOT" symbolic-ref --quiet refs/remotes/origin/HEAD || true)
@@ -25,9 +26,14 @@ fi
 BASE_REF=${ORIGIN_HEAD#refs/remotes/}
 [ -z "$BASE_REF" ] && BASE_REF=HEAD
 
+if [ -e "$DEST" ]; then
+  echo "Worktree path already exists: $DEST" >&2
+  exit 1
+fi
+
 mkdir -p "$(dirname "$DEST")"
 
-# New branch named after the slug; if it already exists, check it out instead.
+# New branch named after the requested name; if it already exists, check it out instead.
 if git -C "$MAIN_ROOT" show-ref --verify --quiet "refs/heads/$NAME"; then
   git -C "$MAIN_ROOT" worktree add "$DEST" "$NAME" >&2
 else
