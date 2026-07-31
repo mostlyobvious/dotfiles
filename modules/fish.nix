@@ -10,23 +10,46 @@
     shellAliases.less = "less -R";
 
     functions.wt = ''
-      set -l root "$HOME/Code/worktrees"
+      set -l code "$HOME/Code"
+      set -l root "$code/worktrees"
+      set -l entries
 
-      if not test -d "$root"
-          echo "No worktrees in $root" >&2
+      set -l common_dir (git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+      if test $status -eq 0
+          set -l main_root (dirname "$common_dir")
+          set -l repo (basename "$main_root")
+          set -l main_checkout (string replace -- "$code/" "" "$main_root")
+
+          if string match --quiet "$root/$repo/*" (pwd); and test "$main_checkout" != "$main_root"
+              set entries $entries "$main_checkout"
+          end
+
+      end
+
+      if test -d "$root"
+          for worktree in (fd --base-directory "$root" --max-depth 2 --min-depth 2 --type directory .)
+              if not contains -- "$worktree" $entries
+                  set entries $entries "$worktree"
+              end
+          end
+      end
+
+      if test (count $entries) -eq 0
+          echo "No worktrees or checkouts in $code" >&2
           return 1
       end
 
-      set -l selected (
-          fd --base-directory "$root" --max-depth 2 --min-depth 2 --type directory . \
-              | fzf
-      )
+      set -l selected (printf "%s\n" $entries | fzf --no-sort)
 
       if test -z "$selected"
           return
       end
 
-      cd "$root/$selected"
+      if test -d "$code/$selected"
+          cd "$code/$selected"
+      else
+          cd "$root/$selected"
+      end
     '';
 
     functions.wtc = ''
