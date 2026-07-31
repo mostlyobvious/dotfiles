@@ -29,6 +29,99 @@
       cd "$root/$selected"
     '';
 
+    functions.wtc = ''
+      if test (count $argv) -ne 1
+          echo "Usage: wtc <branch>" >&2
+          return 2
+      end
+
+      set -l branch $argv[1]
+      set -l common_dir (git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+      if test $status -ne 0
+          echo "Not in a git repository" >&2
+          return 1
+      end
+
+      set -l main_root (dirname "$common_dir")
+      set -l repo (basename "$main_root")
+      set -l name (string replace -a / - -- "$branch")
+      set -l dest "$HOME/Code/worktrees/$repo/$name"
+
+      mkdir -p (dirname "$dest")
+
+      if git -C "$main_root" show-ref --verify --quiet "refs/heads/$branch"
+          git -C "$main_root" worktree add "$dest" "$branch"; or return
+      else
+          set -l origin_head (git -C "$main_root" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null)
+          if test -z "$origin_head"
+              git -C "$main_root" remote set-head origin --auto >/dev/null 2>&1
+              set origin_head (git -C "$main_root" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null)
+          end
+
+          set -l base_ref (string replace refs/remotes/ "" -- "$origin_head")
+          if test -z "$base_ref"
+              set base_ref HEAD
+          end
+
+          git -C "$main_root" worktree add -b "$branch" "$dest" "$base_ref"; or return
+      end
+
+      for item in .envrc .env devenv.nix devenv.yaml devenv.lock devenv.local.nix
+          if test -e "$main_root/$item"
+              cp -R "$main_root/$item" "$dest/$item"
+          end
+      end
+
+      cd "$dest"
+    '';
+
+    functions.wtd = ''
+      if test (count $argv) -gt 1
+          echo "Usage: wtd [repo/worktree]" >&2
+          return 2
+      end
+
+      set -l root "$HOME/Code/worktrees"
+      if not test -d "$root"
+          echo "No worktrees in $root" >&2
+          return 1
+      end
+
+      set -l selected $argv[1]
+      if test -z "$selected"
+          set selected (
+              fd --base-directory "$root" --max-depth 2 --min-depth 2 --type directory . \
+                  | fzf
+          )
+      end
+
+      if test -z "$selected"
+          return
+      end
+
+      set -l path "$root/$selected"
+      if not test -d "$path"
+          echo "No worktree at $path" >&2
+          return 1
+      end
+
+      set -l branch (git -C "$path" branch --show-current)
+      set -l common_dir (git -C "$path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+      set -l main_root (dirname "$common_dir")
+      set -l origin_head (git -C "$main_root" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null)
+      set -l default_branch (string replace -r '^refs/remotes/[^/]+/' "" -- "$origin_head")
+
+      if test -z "$default_branch"
+          set default_branch (git -C "$main_root" symbolic-ref --short HEAD 2>/dev/null)
+      end
+
+      git -C "$main_root" worktree remove "$path"; or return
+
+      if test -n "$branch"; and test "$branch" != "$default_branch"
+          git -C "$main_root" branch -d "$branch"; or true
+      end
+    '';
+
     # Upstream hydro prompt; local deviations go through its public
     # variables (see conf.d/hydro-theme.fish below), no forked functions.
     plugins = [
