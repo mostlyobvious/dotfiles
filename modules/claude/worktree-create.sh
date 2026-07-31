@@ -36,7 +36,7 @@ fi
 
 # Carry uncommitted local config from the main checkout, if present.
 CARRY=(
-  devenv.nix devenv.yaml devenv.lock devenv.local.nix
+  devenv.nix devenv.yaml devenv.lock devenv.local.nix secretspec.toml
   .envrc .env .mcp.json
   .claude/settings.json .claude/settings.local.json .claude/hooks
 )

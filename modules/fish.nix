@@ -66,7 +66,7 @@
           git -C "$main_root" worktree add -b "$branch" "$dest" "$base_ref"; or return
       end
 
-      for item in .envrc .env devenv.nix devenv.yaml devenv.lock devenv.local.nix
+      for item in .envrc .env devenv.nix devenv.yaml devenv.lock devenv.local.nix secretspec.toml
           if test -e "$main_root/$item"
               cp -R "$main_root/$item" "$dest/$item"
           end
