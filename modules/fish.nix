@@ -9,6 +9,26 @@
     enable = true;
     shellAliases.less = "less -R";
 
+    functions.wt = ''
+      set -l root "$HOME/Code/worktrees"
+
+      if not test -d "$root"
+          echo "No worktrees in $root" >&2
+          return 1
+      end
+
+      set -l selected (
+          fd --base-directory "$root" --max-depth 2 --min-depth 2 --type directory . \
+              | fzf
+      )
+
+      if test -z "$selected"
+          return
+      end
+
+      cd "$root/$selected"
+    '';
+
     # Upstream hydro prompt; local deviations go through its public
     # variables (see conf.d/hydro-theme.fish below), no forked functions.
     plugins = [
