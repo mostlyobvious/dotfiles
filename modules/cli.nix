@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
 
 let
   glab-tui = pkgs.rustPlatform.buildRustPackage {
@@ -18,7 +23,10 @@ in
 
   programs.direnv = {
     enable = true;
-    config.global.hide_env_diff = true;
+    config = {
+      global.hide_env_diff = true;
+      whitelist.prefix = [ "${config.home.homeDirectory}/Code/worktrees" ];
+    };
     nix-direnv.enable = true;
     silent = true;
   };
