@@ -26,6 +26,7 @@
       "signal"
       "claude"
       "linear"
+      "notion"
       "1password"
       "1password-cli"
     ];
