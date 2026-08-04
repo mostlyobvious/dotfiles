@@ -2,14 +2,13 @@ import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const gitPushPattern = /(^|[\s&|;(])git\s+push/;
-const forcePushPattern = /(^|\s)(-f|--force|--force-with-lease)([\s=]|$)/;
+const forcePushPattern = /(^|\s)(-f|--force)([\s=]|$)/;
 const protectedBranchPushPattern = /(^|[\s&|;(])git\s+push([^&|;]*[\s:/])(refs\/heads\/)?(master|main)([\s&|;:]|$)/;
 
 const dangerousPatterns = [
 	/git reset --hard/,
 	/git clean -fd/,
 	/git clean -f/,
-	/git branch -D/,
 	/git checkout \./,
 	/git restore \./,
 	/reset --hard/,
