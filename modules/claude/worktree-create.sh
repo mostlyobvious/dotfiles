@@ -41,17 +41,27 @@ else
 fi
 
 # Carry uncommitted local config from the main checkout, if present.
-CARRY=(
-  devenv.nix devenv.yaml devenv.lock devenv.local.nix secretspec.toml
-  .envrc .env .mcp.json
-  .claude/settings.json .claude/settings.local.json .claude/hooks
-)
+CARRY=(devenv.nix devenv.yaml devenv.lock devenv.local.nix .envrc .env .mcp.json)
 for item in "${CARRY[@]}"; do
   src="$MAIN_ROOT/$item"
   if [ -e "$src" ]; then
-    mkdir -p "$(dirname "$DEST/$item")"
     cp -R "$src" "$DEST/$item" >&2
   fi
 done
+
+for src in "$MAIN_ROOT"/secretspec*; do
+  if [ -e "$src" ]; then
+    cp -R "$src" "$DEST/$(basename "$src")" >&2
+  fi
+done
+
+if [ -d "$MAIN_ROOT/.claude" ]; then
+  mkdir -p "$DEST/.claude"
+  for src in "$MAIN_ROOT/.claude"/*; do
+    if [ -e "$src" ]; then
+      cp -R "$src" "$DEST/.claude/" >&2
+    fi
+  done
+fi
 
 echo "$DEST"
