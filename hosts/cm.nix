@@ -9,6 +9,7 @@
       ../modules/homebrew.nix
       ../modules/account.nix
       ../modules/rosetta.nix
+      ../modules/elasticsearch-volume.nix
     ];
   };
 
