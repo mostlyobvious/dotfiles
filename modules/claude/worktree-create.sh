@@ -32,6 +32,9 @@ if [ -e "$DEST" ]; then
 fi
 
 mkdir -p "$(dirname "$DEST")"
+if [ -d "$HOME/Code/mono" ] && [ ! -e "$HOME/Code/worktrees/mono" ]; then
+  ln -s "$HOME/Code/mono" "$HOME/Code/worktrees/mono"
+fi
 
 # New branch named after the requested name; if it already exists, check it out instead.
 if git -C "$MAIN_ROOT" show-ref --verify --quiet "refs/heads/$NAME"; then

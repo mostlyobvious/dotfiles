@@ -76,6 +76,9 @@
       end
 
       mkdir -p (dirname "$dest")
+      if test -d "$HOME/Code/mono"; and not test -e "$HOME/Code/worktrees/mono"
+          ln -s "$HOME/Code/mono" "$HOME/Code/worktrees/mono"
+      end
 
       if git -C "$main_root" show-ref --verify --quiet "refs/heads/$branch"
           git -C "$main_root" worktree add "$dest" "$branch"; or return
