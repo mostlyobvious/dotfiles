@@ -158,6 +158,12 @@
           set default_branch (git -C "$main_root" symbolic-ref --short HEAD 2>/dev/null)
       end
 
+      set -l current_dir (pwd -P)
+      set -l resolved_path (path resolve "$path")
+      if string match --quiet -- "$resolved_path" "$current_dir"; or string match --quiet -- "$resolved_path/*" "$current_dir"
+          cd "$main_root"; or return
+      end
+
       git -C "$main_root" worktree remove "$path"; or return
 
       if test -n "$branch"; and test "$branch" != "$default_branch"
