@@ -44,7 +44,7 @@ else
 fi
 
 # Carry uncommitted local config from the main checkout, if present.
-CARRY=(devenv.nix devenv.yaml devenv.lock devenv.local.nix .envrc .env .mcp.json)
+CARRY=(devenv.nix devenv.yaml devenv.lock devenv.local.nix .envrc .env)
 for item in "${CARRY[@]}"; do
   src="$MAIN_ROOT/$item"
   if [ -e "$src" ]; then
