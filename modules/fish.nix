@@ -210,6 +210,8 @@
     '';
 
     interactiveShellInit = lib.mkAfter ''
+      ${pkgs.devenv}/bin/devenv hook fish | source
+
       function fzf-history-widget -d "Show command history"
           set -l fzf_query (commandline)
           set -lx FZF_DEFAULT_OPTS "$FZF_DEFAULT_OPTS --scheme=history --read0 --print0 --no-multi-line --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS"
