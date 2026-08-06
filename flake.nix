@@ -43,11 +43,6 @@
       flake = false;
     };
 
-    glab-tui = {
-      url = "github:rcieri/glab-tui";
-      flake = false;
-    };
-
     # Private repo carrying purchased, non-redistributable font zips. Fetched
     # over SSH so no token is stored; pinned in flake.lock. Consumed by
     # modules/fonts.nix.

@@ -1,23 +1,13 @@
 {
   config,
-  inputs,
   pkgs,
   ...
 }:
 
-let
-  glab-tui = pkgs.rustPlatform.buildRustPackage {
-    pname = "glab-tui";
-    version = "0.8.0";
-    src = inputs.glab-tui;
-    cargoLock.lockFile = "${inputs.glab-tui}/Cargo.lock";
-  };
-in
 {
   home.packages = with pkgs; [
     devenv
     glab
-    glab-tui
   ];
 
   programs.direnv = {
