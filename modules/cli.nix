@@ -8,6 +8,7 @@
   home.packages = with pkgs; [
     devenv
     glab
+    yq
   ];
 
   programs.direnv = {
