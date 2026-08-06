@@ -15,7 +15,6 @@ let
 in
 {
   home.packages = with pkgs; [
-    secretspec
     devenv
     glab
     glab-tui
