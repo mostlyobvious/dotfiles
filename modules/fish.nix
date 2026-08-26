@@ -165,7 +165,7 @@
     shellInit = ''
       set fish_greeting
     ''
-    + lib.optionalString pkgs.stdenv.isDarwin ''
+    + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
       # Pinned copy of `brew shellenv fish` to skip exec'ing brew per shell;
       # re-sync if brew's shellenv output changes.
       set --global --export HOMEBREW_PREFIX /opt/homebrew

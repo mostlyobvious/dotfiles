@@ -58,7 +58,7 @@ in
   programs.git = {
     enable = true;
 
-    signing = lib.mkIf pkgs.stdenv.isDarwin {
+    signing = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       format = "ssh";
       key = config.my.signingKey;
       signByDefault = true;
