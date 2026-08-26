@@ -97,27 +97,6 @@
           git -C "$main_root" worktree add -b "$branch" "$dest" "$base_ref"; or return
       end
 
-      for item in .envrc .env devenv.nix devenv.yaml devenv.lock devenv.local.nix
-          if test -e "$main_root/$item"
-              cp -R "$main_root/$item" "$dest/$item"
-          end
-      end
-
-      for src in "$main_root"/secretspec*
-          if test -e "$src"
-              cp -R "$src" "$dest/"(basename "$src")
-          end
-      end
-
-      if test -d "$main_root/.claude"
-          mkdir -p "$dest/.claude"
-          for src in "$main_root/.claude"/*
-              if test -e "$src"
-                  cp -R "$src" "$dest/.claude/"
-              end
-          end
-      end
-
       cd "$dest"
     '';
 
