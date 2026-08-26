@@ -193,8 +193,6 @@
     '';
 
     interactiveShellInit = lib.mkAfter ''
-      ${pkgs.devenv}/bin/devenv hook fish | source
-
       function fzf-history-widget -d "Show command history"
           set -l fzf_query (commandline)
           set -lx FZF_DEFAULT_OPTS "$FZF_DEFAULT_OPTS --scheme=history --read0 --print0 --no-multi-line --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS"
@@ -210,6 +208,11 @@
       end
     '';
   };
+
+  # Prompt-time devenv activation must run before hydro starts async git jobs.
+  xdg.configFile."fish/conf.d/00-devenv.fish".text = ''
+    status is-interactive; and ${pkgs.devenv}/bin/devenv hook fish | source
+  '';
 
   # Named to sort before plugin-hydro.fish: hydro bakes hydro_symbol_prompt
   # into _hydro_status as its conf.d loads, so the overrides must exist first.
