@@ -98,6 +98,10 @@
       end
 
       cd "$dest"
+
+      if test -f devenv.nix
+          devenv allow; or return
+      end
     '';
 
     functions.wtd = ''
