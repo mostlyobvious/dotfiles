@@ -103,9 +103,17 @@ in
         from = "mutant";
         path = ".";
       };
+      change-writing = {
+        from = "local";
+        path = "change-writing";
+      };
       commit = {
         from = "local";
         path = "commit";
+      };
+      merge-request = {
+        from = "local";
+        path = "merge-request";
       };
       modularity-balanced-coupling = modularitySkill "balanced-coupling";
       modularity-design = modularitySkill "design";

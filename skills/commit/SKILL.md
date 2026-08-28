@@ -5,6 +5,8 @@ description: Create a git commit following project conventions. Use this skill w
 
 # Commit
 
+Before drafting the message, read and apply `../change-writing/SKILL.md`.
+
 ## Format
 
 ```
@@ -16,8 +18,10 @@ description: Create a git commit following project conventions. Use this skill w
 - Subject: Capitalized imperative ("Fix bug", not "Fixed"). No trailing period.
 - Blank line between subject and body. Body wrapped at 72 cols.
 - Prefer `*` bullet points in the body over prose paragraphs. Hanging indent for wrapped lines. Blank lines between points.
-- Body explains **why** (and, when non-obvious, **how** and **what effects** — benchmarks, side effects, follow-ups). Skip questions that don't apply. Never restate the diff.
-- Link the source when it has a URL: the reference article or blog post that informed the change, the guide or documentation it follows, or the decision behind it (task, issue, message).
+- Body explains **why** (and, when non-obvious, **how** and **what effects** — benchmarks, side effects, risks, follow-ups). Skip questions that don't apply. Never restate the diff.
+- Write for the next maintainer: record the problem or decision, the expected outcome, and any operational or compatibility impact.
+- Link the source when it has a URL: the reference article or blog post that informed the change, the guide or documentation it follows, the dependency changelog/release/compare view, or the decision behind it (task, issue, message).
+- Include verification when it is part of the evidence for the change.
 
 ## Scope
 
@@ -25,8 +29,9 @@ description: Create a git commit following project conventions. Use this skill w
 
 ## Procedure
 
-1. `git status` + `git diff --staged` (and `git diff` if unstaged) to confirm scope.
-2. Draft subject + body.
-3. Present the staged files and message for approval
-4. Wait for user confirmation before committing
-5. No `--no-verify`. No amending published commits. No force-push without explicit request.
+1. Read `../change-writing/SKILL.md`.
+2. `git status` + `git diff --staged` (and `git diff` if unstaged) to confirm scope.
+3. Draft subject + body.
+4. Present the staged files and message for approval
+5. Wait for user confirmation before committing
+6. No `--no-verify`. No amending published commits. No force-push without explicit request.
