@@ -18,7 +18,7 @@ let
     - Execute the task; don't question my methods or add cautionary meta-commentary. Warn only when you can name what breaks and under what condition — once, then stop.
     - Avoid jargon when explaining how things work; prefer plain language, and specifically avoid the words "load-bearing" and "genuinely".
     - When showing a benchmark result, present the numbers in a table — before and after when there's a baseline — and state how each number was measured and what assumptions it rests on.
-    - When opening a GitLab MR, explicitly set squash-on-merge to false and verify it.
+    - When opening a GitLab MR, explicitly set squash-on-merge to false with `glab mr update <id> --squash-before-merge=false`, then verify it.
   '';
 in
 {
