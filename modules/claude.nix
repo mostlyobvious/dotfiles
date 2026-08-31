@@ -30,8 +30,10 @@ in
 {
   imports = [ ./agents.nix ];
 
-  # Claude Code CLI from nixpkgs; shared module so both host and VM can run it.
-  programs.claude-code.enable = true;
+  programs.claude-code = {
+    enable = true;
+    package = pkgs.llm-agents.claude-code;
+  };
 
   # Out-of-store: Claude Code rewrites settings.json at runtime, so edits land
   # straight in the working copy. The rest of ~/.claude is runtime state, unmanaged.

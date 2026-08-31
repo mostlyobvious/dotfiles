@@ -24,6 +24,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
     # `nix flake update skills-*` to bump. Consumed by modules/skills.nix.
     skills-mattpocock = {

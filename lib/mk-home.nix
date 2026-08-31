@@ -16,6 +16,7 @@ home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs {
     inherit system;
     config.allowUnfreePredicate = allowUnfreePred;
+    overlays = [ inputs.llm-agents.overlays.shared-nixpkgs ];
   };
   extraSpecialArgs = {
     username = user;
