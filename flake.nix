@@ -35,16 +35,8 @@
       url = "github:mattpocock/skills";
       flake = false;
     };
-    skills-impeccable = {
-      url = "github:pbakaus/impeccable";
-      flake = false;
-    };
     skills-mutant = {
       url = "github:mbj/mutant";
-      flake = false;
-    };
-    skills-modularity = {
-      url = "github:vladikk/modularity";
       flake = false;
     };
 

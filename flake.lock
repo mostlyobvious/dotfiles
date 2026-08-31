@@ -403,26 +403,8 @@
         "llm-agents": "llm-agents",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs_3",
-        "skills-impeccable": "skills-impeccable",
         "skills-mattpocock": "skills-mattpocock",
-        "skills-modularity": "skills-modularity",
         "skills-mutant": "skills-mutant"
-      }
-    },
-    "skills-impeccable": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783131680,
-        "narHash": "sha256-ymIIsbLmYfz7yjrOqW3zQAwUGqg8DW6+gLgcV1bM4E0=",
-        "owner": "pbakaus",
-        "repo": "impeccable",
-        "rev": "582f23eae3c9ef4db71366e944b0555d65b7aacc",
-        "type": "github"
-      },
-      "original": {
-        "owner": "pbakaus",
-        "repo": "impeccable",
-        "type": "github"
       }
     },
     "skills-mattpocock": {
@@ -438,22 +420,6 @@
       "original": {
         "owner": "mattpocock",
         "repo": "skills",
-        "type": "github"
-      }
-    },
-    "skills-modularity": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775302703,
-        "narHash": "sha256-BQzhMlUyBFtBmwxlz/hhIi48b6nJjqDMfp3BSLGUZmo=",
-        "owner": "vladikk",
-        "repo": "modularity",
-        "rev": "bcdca9a595764b9aa88d5d8d6020f52e7f5f1f52",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vladikk",
-        "repo": "modularity",
         "type": "github"
       }
     },
