@@ -2,7 +2,7 @@
 
 let
   volume = "elasticsearch";
-  sectors = "131072";
+  sectors = "1048576";
   ensureRamdisk = pkgs.writeShellScript "ensure-elasticsearch-volume" ''
     set -euo pipefail
 
