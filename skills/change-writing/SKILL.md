@@ -22,7 +22,7 @@ Before writing, answer the useful subset of:
 - What existing docs, templates, or project conventions must be preserved?
 - What terms should stay consistent with the codebase or product language?
 - What does the reader need first: context, steps, examples, trade-offs, or proof?
-- What success signal matters: review approval, safe rollout, fewer support questions, easier onboarding, or correct API usage?
+- What can be omitted because it is filler, obvious from the diff, or likely to go stale?
 
 ## Content Types
 
@@ -45,10 +45,11 @@ Choose the shape that matches the task:
 - Include diagrams, screenshots, or tables only when they clarify more than text would.
 - Include only implementation details that affect review, operation, migration, API use, or future changes.
 - Call out risks, compatibility behavior, rollout constraints, and follow-ups when they matter.
-- State how the change was verified. If not verified, say so plainly.
+- State how the change was verified when the format calls for verification. Never add a verification section or verification bullet to commit messages.
+- For MR/PR descriptions, do not include test counts; they go stale during rebases.
 - Link source material when it influenced the change: issue, MR, Slack thread, article, docs, changelog, release, or compare view.
-- Use plain language. Avoid marketing tone, filler, and restating the diff.
-- Prefer concise bullets when several facts compete for attention.
+- Use plain language. Avoid marketing tone, hero language, drama, jargon, filler, and restating the diff.
+- Prefer concise bullets when several facts compete for attention, and cut anything the audience does not need for the next decision.
 - For benchmarks, use a table with before/after when there is a baseline, and say how each number was measured.
 
 ## API Documentation Checklist
@@ -82,5 +83,5 @@ Before presenting prose, check that it is:
 - Complete for the audience's next action, but no broader.
 - Structured with headings or bullets that make scanning easy.
 - Consistent with project terminology and existing docs.
-- Clear about risk, rollout, compatibility, and verification when relevant.
-- Free of unsupported claims, stale details, private names, and needless verbosity.
+- Clear about risk, rollout, compatibility, and verification when relevant and allowed by the format.
+- Free of unsupported claims, stale details, private names, jargon, drama, and needless verbosity.

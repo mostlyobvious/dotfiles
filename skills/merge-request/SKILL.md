@@ -35,7 +35,7 @@ Before drafting the title or description, read and apply `../change-writing/SKIL
 
 ## Verification
 
-- ...
+- Commands or checks run, without test counts.
 ```
 
 Add only sections that matter:
@@ -64,6 +64,7 @@ Add only sections that matter:
 
 - Keep the title specific to the reviewer-visible change.
 - Put the reviewer-critical context near the top.
+- Keep descriptions concise; skip filler, dramatic framing, and details obvious from the diff.
 - Mention migrations, background jobs, operational changes, permissions, data shape changes, and compatibility behavior when present.
 - Link dependency changelogs or release/compare pages for upgraded dependencies.
 - Do not paste long changelog excerpts when a link and short summary are enough.
