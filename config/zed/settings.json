@@ -72,6 +72,8 @@
         "use_bundler": false,
       },
       "initialization_options": {
+        "formatter": "syntax_tree",
+        "linters": ["rubocop"],
         "enabledFeatures": {
           "onTypeFormatting": false,
         },
