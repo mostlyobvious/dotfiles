@@ -8,7 +8,7 @@
       theme = "dark:Duskfox, light:Dawnfox";
       window-colorspace = "display-p3";
       window-padding-x = 16;
-      window-padding-y = 8;
+      window-padding-y = 12;
       font-size = 16;
       font-family = "Berkeley Mono";
       copy-on-select = "clipboard";
