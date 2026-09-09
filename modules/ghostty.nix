@@ -17,6 +17,12 @@
       window-width = 170;
       working-directory = "/Users/mostlyobvious/Code";
       tab-inherit-working-directory = false;
+      quick-terminal-position = "top";
+      quick-terminal-size = "45%";
+      quick-terminal-screen = "mouse";
+      quick-terminal-animation-duration = 0.15;
+      quick-terminal-autohide = true;
+      keybind = [ "global:super+backquote=toggle_quick_terminal" ];
     };
   };
 }
