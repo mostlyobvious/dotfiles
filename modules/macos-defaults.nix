@@ -36,6 +36,10 @@ in
       NSConvolutionOverride1 = 10; # window corner radius; Tahoe default 16, Sequoia ~10
     };
 
+    "com.google.Chrome" = {
+      NSConvolutionOverride1 = 10;
+    };
+
     "com.apple.screencapture" = {
       type = "png";
       location = shotsDir;
