@@ -104,9 +104,17 @@
       end
     '';
 
-    functions.wtd = ''
+    functions.__wtd = ''
+      set -l force 0
+      set -l command wtd
+      if test (count $argv) -gt 0; and test "$argv[1]" = --force
+          set force 1
+          set command wtf
+          set --erase argv[1]
+      end
+
       if test (count $argv) -gt 1
-          echo "Usage: wtd [repo/worktree]" >&2
+          echo "Usage: $command [repo/worktree]" >&2
           return 2
       end
 
@@ -150,11 +158,27 @@
           cd "$main_root"; or return
       end
 
-      git -C "$main_root" worktree remove "$path"; or return
+      if test $force -eq 1
+          git -C "$main_root" worktree remove --force "$path"; or return
+      else
+          git -C "$main_root" worktree remove "$path"; or return
+      end
 
       if test -n "$branch"; and test "$branch" != "$default_branch"
-          git -C "$main_root" branch -d "$branch"; or true
+          if test $force -eq 1
+              git -C "$main_root" branch -D "$branch"; or true
+          else
+              git -C "$main_root" branch -d "$branch"; or true
+          end
       end
+    '';
+
+    functions.wtd = ''
+      __wtd $argv
+    '';
+
+    functions.wtf = ''
+      __wtd --force $argv
     '';
 
     # Upstream hydro prompt; local deviations go through its public
