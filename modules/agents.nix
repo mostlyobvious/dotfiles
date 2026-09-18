@@ -19,6 +19,42 @@ let
     - Avoid jargon when explaining how things work; prefer plain language, and specifically avoid the words "load-bearing" and "genuinely".
     - When showing a benchmark result, present the numbers in a table — before and after when there's a baseline — and state how each number was measured and what assumptions it rests on.
     - Open GitLab MRs with `glab mr create --squash-before-merge=false`, run from a shell script that reads the description from a file.
+
+    ## Publishing to shared systems (Linear, GitLab, Slack)
+
+    - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen.
+    - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
+    - Present the exact text and wait for a one-word go-ahead ("commit", "create", "post") before anything leaves the machine.
+
+    ## Claims in written artifacts
+
+    - Before writing a historical or behavioural claim ("the frontend has sent this for years", "the ticket asked for X"), trace it to a commit, date, or document, and write the traced fact rather than the impression.
+    - When a referenced ticket or document cannot be found, say so in the text instead of paraphrasing what it probably said.
+
+    ## Explaining changes
+
+    - When behaviour changes, put a concrete before/after example in the commit body and MR description.
+    - Write for a reader with no prior context. If a sentence needs the reader to already know the system, replace it with an example.
+    - Drop stylistic openers and framing sentences; state the fact.
+
+    ## Analysing data impact
+
+    - When counting affected stored data, scope by what is read back, not by what is written. Write-once tables nothing reads do not belong in a migration table.
+    - Present counts as a table with source and scope stated. Report the scope I named, and say what was excluded and why.
+
+    ## Removing dead code
+
+    - Open it as its own MR and include a reasoning trace: which commit orphaned it, what last referenced it, and how you confirmed nothing loads it.
+
+    ## Task checklists
+
+    - Checklist items are short titles in plain language, one behaviour change each. Tests are part of every item, never a separate item.
+
+    ## Working method
+
+    - Prefer the Edit tool over sed or inline scripts for file edits.
+    - After pushing, check the pipeline and read the specific failing job before touching code.
+    - Before proposing a split or merge order across repositories, check the other repository for an existing draft first.
   '';
 in
 {
