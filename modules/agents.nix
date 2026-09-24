@@ -23,6 +23,7 @@ let
     ## Publishing to shared systems (Linear, GitLab, Slack)
 
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen.
+    - When posting machine-assisted analysis, start with a disclosure sentence that names the tool and the agent posting it. Example: `🤖 I ran mutant and triaged the results with Claude Code. Posting on its behalf.`
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
     - Present the exact text and wait for a one-word go-ahead ("create", "post") before anything leaves the machine.
 
