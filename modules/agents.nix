@@ -8,7 +8,7 @@ let
 
     - Keep comments rare — only for a hidden constraint, a subtle invariant, or a workaround for a specific case where the code and commit message failed to show it. Always keep comments concise.
     - All code repositories live in `~/Code`; check for local copies there first.
-    - Do code-changing work in a linked git worktree under `~/Code/worktrees/<repo>/<name>` unless the user explicitly asks to use the main checkout. If the repo is open at `~/Code/<repo>`, create or switch to a linked worktree before editing.
+    - Do code-changing work in a linked git worktree under `~/Code/worktrees/<repo>/<name>` unless the user explicitly asks to use the main checkout. Never use a linked worktree for `~/Code/dotfiles`; edit that repository in its main checkout.
     - When no sharper rule applies, match the surrounding code — its formatting, naming, layout, and test structure. This governs how you write, not whether to add explanatory prose; comment density follows the rule above.
     - Pick the API whose behavior doesn't exceed what your tests constrain; extra capability is behavior no test pins down — the kind mutation testing surfaces as surviving mutants.
     - Keep config files free of keys whose value equals the tool's built-in default, unless the key pins a value against an upstream change; record that intent in the commit message, not an inline comment unless the file would be misleading without it.
