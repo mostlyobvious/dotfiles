@@ -17,6 +17,11 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/block-dangerous-git.sh;
   };
+  enforceChangeWritingMr = pkgs.writeShellApplication {
+    name = "enforce-change-writing-mr";
+    runtimeInputs = [ pkgs.jq ];
+    text = builtins.readFile ./claude/enforce-change-writing-mr.sh;
+  };
   worktreeCreate = pkgs.writeShellApplication {
     name = "worktree-create";
     runtimeInputs = [
@@ -53,6 +58,7 @@ in
   # Static scripts referenced by settings.json under stable ~/.claude paths.
   home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
   home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
+  home.file.".claude/hooks/enforce-change-writing-mr.sh".source = lib.getExe enforceChangeWritingMr;
   home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
   home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
 }
