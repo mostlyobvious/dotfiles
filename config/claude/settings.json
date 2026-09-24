@@ -37,7 +37,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/stop-devenv.sh"
+            "command": "~/.claude/hooks/stop-devenv.sh",
+            "timeout": 10
           }
         ]
       }
