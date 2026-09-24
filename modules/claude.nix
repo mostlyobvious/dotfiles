@@ -23,6 +23,7 @@ let
       pkgs.jq
       pkgs.git
       pkgs.coreutils
+      pkgs.devenv
     ];
     text = builtins.readFile ./claude/worktree-create.sh;
   };

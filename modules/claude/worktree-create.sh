@@ -43,4 +43,8 @@ else
   git -C "$MAIN_ROOT" worktree add -b "$NAME" "$DEST" "$BASE_REF" >&2
 fi
 
+if [ -f "$DEST/devenv.nix" ]; then
+  (cd "$DEST" && devenv allow) >&2
+fi
+
 echo "$DEST"
