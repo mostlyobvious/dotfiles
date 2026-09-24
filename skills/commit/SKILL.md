@@ -31,6 +31,6 @@ Before drafting the message, read and apply `../change-writing/SKILL.md`.
 1. Read `../change-writing/SKILL.md`.
 2. `git status` + `git diff --staged` (and `git diff` if unstaged) to confirm scope.
 3. Draft subject + body.
-4. Present the staged files and message for approval
-5. Wait for user confirmation before committing
-6. No `--no-verify`. No amending published commits. No force-push without explicit request.
+4. Commit when the staged files match one logical change and the message follows this skill.
+5. Report the commit hash and subject.
+6. No `--no-verify`. No amending published commits. Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.

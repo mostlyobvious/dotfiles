@@ -8,7 +8,7 @@ let
 
     - Keep comments rare — only for a hidden constraint, a subtle invariant, or a workaround for a specific case where the code and commit message failed to show it. Always keep comments concise.
     - All code repositories live in `~/Code`; check for local copies there first.
-    - Linked git worktrees live in `~/Code/worktrees/<repo>/<name>`.
+    - Do code-changing work in a linked git worktree under `~/Code/worktrees/<repo>/<name>` unless the user explicitly asks to use the main checkout. If the repo is open at `~/Code/<repo>`, create or switch to a linked worktree before editing.
     - When no sharper rule applies, match the surrounding code — its formatting, naming, layout, and test structure. This governs how you write, not whether to add explanatory prose; comment density follows the rule above.
     - Pick the API whose behavior doesn't exceed what your tests constrain; extra capability is behavior no test pins down — the kind mutation testing surfaces as surviving mutants.
     - Keep config files free of keys whose value equals the tool's built-in default, unless the key pins a value against an upstream change; record that intent in the commit message, not an inline comment unless the file would be misleading without it.
@@ -24,7 +24,7 @@ let
 
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
-    - Present the exact text and wait for a one-word go-ahead ("commit", "create", "post") before anything leaves the machine.
+    - Present the exact text and wait for a one-word go-ahead ("create", "post") before anything leaves the machine.
 
     ## Claims in written artifacts
 
@@ -53,6 +53,8 @@ let
     ## Working method
 
     - Prefer the Edit tool over sed or inline scripts for file edits.
+    - Commit local changes without asking when the staged scope is clean and the message follows the commit skill. Push the current feature branch without asking when the push is non-force and does not target `main` or `master`.
+    - Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
     - After pushing, check the pipeline and read the specific failing job before touching code.
     - Before proposing a split or merge order across repositories, check the other repository for an existing draft first.
   '';
