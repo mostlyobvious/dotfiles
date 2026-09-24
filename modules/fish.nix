@@ -50,6 +50,10 @@
       else
           cd "$root/$selected"
       end
+
+      if functions --query _devenv_hook
+          _devenv_hook
+      end
     '';
 
     functions.wtc = ''
