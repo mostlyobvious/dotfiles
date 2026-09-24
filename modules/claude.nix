@@ -26,6 +26,15 @@ let
     ];
     text = builtins.readFile ./claude/worktree-create.sh;
   };
+  stopDevenv = pkgs.writeShellApplication {
+    name = "stop-devenv";
+    runtimeInputs = [
+      pkgs.devenv
+      pkgs.git
+      pkgs.jq
+    ];
+    text = builtins.readFile ./claude/stop-devenv.sh;
+  };
 in
 {
   imports = [ ./agents.nix ];
@@ -44,4 +53,5 @@ in
   home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
   home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
   home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
+  home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
 }
