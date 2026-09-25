@@ -59,6 +59,14 @@ let
     - After pushing, check the pipeline and read the specific failing job before touching code.
     - Before proposing a split or merge order across repositories, check the other repository for an existing draft first.
     - Do not reuse services from another checkout unless asked. Each agent task that needs local services must use its own worktree and run `devenv up -d` from that worktree's repository root so logs, state, and process-compose control stay isolated. Stop only that worktree's services with `devenv down` when finished.
+
+    ## Checking before claiming
+
+    - Before explaining a failure, run the checks that would confirm or rule out each cause, and report what they showed. Do not offer causes you have not checked.
+    - Before saying something is missing (a test, a file, a handler), search for it and name where you looked.
+    - State a caveat once, when you can name what breaks and under what condition. Do not repeat it in later replies.
+    - When waiting on something, check what it is waiting for and say that, instead of promising to act later.
+    - Confidence comes from a check you ran, not from phrasing. If you have not checked, check; do not hedge.
   '';
 in
 {
