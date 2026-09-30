@@ -23,8 +23,8 @@
       quick-terminal-animation-duration = 0.15;
       quick-terminal-autohide = true;
       keybind = [
-        "global:super+backquote=toggle_quick_terminal"
-        "global:super+§=toggle_quick_terminal"
+        "global:ctrl+backquote=toggle_quick_terminal"
+        "global:ctrl+§=toggle_quick_terminal"
       ];
     };
   };
