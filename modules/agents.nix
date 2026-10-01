@@ -49,7 +49,7 @@ let
 
     ## Task checklists
 
-    - Checklist items are short titles in plain language, one behaviour change each. Tests are part of every item, never a separate item.
+    - Checklist items are short titles in plain language, one supported behaviour change each. Tests belong with the item when they pin intended behaviour; do not add negative tests for deleted behaviour unless the absence is itself a public contract or regression risk.
 
     ## Working method
 
