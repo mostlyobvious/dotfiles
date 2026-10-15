@@ -64,6 +64,10 @@ Add only sections that matter:
 
 - Keep the title specific to the reviewer-visible change.
 - Put the reviewer-critical context near the top.
+- Make the Summary readable by anyone who might open the MR, not only the assigned reviewer.
+- Spend the most words on decisions that are expensive to undo after merge: data shape, protocols, dependencies, permissions, security controls. Skip choices a follow-up of a few hours could change.
+- The headings plus the first bullet of each section should tell the whole change to someone skimming.
+- For UI changes, add a screenshot where the change is obvious without zooming, or a GIF under 15 seconds.
 - Keep descriptions concise; skip filler, dramatic framing, and details obvious from the diff.
 - Mention migrations, background jobs, operational changes, permissions, data shape changes, and compatibility behavior when present.
 - Link dependency changelogs or release/compare pages for upgraded dependencies.

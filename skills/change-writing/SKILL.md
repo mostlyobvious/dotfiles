@@ -51,6 +51,11 @@ Choose the shape that matches the task:
 - Use plain language. Avoid marketing tone, hero language, drama, jargon, filler, and restating the diff.
 - Prefer concise bullets when several facts compete for attention, and cut anything the audience does not need for the next decision.
 - For benchmarks, use a table with before/after when there is a baseline, and say how each number was measured.
+- Make the subject, title, or first sentence tell the audience whether the change affects them and why it matters: "Stop double-charging retried webhooks", not "Refactor webhook handler".
+- Define each domain or internal term before its first use. The text must make sense without following any link.
+- Match vocabulary to the audience: a user-facing changelog does not name internal classes or modules.
+- In changelogs and release notes, describe what improved ("Imports finish in 2 min"), not what is no longer broken. Cut entries like "various improvements and bugfixes".
+- Use passive voice deliberately in incident write-ups and reverts to keep the focus off who caused the failure.
 
 ## API Documentation Checklist
 

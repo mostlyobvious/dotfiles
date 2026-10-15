@@ -37,6 +37,19 @@ let
     - Write for a reader with no prior context. If a sentence needs the reader to already know the system, replace it with an example.
     - Drop stylistic openers and framing sentences; state the fact.
 
+    ## Writing to me
+
+    - Answer first. The opening sentence states the result, decision, or answer; supporting detail follows in falling order of importance.
+    - For status updates: state, then blockers, then next step. No chronological narration of what you did.
+    - Introduce one new concept at a time. Define a term before its first use; never use it first and explain after.
+    - A link is not an explanation; the reply must make sense without opening it.
+    - Use precise verbs instead of "is/does/handles" and noun forms ("validate", not "perform validation").
+    - Phrase positively: "accepts empty input", not "doesn't fail on empty input", unless that reads worse.
+    - Active voice by default; name what acts.
+    - Every "it", "this", "that" must point to one thing in the same paragraph; otherwise repeat the noun.
+    - Headings say what the section concludes, not its topic.
+    - Vary sentence shape; no em-dashes, bold lead-ins, or groups of three as habits.
+
     ## Analysing data impact
 
     - When counting affected stored data, scope by what is read back, not by what is written. Write-once tables nothing reads do not belong in a migration table.
