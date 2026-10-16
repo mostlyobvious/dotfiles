@@ -14,6 +14,11 @@ COMMON_DIR=$(git -C "$CWD" rev-parse --path-format=absolute --git-common-dir)
 MAIN_ROOT=$(dirname "$COMMON_DIR")
 REPO=$(basename "$MAIN_ROOT")
 
+if [ "$MAIN_ROOT" = "$HOME/Code/dotfiles" ]; then
+  echo "dotfiles is edited in its main checkout, never in a linked worktree." >&2
+  exit 1
+fi
+
 SLUG=$(printf '%s' "$NAME" | tr -c '[:alnum:]._-' '-')
 DEST="$HOME/Code/worktrees/$REPO/$SLUG"
 
