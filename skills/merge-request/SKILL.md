@@ -35,7 +35,7 @@ Before drafting the title or description, read and apply `../change-writing/SKIL
 
 ## Verification
 
-- Commands or checks run, without test counts.
+- Manual verification or checks CI does not run, without test counts.
 ```
 
 Add only sections that matter:
@@ -66,6 +66,7 @@ Add only sections that matter:
 - Put the reviewer-critical context near the top.
 - Make the Summary readable by anyone who might open the MR, not only the assigned reviewer.
 - Spend the most words on decisions that are expensive to undo after merge: data shape, protocols, dependencies, permissions, security controls. Skip choices a follow-up of a few hours could change.
+- Add Risk only for material consequences that are hard to reverse or change; omit reversible or easy-to-change decisions.
 - The headings plus the first bullet of each section should tell the whole change to someone skimming.
 - For UI changes, add a screenshot where the change is obvious without zooming, or a GIF under 15 seconds.
 - Keep descriptions concise; skip filler, dramatic framing, and details obvious from the diff.
