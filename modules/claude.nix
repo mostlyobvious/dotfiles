@@ -50,6 +50,11 @@ in
     package = pkgs.llm-agents.claude-code;
   };
 
+  programs.fish.functions.claude = ''
+    op signin; or return
+    command claude $argv
+  '';
+
   # Out-of-store: Claude Code rewrites settings.json at runtime, so edits land
   # straight in the working copy. The rest of ~/.claude is runtime state, unmanaged.
   home.file.".claude/settings.json".source =
