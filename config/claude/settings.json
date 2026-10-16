@@ -17,7 +17,7 @@
           },
           {
             "type": "command",
-            "command": "~/.claude/hooks/enforce-change-writing-mr.sh"
+            "command": "~/.claude/hooks/enforce-change-writing.sh"
           }
         ]
       }
