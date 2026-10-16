@@ -19,10 +19,14 @@ let
     - Avoid jargon when explaining how things work; prefer plain language, and specifically avoid the words "load-bearing" and "genuinely".
     - When showing a benchmark result, present the numbers in a table — before and after when there's a baseline — and state how each number was measured and what assumptions it rests on.
     - Open GitLab MRs with `glab mr create --squash-before-merge=false`, run from a shell script that reads the description from a file.
+    - Do what I asked and no more. Answer the question I asked, not a neighbouring one; when I ask to propose, explain, or review, change nothing; leave settings, versions, and files I did not name as they are.
+    - Once I approve a plan or slice, carry it through to its end without stopping for confirmation between steps. Stop only for a decision the plan does not settle.
+    - When I exclude a person, ticket, or MR from text ("stop mentioning X"), keep it out of everything that follows in the session.
 
     ## Publishing to shared systems (Linear, GitLab, Slack)
 
-    - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen.
+    - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
+    - Draft only the posts I asked for; do not offer Slack or Linear drafts on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
     - Present the exact text and wait for a one-word go-ahead ("create", "post") before anything leaves the machine.
 
@@ -58,6 +62,26 @@ let
     ## Removing dead code
 
     - Open it as its own MR and include a reasoning trace: which commit orphaned it, what last referenced it, and how you confirmed nothing loads it.
+
+    ## Tests
+
+    - Write tests in specification-by-example style: each test reads as a domain example with its inputs and expected outcome, keeping setup plumbing out of the test body.
+    - Run mutation testing on changed code when the project has mutant set up, before calling the change done.
+
+    ## Dependencies
+
+    - Upgrade only what the task names. For Ruby gems, run `bundle update <gem> --conservative --cooldown=0` so the named gem and what it requires move, and nothing else.
+
+    ## Operations
+
+    - Pass `--context` on every `kubectl` and `argo` command, including commands shown for me to run. Production spans the `production` and `production-us` contexts.
+    - When running an MR's code in a cluster, use the image built for that MR's commit, not `latest` or the `main` image.
+    - Use the repository's own tools for evidence before asking or guessing: its MCP servers (`rollbar`, `grafana`, `otel-clickhouse`), its devenv services, and the Postgres replica in ClickHouse.
+    - During long-running work, report progress at each milestone or every few minutes: what finished, what runs now, and the expected remaining time.
+
+    ## Repositories
+
+    - `workflows` follows `backend`: copy its configuration, gem constraints, devenv setup, and upgrade process, and explain in the MR any place where `workflows` differs.
 
     ## Task checklists
 
