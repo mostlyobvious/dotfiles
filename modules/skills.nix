@@ -35,9 +35,9 @@
         from = "mattpocock";
         path = "productivity/teach";
       };
-      writing-great-skills = {
+      writing-for-agents = {
         from = "mattpocock";
-        path = "productivity/writing-great-skills";
+        path = "productivity/writing-for-agents";
       };
       codebase-design = {
         from = "mattpocock";
@@ -55,10 +55,6 @@
         from = "mattpocock";
         path = "engineering/prototype";
       };
-      resolving-merge-conflicts = {
-        from = "mattpocock";
-        path = "engineering/resolving-merge-conflicts";
-      };
       tdd = {
         from = "mattpocock";
         path = "engineering/tdd";
@@ -70,10 +66,6 @@
       grill-with-docs = {
         from = "mattpocock";
         path = "engineering/grill-with-docs";
-      };
-      edit-article = {
-        from = "mattpocock";
-        path = "personal/edit-article";
       };
       mutant = {
         from = "mutant";
