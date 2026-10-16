@@ -22,6 +22,11 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/enforce-change-writing.sh;
   };
+  blockAnthropicAttribution = pkgs.writeShellApplication {
+    name = "block-anthropic-attribution";
+    runtimeInputs = [ pkgs.jq ];
+    text = builtins.readFile ./claude/block-anthropic-attribution.sh;
+  };
   remindMrDescription = pkgs.writeShellApplication {
     name = "remind-mr-description";
     runtimeInputs = [ pkgs.jq ];
@@ -69,6 +74,8 @@ in
   home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
   home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
   home.file.".claude/hooks/enforce-change-writing.sh".source = lib.getExe enforceChangeWriting;
+  home.file.".claude/hooks/block-anthropic-attribution.sh".source =
+    lib.getExe blockAnthropicAttribution;
   home.file.".claude/hooks/remind-mr-description.sh".source = lib.getExe remindMrDescription;
   home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
   home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
