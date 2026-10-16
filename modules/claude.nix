@@ -22,6 +22,11 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/enforce-change-writing.sh;
   };
+  remindMrDescription = pkgs.writeShellApplication {
+    name = "remind-mr-description";
+    runtimeInputs = [ pkgs.jq ];
+    text = builtins.readFile ./claude/remind-mr-description.sh;
+  };
   worktreeCreate = pkgs.writeShellApplication {
     name = "worktree-create";
     runtimeInputs = [
@@ -64,6 +69,7 @@ in
   home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
   home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
   home.file.".claude/hooks/enforce-change-writing.sh".source = lib.getExe enforceChangeWriting;
+  home.file.".claude/hooks/remind-mr-description.sh".source = lib.getExe remindMrDescription;
   home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
   home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
 }
