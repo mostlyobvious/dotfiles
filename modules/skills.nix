@@ -91,6 +91,30 @@
         from = "local";
         path = "merge-request";
       };
+      merge-stack = {
+        from = "local";
+        path = "merge-stack";
+      };
+      my-mrs = {
+        from = "local";
+        path = "my-mrs";
+      };
+      production-check = {
+        from = "local";
+        path = "production-check";
+      };
+      rebase-stack = {
+        from = "local";
+        path = "rebase-stack";
+      };
+      review-ccc = {
+        from = "local";
+        path = "review-ccc";
+      };
+      worktree-cleanup = {
+        from = "local";
+        path = "worktree-cleanup";
+      };
     };
 
     targets.claude.enable = true;
