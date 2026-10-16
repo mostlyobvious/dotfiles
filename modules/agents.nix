@@ -1,8 +1,8 @@
 { ... }:
 
 let
-  # One instruction set for every coding agent, linked under the filename
-  # each agent reads. Imported by claude.nix and pi.nix (deduplicated).
+  # One instruction set for every coding agent. Imported by claude.nix and
+  # pi.nix (deduplicated).
   instructions = ''
     # Agent instructions
 
@@ -98,6 +98,6 @@ let
   '';
 in
 {
-  home.file.".claude/CLAUDE.md".text = instructions;
-  home.file.".pi/agent/AGENTS.md".text = instructions;
+  programs.claude-code.context = instructions;
+  programs.pi-coding-agent.context = instructions;
 }
