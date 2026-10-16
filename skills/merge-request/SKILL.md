@@ -16,11 +16,12 @@ Before drafting the title or description, read and apply `../change-writing/SKIL
    - commits included in the branch
    - diff against the target branch
    - project MR/PR template, if present
-3. Check whether the branch is one logical review unit. If it mixes unrelated concerns, propose a split before opening the MR/PR.
+3. Check whether the branch is one logical review unit. If it mixes unrelated concerns, propose a split before opening the MR/PR: one MR per concern, stacked on each other when they depend on each other.
 4. Draft the title and description from the actual commits and diff. Do not rely on the branch name alone.
 5. Preserve project template headings when present; otherwise use the format below.
 6. Present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
 7. When opening a GitLab MR, explicitly set squash-on-merge to false and verify it after creation.
+8. After pushing to a branch with an open MR, compare its description against the new diff and propose an update when they disagree.
 
 ## Default Description Format
 
@@ -32,15 +33,15 @@ Before drafting the title or description, read and apply `../change-writing/SKIL
 ## Why
 
 - ...
-
-## Verification
-
-- Manual verification or checks CI does not run, without test counts.
 ```
 
 Add only sections that matter:
 
 ```markdown
+## Verification
+
+- Manual verification or checks CI does not run, without test counts.
+
 ## Risk
 
 - ...
@@ -71,6 +72,7 @@ Add only sections that matter:
 - For UI changes, add a screenshot where the change is obvious without zooming, or a GIF under 15 seconds.
 - Keep descriptions concise; skip filler, dramatic framing, and details obvious from the diff.
 - Mention migrations, background jobs, operational changes, permissions, data shape changes, and compatibility behavior when present.
-- Link dependency changelogs or release/compare pages for upgraded dependencies.
+- For upgraded dependencies, state each version change as `name old → new` and link its changelog or release/compare page.
+- Mention work outside this MR only when a reviewer would otherwise expect it here. Do not list the MR's commits.
 - Do not paste long changelog excerpts when a link and short summary are enough.
 - Do not include names or sensitive details from private threads unless the user asks.
