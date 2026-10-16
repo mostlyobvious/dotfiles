@@ -21,7 +21,7 @@ Before drafting the message, read and apply `../change-writing/SKILL.md`.
 - Body explains **why** (and, when non-obvious, **how** and **what effects** — benchmarks, side effects, risks, follow-ups). Skip questions that don't apply. Never restate the diff.
 - Write for the next maintainer: record the problem or decision, the expected outcome, and any operational or compatibility impact.
 - Link the source when it has a URL: the reference article or blog post that informed the change, the guide or documentation it follows, the dependency changelog/release/compare view, or the decision behind it (task, issue, message).
-- Reference related commits by hash: the commit being fixed, reverted, or completed.
+- Do not reference related commits by hash; rebases replace hashes. Link a durable issue, merge request, or document instead.
 - Context you would otherwise give a reviewer in chat or a review comment belongs in the body.
 - Exclude review chatter and links that expire, such as preview or test-environment URLs.
 
