@@ -21,7 +21,7 @@ fi
 # git push: allow feature-branch pushes and force-with-lease, but block plain
 # force pushes and pushes that name a protected branch in the push command itself.
 if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push'; then
-  if echo "$COMMAND" | grep -qE '(^|[[:space:]])(-f|--force)([[:space:]=]|$)'; then
+  if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push[^&|;]*[[:space:]](-f|--force)([[:space:]=]|$)'; then
     block "is a force push."
   fi
   if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push([^&|;]*[[:space:]:/])(refs/heads/)?(master|main)([[:space:]&|;:]|$)'; then
