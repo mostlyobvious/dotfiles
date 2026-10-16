@@ -2,11 +2,21 @@
 # `|| true` guard where failing is fine (outside a repo).
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
+CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 
 block() {
   echo "BLOCKED: '$COMMAND' $1 The user has prevented you from doing this." >&2
   exit 2
 }
+
+if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+worktree[[:space:]]+add'; then
+  case "$CWD" in
+    "$HOME"/Code/dotfiles | "$HOME"/Code/dotfiles/*) block "adds a worktree to dotfiles, which is edited in its main checkout." ;;
+  esac
+  if echo "$COMMAND" | grep -qE '(Code|worktrees)/dotfiles'; then
+    block "adds a worktree to dotfiles, which is edited in its main checkout."
+  fi
+fi
 
 # git push: allow feature-branch pushes and force-with-lease, but block plain
 # force pushes and pushes that name a protected branch in the push command itself.
