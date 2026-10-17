@@ -25,6 +25,7 @@ let
 
     ## Publishing to shared systems (Linear, GitLab, Slack)
 
+    - Use the change-writing skill for every Claude artifact, and share artifacts only with the CM company workspace at commenter access. Claude Code cannot configure artifact sharing; set the audience and access level in Claude's sharing controls whenever creating or sharing an artifact.
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
     - Draft only the posts I asked for; do not offer Slack or Linear drafts on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
