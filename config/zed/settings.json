@@ -1,11 +1,3 @@
-// Zed settings
-//
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
-//
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
 {
   "agent_ui_font_family": ".SystemUIFont",
   "agent_ui_font_size": 18.0,
@@ -40,21 +32,21 @@
   },
   "cli_default_open_behavior": "existing_window",
   "project_panel": {
-    "dock": "left",
+    "dock": "left"
   },
   "outline_panel": {
-    "dock": "left",
+    "dock": "left"
   },
   "collaboration_panel": {
-    "dock": "left",
+    "dock": "left"
   },
   "agent": {
     "dock": "right",
     "favorite_models": [],
-    "model_parameters": [],
+    "model_parameters": []
   },
   "git_panel": {
-    "dock": "left",
+    "dock": "left"
   },
   "buffer_font_family": "Berkeley Mono",
   "ui_font_size": 16.0,
@@ -62,25 +54,25 @@
   "theme": {
     "mode": "system",
     "light": "Dawnfox - opaque",
-    "dark": "Duskfox - opaque",
+    "dark": "Duskfox - opaque"
   },
   "languages": {
     "Ruby": {
-      "language_servers": ["ruby-lsp", "!rubocop"],
-    },
+      "language_servers": ["ruby-lsp", "!rubocop"]
+    }
   },
   "lsp": {
     "ruby-lsp": {
       "settings": {
-        "use_bundler": false,
+        "use_bundler": false
       },
       "initialization_options": {
         "formatter": "syntax_tree",
         "linters": ["rubocop"],
         "enabledFeatures": {
-          "onTypeFormatting": false,
-        },
-      },
-    },
-  },
+          "onTypeFormatting": false
+        }
+      }
+    }
+  }
 }
