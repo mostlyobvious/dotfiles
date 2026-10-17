@@ -59,6 +59,10 @@
         {
           my.userEmail = "pawel.pacana@chattermill.io";
           programs.git.settings.init.defaultBranch = "main"; # work convention
+          programs.fish.interactiveShellInit = ''
+            set --global --export COVER 1
+            set --global --export MUTANT_JOBS 8
+          '';
         }
       ];
     };
