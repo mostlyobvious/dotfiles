@@ -28,7 +28,7 @@ let
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
     - Draft only the posts I asked for; do not offer Slack or Linear drafts on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
-    - Present the exact text and wait for a one-word go-ahead ("create", "post") before anything leaves the machine.
+    - To open an MR, present its exact title and description, then wait for `create`. To publish any other approved text, wait for `post`. Each word authorizes only its matching action.
 
     ## Claims in written artifacts
 
