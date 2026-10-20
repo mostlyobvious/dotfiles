@@ -5,7 +5,7 @@ description: Check whether a deployed change is healthy in staging or production
 
 # Production Check
 
-Use the repository's MCP servers: `rollbar` for errors, `grafana` for Loki logs and Prometheus metrics, `otel-clickhouse` for traces and logs in ClickHouse. Pass `--context` on every `kubectl` and `argo` command; the contexts are `production`, `production-us`, `staging`, and `infra`.
+Use the repository's MCP servers: `rollbar` for errors, `grafana` for Prometheus metrics, and `otel-clickhouse` for traces and logs in ClickHouse. Pass `--context` on every `kubectl` and `argo` command; the contexts are `production`, `production-us`, `staging`, and `infra`.
 
 ## Procedure
 
