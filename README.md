@@ -89,6 +89,13 @@ declared lists the single source of truth; auto-update/upgrade off so a
 switch is fast. nix-darwin never installs Homebrew — bootstrap and switch
 do when absent.
 
+Apple's `container` CLI is installed from its signed package, not the
+Homebrew formula. The formula's binaries are ad-hoc signed; the signed
+package places the CLI at `/usr/local/bin/container`. Install the package
+from [Apple's releases](https://github.com/apple/container/releases) after
+switching dotfiles removes the formula. The package requires macOS 26 or
+later. The `cm` host's launch agent starts the CLI from its package path.
+
 ### VM isolation
 
 Nothing credential- or host-bound crosses into modules shared with VMs.

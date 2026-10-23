@@ -16,7 +16,7 @@
     domain = "user";
     config = {
       ProgramArguments = [
-        "/opt/homebrew/bin/container"
+        "/usr/local/bin/container"
         "system"
         "start"
       ];
