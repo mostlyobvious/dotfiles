@@ -10,7 +10,7 @@ Merge MRs in order, one at a time. Each merge deploys, and the next merge waits 
 ## Inputs
 
 - The MRs, in merge order. When given only the first, follow the stack with the rebase-stack skill.
-- The wait after each deploy. Default to 10 minutes when the user gives none.
+- The wait after each deploy. Default to 2 minutes when the user gives none.
 
 ## Procedure
 
