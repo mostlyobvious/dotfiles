@@ -83,7 +83,6 @@ let
     - Prefer the Edit tool over sed or inline scripts for file edits.
     - Commit local changes without asking when the staged scope is clean and the message follows the commit skill. Push the current feature branch without asking when the push is non-force and does not target `main` or `master`.
     - Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
-    - After pushing, check the pipeline and read the specific failing job before touching code.
     - Before proposing a split or merge order across repositories, check the other repository for an existing draft first.
     - Do not reuse services from another checkout unless asked. Each agent task that needs local services must use its own worktree and run `devenv up -d` from that worktree's repository root so logs, state, and process-compose control stay isolated. Stop only that worktree's services with `devenv down` when finished.
 
