@@ -65,7 +65,6 @@ let
     ## Tests
 
     - Write tests in specification-by-example style: each test reads as a domain example with its inputs and expected outcome, keeping setup plumbing out of the test body.
-    - Run mutation testing on changed code when the project has mutant set up, before calling the change done.
 
     ## Dependencies
 
