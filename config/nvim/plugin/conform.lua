@@ -9,6 +9,7 @@ require("lazyload").on_vim_enter(function()
     formatters_by_ft = {
       lua = { "stylua" },
       javascript = { "prettier" },
+      python = { "ruff_format" },
       ruby = { "syntax_tree" },
       elm = { "elm_format" },
       erb = { "erb_format" },
