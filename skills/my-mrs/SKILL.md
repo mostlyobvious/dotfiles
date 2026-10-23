@@ -17,4 +17,4 @@ description: List my open MRs waiting for review, grouped by repository, ready t
    • <https://gitlab.com/...|!6761 Title>
    ```
 
-5. Post to Slack only on a "post" go-ahead, to the channel the user named.
+5. Post to Slack only after the user says `go`, and only to the channel they named.
