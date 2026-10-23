@@ -69,10 +69,14 @@ vim.diagnostic.config({
 
 vim.lsp.enable({
   "elmls",
+  "gopls",
+  "jsonls",
   "lua_ls",
+  "pyright",
+  "ruff",
   "ruby_lsp",
   "tailwindcss",
-  "gopls",
+  "yamlls",
 })
 
 vim.cmd.packadd("nvim.difftool")

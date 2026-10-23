@@ -11,8 +11,10 @@
   };
 
   home.packages = with pkgs; [
-    stylua
     lua-language-server
+    stylua
+    vscode-langservers-extracted
+    yaml-language-server
   ];
 
   xdg.configFile."nvim".source =
