@@ -27,7 +27,7 @@ let
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
     - Draft only the posts I asked for; do not offer drafts for other systems on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
-    - To open an MR, present its exact title and description, then wait for `create`. To publish any other approved text, wait for `post`. Each word authorizes only its matching action.
+    - Before opening an MR or publishing approved text, present the exact content and destination, then wait for `go`. `go` authorizes only the action and content presented.
 
     ## Claims in written artifacts
 
