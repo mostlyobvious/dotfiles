@@ -7,6 +7,7 @@
       ../modules/system.nix
       ../modules/sudo.nix
       ../modules/homebrew.nix
+      ../modules/container-package.nix
       ../modules/account.nix
     ];
   };

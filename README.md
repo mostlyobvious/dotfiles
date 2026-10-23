@@ -91,10 +91,12 @@ do when absent.
 
 Apple's `container` CLI is installed from its signed package, not the
 Homebrew formula. The formula's binaries are ad-hoc signed; the signed
-package places the CLI at `/usr/local/bin/container`. Install the package
-from [Apple's releases](https://github.com/apple/container/releases) after
-switching dotfiles removes the formula. The package requires macOS 26 or
-later. The `cm` host's launch agent starts the CLI from its package path.
+package places the CLI at `/usr/local/bin/container`. `make switch`
+installs the pinned 1.6.0 package after Homebrew removes the formula, and
+installs an updated package when the pin changes. Before an install or
+upgrade, activation stops any running container services. The package
+requires macOS 26 or later. The `cm` host's launch agent starts the CLI
+from its package path. See [Apple's releases](https://github.com/apple/container/releases).
 
 ### VM isolation
 
