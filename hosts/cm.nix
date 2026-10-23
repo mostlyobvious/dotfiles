@@ -15,7 +15,6 @@
 
   homebrew = {
     brews = [
-      "container"
       "jnsahaj/lumen/lumen"
     ];
     casks = [

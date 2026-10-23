@@ -14,7 +14,6 @@
   # Homebrew installs are machine-wide, so casks/MAS apps are a host concern.
   homebrew = {
     brews = [
-      "container"
       "jnsahaj/lumen/lumen"
     ];
     casks = [
