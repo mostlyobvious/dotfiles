@@ -99,6 +99,10 @@
         from = "local";
         path = "review-ccc";
       };
+      review-wewut = {
+        from = "local";
+        path = "review-wewut";
+      };
       worktree-cleanup = {
         from = "local";
         path = "worktree-cleanup";
