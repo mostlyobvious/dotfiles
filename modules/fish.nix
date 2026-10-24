@@ -9,6 +9,10 @@
     enable = true;
     shellAliases.less = "less -R";
 
+    functions.no_sleep_more_science = ''
+      caffeinate -dimsu -t 3600
+    '';
+
     functions.wt = ''
       set -l code "$HOME/Code"
       set -l root "$code/worktrees"
