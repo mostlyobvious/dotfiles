@@ -6,6 +6,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -64,8 +65,17 @@
     "command": "~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true
   },
+  "feedbackDrafts": "off",
+  "modelSettings": {
+    "claude-fable-5-1": {
+      "effortLevel": "xhigh"
+    }
+  },
+  "awaySummaryEnabled": false,
   "autoMemoryEnabled": false,
-  "theme": "auto"
+  "theme": "auto",
+  "preferredNotifChannel": "notifications_disabled"
 }
