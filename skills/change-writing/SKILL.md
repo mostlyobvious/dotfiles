@@ -56,6 +56,18 @@ Choose the shape that matches the task:
 - Match vocabulary to the audience: a user-facing changelog does not name internal classes or modules.
 - In changelogs and release notes, describe what improved ("Imports finish in 2 min"), not what is no longer broken. Cut entries like "various improvements and bugfixes".
 - Use passive voice deliberately in incident write-ups and reverts to keep the focus off who caused the failure.
+- Write sentences specific to this change. A sentence that could move unchanged into another project's text says nothing; cut it.
+- When a number, name, or mechanism is missing from the sources, say so ("We have not benchmarked query time before and after") instead of estimating one.
+- Docs and code comments describe current behavior. The previous approach belongs in the commit, changelog, or migration guide.
+- Write only text addressed to the reader. Instructions about the text ("keep it short") and chat wrappers ("Let me know if you'd like me to", "I've gone ahead and") stay in the conversation.
+
+## Improving Existing Text
+
+When asked to improve a draft someone else wrote:
+
+- Make the smallest edit that fixes the problem, and keep the author's vocabulary and tone.
+- Keep quotes, error strings, commands, and the user's own words exactly as written.
+- Return "This needs no changes" when the draft already meets the standards.
 
 ## API Documentation Checklist
 
@@ -80,13 +92,15 @@ When writing user-facing or admin-facing docs, include the relevant subset:
 - Safety notes, permissions, rollback, or data impact.
 - Links to deeper reference material.
 
-## Excellence Checklist
+## Review Pass
 
-Before presenting prose, check that it is:
+Run this on the finished draft before presenting it, and revise every hit:
 
-- Accurate against the code, diff, tests, and linked sources.
-- Complete for the audience's next action, but no broader.
-- Structured with headings or bullets that make scanning easy.
-- Consistent with project terminology and existing docs.
-- Clear about risk, rollout, compatibility, and verification when relevant and allowed by the format.
-- Free of unsupported claims, stale details, private names, jargon, drama, and needless verbosity.
+1. Search the whole text, headings, titles, and list items included, for em and en dashes, not-X-but-Y contrasts, groups of three, bold labels that restate their text, one-line closers, and chat wrappers.
+2. Check that the text is:
+   - Accurate against the code, diff, tests, and linked sources.
+   - Complete for the audience's next action, but no broader.
+   - Structured with headings or bullets that make scanning easy.
+   - Consistent with project terminology and existing docs.
+   - Clear about risk, rollout, compatibility, and verification when relevant and allowed by the format.
+   - Free of unsupported claims, stale details, private names, jargon, drama, and needless verbosity.
