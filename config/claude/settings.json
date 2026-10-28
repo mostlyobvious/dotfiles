@@ -77,5 +77,6 @@
   "awaySummaryEnabled": false,
   "autoMemoryEnabled": false,
   "theme": "auto",
-  "preferredNotifChannel": "notifications_disabled"
+  "preferredNotifChannel": "notifications_disabled",
+  "skipWorkflowUsageWarning": true
 }
