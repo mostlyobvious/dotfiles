@@ -62,9 +62,13 @@ let
 
     - Checklist items are short titles in plain language, one supported behaviour change each. Tests belong with the item when they pin intended behaviour; do not add negative tests for deleted behaviour unless the absence is itself a public contract or regression risk.
 
-    ## Working method
+    ## Tools
 
     - Prefer the Edit tool over sed or inline scripts for file edits.
+    - Fish is the default shell; prefer Fish for new scripts.
+
+    ## Working method
+
     - Commit local changes without asking when the staged scope is clean and the message follows the commit skill. Push the current feature branch without asking when the push is non-force and does not target `main` or `master`.
     - Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
     - Before proposing a split or merge order across repositories, check the other repository for an existing draft first.
