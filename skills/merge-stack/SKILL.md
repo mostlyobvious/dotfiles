@@ -1,27 +1,30 @@
 ---
 name: merge-stack
-description: Merge a stack or series of MRs one at a time, checking production between merges. Use when asked to merge a train or stack of MRs one by one, merge and monitor, or "rebase, merge, monitor".
+description: Queue a stack of GitLab merge requests on a merge train in dependency order. Use when asked to merge a stack, merge a train, or enqueue stacked MRs.
 ---
 
 # Merge Stack
 
-Merge MRs in order, one at a time. Each merge deploys, and the next merge waits until the previous one has run in production without anomalies.
-
-## Inputs
-
-- The MRs, in merge order. When given only the first, follow the stack with the rebase-stack skill.
-- The wait after each deploy. Default to 2 minutes when the user gives none.
+Queue the whole stack and stop.
 
 ## Procedure
 
-For each MR:
+1. Resolve the open stack from the given MR. Follow target branches towards `main` and source branches away from it.
+2. Show the chain as `main ← !A ← !B ← !C`.
+3. Read the project settings with `glab api projects/:id`. When `merge_pipelines_enabled` or `merge_trains_enabled` is false, stop and give this command:
 
-1. Rebase it on its target with the rebase-stack skill when it is behind, and wait for a green pipeline.
-2. Read its `sha` and `detailed_merge_status` with `glab api projects/:id/merge_requests/<iid>`. Continue only when the status is `mergeable`.
-3. Merge with `glab mr merge <iid> --sha <sha> --squash=false --auto-merge=false --remove-source-branch --yes`. Without `--auto-merge=false`, glab only schedules the merge.
-4. Wait for the `main` pipeline and the deploy to finish.
-5. Wait the agreed time, then run the production-check skill for the window since the deploy.
-6. Report one line per MR: merged, deployed, and the check verdict.
-7. Continue to the next MR only when the check is healthy. On any anomaly, stop and report it with its evidence.
+   ```bash
+   glab api --method PUT projects/:id \
+     -F merge_pipelines_enabled=true \
+     -F merge_trains_enabled=true
+   ```
 
-Retarget each following MR to `main` after its parent merges, if GitLab did not do it.
+4. Retarget every open MR in the chain to `main`.
+5. In dependency order, read each MR's current SHA and enqueue it with:
+
+   ```bash
+   glab mr merge <iid> --sha <sha> --squash=false --auto-merge --remove-source-branch --yes
+   ```
+
+   Continue when an already-green MR merges immediately.
+6. Report each MR as merged or queued. The task ends after the enqueue calls; leave pipelines, deployments, and production checks to GitLab and the user.
