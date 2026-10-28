@@ -29,6 +29,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    chattermill.url = "git+ssh://git@github.com/mostlyobvious/chattermill.git";
+
     # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
     # `nix flake update skills-*` to bump. Consumed by modules/skills.nix.
     skills-mattpocock = {
@@ -75,6 +77,7 @@
           "claude-code"
           "berkeley-mono"
           "pragmatapro"
+          "vault"
         ];
 
       forAllSystems = lib.genAttrs [
@@ -86,6 +89,7 @@
       # system + every account + every VM.
       hosts = {
         pro = import ./hosts/pro.nix;
+        cm = import ./hosts/cm.nix { inherit inputs; };
       };
 
       mkHome = import ./lib/mk-home.nix {
