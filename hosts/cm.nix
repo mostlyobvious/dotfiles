@@ -1,3 +1,5 @@
+{ inputs }:
+
 {
   arch = "aarch64-darwin";
 
@@ -45,6 +47,7 @@
         ../modules/ruby.nix
         ../modules/claude.nix
         ../modules/pi.nix
+        inputs.chattermill.homeModules.default
         ../modules/eza.nix
         ../modules/skills.nix
         ../modules/ghostty.nix

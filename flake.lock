@@ -71,6 +71,21 @@
         "type": "github"
       }
     },
+    "chattermill": {
+      "locked": {
+        "lastModified": 1793180242,
+        "narHash": "sha256-q7jzlu8adVx9yCSn3qutSSZKbMKHanSXsslLm9YmUsg=",
+        "ref": "refs/heads/main",
+        "rev": "4a3db65f67334883285801d0961a858ef168a98b",
+        "revCount": 4,
+        "type": "git",
+        "url": "ssh://git@github.com/mostlyobvious/chattermill.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/mostlyobvious/chattermill.git"
+      }
+    },
     "determinate": {
       "inputs": {
         "determinate-nixd-aarch64-darwin": "determinate-nixd-aarch64-darwin",
@@ -390,6 +405,7 @@
     "root": {
       "inputs": {
         "agent-skills": "agent-skills",
+        "chattermill": "chattermill",
         "determinate": "determinate",
         "fonts": "fonts",
         "home-manager": "home-manager",
