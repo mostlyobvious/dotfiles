@@ -18,6 +18,11 @@ if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git([[:space:]]+-C[[:space:]]+
   fi
 fi
 
+# An inline description reaches GitLab even when the step that built it failed.
+if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])glab[[:space:]]+mr[[:space:]]+(create|update)[^&|;]*[[:space:]](-d|--description)([[:space:]=]|$)'; then
+  block "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
+fi
+
 # git push: allow feature-branch pushes and force-with-lease, but block plain
 # force pushes and pushes that name a protected branch in the push command itself.
 if echo "$COMMAND" | grep -qE '(^|[[:space:]&|;(])git[[:space:]]+push'; then
