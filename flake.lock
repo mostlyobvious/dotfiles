@@ -73,11 +73,11 @@
     },
     "chattermill": {
       "locked": {
-        "lastModified": 1793180242,
-        "narHash": "sha256-q7jzlu8adVx9yCSn3qutSSZKbMKHanSXsslLm9YmUsg=",
+        "lastModified": 1793185025,
+        "narHash": "sha256-rtt7HClCAEEMluvtvFyJiRLzmJDYi7Mqe1MxJvp2rrE=",
         "ref": "refs/heads/main",
-        "rev": "4a3db65f67334883285801d0961a858ef168a98b",
-        "revCount": 4,
+        "rev": "68192280321b95943a4505483e5727730172e498",
+        "revCount": 6,
         "type": "git",
         "url": "ssh://git@github.com/mostlyobvious/chattermill.git"
       },
