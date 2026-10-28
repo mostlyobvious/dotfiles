@@ -59,13 +59,17 @@
         ../modules/vault.nix
         ../modules/redocly.nix
         ../modules/container.nix
-        {
-          my.userEmail = "pawel.pacana@chattermill.io";
-          programs.git.settings.init.defaultBranch = "main"; # work convention
-          programs.fish.interactiveShellInit = ''
-            set --global --export MUTANT_JOBS 8
-          '';
-        }
+        (
+          { lib, ... }:
+          {
+            my.userEmail = "pawel.pacana@chattermill.io";
+            programs.git.settings.init.defaultBranch = "main"; # work convention
+            programs.fish.interactiveShellInit = ''
+              set --global --export MUTANT_JOBS 8
+            '';
+            programs.uv.python.versions = lib.mkForce [ "3.15" ];
+          }
+        )
       ];
     };
   };
