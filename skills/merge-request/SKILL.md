@@ -14,7 +14,7 @@ description: Prepare, open, or update a merge request or pull request. Use when 
    - commits included in the branch
    - diff against the target branch
    - project MR/PR template, if present
-3. Check whether the branch is one logical review unit. If it mixes unrelated concerns, propose a split before opening the MR/PR: one MR per concern, stacked on each other when they depend on each other.
+3. Check whether the branch serves one goal. Several concerns that serve that goal belong in one MR/PR, kept apart by commits. Propose a split only when a concern serves a different goal, or when its size or risk would make one review hard to complete; stack the MRs when they depend on each other.
 4. Draft the title and description from the actual commits and diff, writing the description to `mr-description.md` in the scratchpad or another directory outside the repository. Do not rely on the branch name alone.
 5. Preserve project template headings when present; otherwise use the format below.
 6. Run the change-writing Review Pass on the draft, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.

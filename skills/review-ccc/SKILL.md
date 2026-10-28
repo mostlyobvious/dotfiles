@@ -22,7 +22,7 @@ Review the branch against its target. Read the diff, each commit, and the MR des
 
 - Each commit is one logical change that builds and passes on its own. Flag additions that an existing mechanism, deletion, or simplification could replace.
 - Commits are ordered so each one reads as a step from the previous; decisions reversed later in the branch are squashed away.
-- The MR holds one concern; propose a split into stacked MRs when it holds more.
+- The MR serves one goal, with each concern in its own commits. Propose a split into stacked MRs only when a concern serves a different goal, or when its size or risk would make one review hard to complete.
 
 ## Report
 
