@@ -1,17 +1,36 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
 
+let
+  pythonVersion = "3.15.1";
+  pythonLauncher = pkgs.writeShellScript "python-${pythonVersion}" ''
+    exec "${config.home.homeDirectory}/.local/share/uv/python/cpython-3.15-macos-aarch64-none/bin/python3.15" "$@"
+  '';
+  pythonCommands = pkgs.runCommand "python-${pythonVersion}-commands" { } ''
+    mkdir -p "$out/bin"
+    for command in python python3 python3.15; do
+      ln -s ${pythonLauncher} "$out/bin/$command"
+    done
+  '';
+in
 {
   home.packages = with pkgs; [
     ast-grep
     devenv
     glab
-    python3
+    pythonCommands
     yq
   ];
+
+  home.activation.uvPython = lib.mkForce (
+    lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run ${lib.getExe pkgs.uv} python install --quiet --default ${pythonVersion}
+    ''
+  );
 
   programs.direnv = {
     enable = true;
@@ -22,6 +41,8 @@
     nix-direnv.enable = true;
     silent = true;
   };
+
+  programs.uv.enable = true;
 
   programs.fd.enable = true;
   programs.gh.enable = true;
