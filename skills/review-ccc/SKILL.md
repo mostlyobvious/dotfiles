@@ -20,7 +20,7 @@ Review the branch against its target. Read the diff, each commit, and the MR des
 
 ## Cohesion
 
-- Each commit is one logical change that builds and passes on its own.
+- Each commit is one logical change that builds and passes on its own. Flag additions that an existing mechanism, deletion, or simplification could replace.
 - Commits are ordered so each one reads as a step from the previous; decisions reversed later in the branch are squashed away.
 - The MR holds one concern; propose a split into stacked MRs when it holds more.
 

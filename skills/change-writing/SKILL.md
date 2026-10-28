@@ -48,6 +48,10 @@ Choose the shape that matches the task:
 - State how the change was verified when the format calls for verification. Never add a verification section or verification bullet to commit messages.
 - For MR/PR descriptions, do not include test counts; they go stale during rebases.
 - Link source material when it influenced the change: issue, MR, Slack thread, article, docs, changelog, release, or compare view.
+- Trace historical and behavioural claims to a commit, date, or document. When the source cannot be found, say so instead of paraphrasing what it probably said.
+- When behaviour changes, include a concrete before/after example in the commit body and MR/PR description.
+- Write for a reader with no prior context. Replace assumptions about prior knowledge with a concrete example.
+- For dependency upgrades, link the changelog for the traversed version range. When no changelog exists, link the release or compare view instead.
 - Use plain language. Avoid marketing tone, hero language, drama, jargon, filler, and restating the diff.
 - Prefer concise bullets when several facts compete for attention, and cut anything the audience does not need for the next decision.
 - For benchmarks, use a table with before/after when there is a baseline, and say how each number was measured.
