@@ -1,19 +1,19 @@
 # dotfiles
 
 Nix-managed: nix-darwin for macOS system state, home-manager for every
-account, NixOS for Linux VMs. One flake, pinned by `flake.lock`.
+account, and NixOS for Linux VMs. This flake owns machine orchestration
+and pins every input in `flake.lock`.
 
 ## Layout
 
-- `hosts/` — the root of the tree, one file per machine: its system
-  modules, Homebrew casks, every account (home module list), its VMs.
-- `lib/` — turns the host tree into flake outputs: `mk-darwin.nix`
-  (system), `mk-home.nix` (standalone home-manager per account),
-  `apps.nix` (bootstrap/switch).
-- `modules/` — nix-darwin and home-manager modules; each account picks
-  its own list in `hosts/`.
-- `config/` — raw dotfiles the modules deliver.
-- `vms/` — Lima guests: NixOS config + `lima.yaml`.
+- `hosts/`: the root of the tree, with one file per machine containing
+  its system modules, Homebrew casks, accounts, and VMs.
+- `lib/`: turns the host tree into flake outputs through `mk-darwin.nix`,
+  `mk-home.nix`, and `apps.nix`.
+- `modules/`: nix-darwin and home-manager modules selected by each
+  account in `hosts/`.
+- `config/`: raw dotfiles delivered by the modules.
+- `vms/`: Lima guests containing NixOS configuration and `lima.yaml`.
 
 Outputs mirror the tree: `darwinConfigurations.<host>`,
 `homeConfigurations."<host>-<user>"` and `."<vm>"`,
@@ -52,20 +52,27 @@ nix-darwin runs with `nix.enable = false` so the two never fight. Extra
 daemon settings go through `determinateNix.customSettings`, which lands in
 `nix.custom.conf`.
 
+### The dotfiles flake owns switching
+
+`hosts/cm.nix` keeps the work machine in the same host tree and imports
+`inputs.chattermill.homeModules.default` for private work settings. The
+`chattermill` repository remains a separate pinned flake input. Evaluating
+or switching the `cm` configuration requires SSH access to that repository.
+
 ### Unstable everywhere
 
-`nixos-unstable` for all outputs, `home-manager`/`nix-darwin` follow
-nixpkgs — one nixpkgs in the closure, and the shared modules evaluate
-identically on host and VM. Determinism comes from `flake.lock`; upgrading
-is a deliberate `nix flake update`.
+All outputs use `nixos-unstable`. `home-manager` and `nix-darwin` follow
+nixpkgs, leaving one nixpkgs in the closure and making shared modules
+evaluate identically on the host and VM. `flake.lock` provides
+determinism; `nix flake update` performs deliberate upgrades.
 
-### Dotfile delivery — in-store by default
+### Dotfile delivery defaults to the Nix store
 
-Config lives inline in modules/ — as program options or Nix strings — and
-is delivered through the store: read-only, rollback-able, matching the
-flake revision. `config/` holds only the out-of-store exceptions, where
-the app owns the file — it rewrites it, edits it from its UI, or needs a
-live edit loop (nvim, Zed, agent settings).
+Config lives inline in `modules/` as program options or Nix strings. The
+Nix store delivers read-only files that match the flake revision and can
+be rolled back. `config/` holds only exceptions where an application owns
+the file, rewrites it through its UI, or needs a live edit loop, such as
+Neovim, Zed, and agent settings.
 
 Claude and pi `settings.json` are tracked but locally marked
 `skip-worktree` because the agents rewrite them during normal use. To
@@ -76,21 +83,21 @@ commit a settings change: clear the bit, commit, restore it.
 `vim.pack` + `nvim-pack-lock.json` already pin plugins and work anywhere
 with git + neovim. Nix's job for nvim is the binary and the config tree.
 
-### Ruby — per-project devshells
+### Ruby uses per-project development shells
 
 Projects declare their Ruby in their own `flake.nix` + `.envrc`; the
 shared module only enables `direnv` + `nix-direnv`.
 
-### Homebrew — GUI casks only, zap
+### Homebrew manages GUI applications
 
-Casks and MAS apps are declared per host in `hosts/`; CLI tooling is
-Nix except a couple of host-only tools. `cleanup = "zap"` makes the
-declared lists the single source of truth; auto-update/upgrade off so a
-switch is fast. nix-darwin never installs Homebrew — bootstrap and switch
-do when absent.
+Casks and MAS apps are declared per host in `hosts/`; Nix provides CLI
+tooling except for a few host-only tools. `cleanup = "zap"` makes the
+declared lists the single source of truth. Automatic updates and upgrades
+remain disabled to keep switching fast. nix-darwin manages an existing
+Homebrew installation; bootstrap and switch install Homebrew when absent.
 
 Apple's `container` CLI is installed from its signed package, not the
-Homebrew formula. The formula's binaries are ad-hoc signed; the signed
+Homebrew formula. The formula's binaries are ad hoc signed; the signed
 package places the CLI at `/usr/local/bin/container`. `make switch`
 installs the pinned 1.6.0 package after Homebrew removes the formula, and
 installs an updated package when the pin changes. Before an install or
