@@ -18,13 +18,13 @@ description: Prepare, open, or update a merge request or pull request. Use when 
 4. Draft the title and description from the actual commits and diff, writing the description to `mr-description.md` in the scratchpad or another directory outside the repository. Do not rely on the branch name alone.
 5. Preserve project template headings when present; otherwise use the format below.
 6. Run the change-writing Review Pass on the draft, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
-7. When opening a GitLab MR, explicitly set squash-on-merge to false and verify it after creation.
+7. After creation or update, read the MR/PR back and verify its title and description match the approved text.
 8. After pushing to a branch with an open MR, compare its description against the new diff and propose an update when they disagree.
 
 ## Default Description Format
 
 ```markdown
-Linear: BE-123. Stacked on !6943; review that first.
+Ticket: ABC-123. Stacked on the parent change; review that first.
 
 ## <The problem as a statement, e.g. "Serializers spend 330 ms of a 350 ms request">
 

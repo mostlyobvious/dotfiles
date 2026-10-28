@@ -71,24 +71,6 @@
         "type": "github"
       }
     },
-    "chattermill": {
-      "inputs": {
-        "secretspec-nixpkgs": "secretspec-nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1793211516,
-        "narHash": "sha256-vwjIUmB69W4ACaAGnTwKferKkejSi0J+khnDubYUjB8=",
-        "ref": "refs/heads/main",
-        "rev": "88ef962e70ac70e77e624753580200e766dbdf2c",
-        "revCount": 11,
-        "type": "git",
-        "url": "ssh://git@github.com/mostlyobvious/chattermill.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/mostlyobvious/chattermill.git"
-      }
-    },
     "determinate": {
       "inputs": {
         "determinate-nixd-aarch64-darwin": "determinate-nixd-aarch64-darwin",
@@ -408,7 +390,6 @@
     "root": {
       "inputs": {
         "agent-skills": "agent-skills",
-        "chattermill": "chattermill",
         "determinate": "determinate",
         "fonts": "fonts",
         "home-manager": "home-manager",
@@ -417,22 +398,6 @@
         "nixpkgs": "nixpkgs_3",
         "skills-mattpocock": "skills-mattpocock",
         "skills-mutant": "skills-mutant"
-      }
-    },
-    "secretspec-nixpkgs": {
-      "locked": {
-        "lastModified": 1793110635,
-        "narHash": "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
-        "type": "github"
       }
     },
     "skills-mattpocock": {

@@ -83,18 +83,6 @@
         from = "local";
         path = "merge-request";
       };
-      merge-stack = {
-        from = "local";
-        path = "merge-stack";
-      };
-      my-mrs = {
-        from = "local";
-        path = "my-mrs";
-      };
-      rebase-stack = {
-        from = "local";
-        path = "rebase-stack";
-      };
       review-ccc = {
         from = "local";
         path = "review-ccc";

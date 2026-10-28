@@ -32,15 +32,6 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/remind-mr-description.sh;
   };
-  mrDescribe = pkgs.writeShellApplication {
-    name = "mr-describe";
-    runtimeInputs = [
-      pkgs.diffutils
-      pkgs.glab
-      pkgs.jq
-    ];
-    text = builtins.readFile ./claude/mr-describe.sh;
-  };
   remindReviewPass = pkgs.writeShellApplication {
     name = "remind-review-pass";
     runtimeInputs = [ pkgs.jq ];
@@ -101,8 +92,6 @@ in
     home.file.".claude/hooks/remind-review-pass.sh".source = lib.getExe remindReviewPass;
     home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
     home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
-
-    home.packages = [ mrDescribe ];
 
     home.activation.managedClaudeMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       state_dir=${lib.escapeShellArg config.xdg.stateHome}/claude-code
