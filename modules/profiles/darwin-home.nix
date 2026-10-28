@@ -1,0 +1,19 @@
+{
+  imports = [
+    ../core.nix
+    ../cli.nix
+    ../git.nix
+    ../fish.nix
+    ../neovim.nix
+    ../ruby.nix
+    ../claude.nix
+    ../pi.nix
+    ../eza.nix
+    ../skills.nix
+    ../ghostty.nix
+    ../zed.nix
+    ../ssh.nix
+    ../fonts.nix
+    ../macos-defaults.nix
+  ];
+}

@@ -3,12 +3,7 @@
 
   system = {
     imports = [
-      ../modules/darwin-core.nix
-      ../modules/system.nix
-      ../modules/sudo.nix
-      ../modules/homebrew.nix
-      ../modules/container-package.nix
-      ../modules/account.nix
+      ../modules/profiles/darwin-system.nix
     ];
   };
 
@@ -53,21 +48,7 @@
     mostlyobvious = {
       admin = true;
       modules = [
-        ../modules/core.nix
-        ../modules/cli.nix
-        ../modules/git.nix
-        ../modules/fish.nix
-        ../modules/neovim.nix
-        ../modules/ruby.nix
-        ../modules/claude.nix
-        ../modules/pi.nix
-        ../modules/eza.nix
-        ../modules/skills.nix
-        ../modules/ghostty.nix
-        ../modules/zed.nix
-        ../modules/ssh.nix
-        ../modules/fonts.nix
-        ../modules/macos-defaults.nix
+        ../modules/profiles/darwin-home.nix
         ../modules/history.nix # iCloud-backed; this account only
         ../modules/lima.nix
         {
