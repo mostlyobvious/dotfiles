@@ -46,6 +46,15 @@
             "command": "~/.claude/hooks/remind-mr-description.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/remind-review-pass.sh"
+          }
+        ]
       }
     ],
     "SessionEnd": [

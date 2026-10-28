@@ -32,6 +32,11 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/remind-mr-description.sh;
   };
+  remindReviewPass = pkgs.writeShellApplication {
+    name = "remind-review-pass";
+    runtimeInputs = [ pkgs.jq ];
+    text = builtins.readFile ./claude/remind-review-pass.sh;
+  };
   worktreeCreate = pkgs.writeShellApplication {
     name = "worktree-create";
     runtimeInputs = [
@@ -84,6 +89,7 @@ in
     home.file.".claude/hooks/block-anthropic-attribution.sh".source =
       lib.getExe blockAnthropicAttribution;
     home.file.".claude/hooks/remind-mr-description.sh".source = lib.getExe remindMrDescription;
+    home.file.".claude/hooks/remind-review-pass.sh".source = lib.getExe remindReviewPass;
     home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
     home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
 

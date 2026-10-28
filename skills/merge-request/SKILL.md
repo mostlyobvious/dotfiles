@@ -17,9 +17,9 @@ Before drafting the title or description, read and apply `../change-writing/SKIL
    - diff against the target branch
    - project MR/PR template, if present
 3. Check whether the branch is one logical review unit. If it mixes unrelated concerns, propose a split before opening the MR/PR: one MR per concern, stacked on each other when they depend on each other.
-4. Draft the title and description from the actual commits and diff. Do not rely on the branch name alone.
+4. Draft the title and description from the actual commits and diff, writing the description to a file named `mr-description.md`. Do not rely on the branch name alone.
 5. Preserve project template headings when present; otherwise use the format below.
-6. Present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
+6. Run the change-writing Review Pass on the draft, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
 7. When opening a GitLab MR, explicitly set squash-on-merge to false and verify it after creation.
 8. After pushing to a branch with an open MR, compare its description against the new diff and propose an update when they disagree.
 
