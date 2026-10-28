@@ -9,6 +9,7 @@
     ast-grep
     devenv
     glab
+    python3
     yq
   ];
 
