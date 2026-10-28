@@ -12,9 +12,7 @@
   };
 
   homebrew = {
-    brews = [
-      "jnsahaj/lumen/lumen"
-    ];
+    brews = [ ];
     casks = [
       "ghostty"
       "logseq"
