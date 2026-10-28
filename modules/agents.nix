@@ -28,6 +28,7 @@ let
     - Draft only the posts I asked for; do not offer drafts for other systems on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
     - Before opening an MR or publishing approved text, present the exact content and destination, then wait for `go`. `go` authorizes only the action and content presented.
+    - Run each write to GitLab, Linear or Slack as its own tool call, after the call that builds its input has succeeded and shown the input.
 
     ## Claims in written artifacts
 
