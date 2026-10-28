@@ -83,10 +83,10 @@ commit a settings change: clear the bit, commit, restore it.
 `vim.pack` + `nvim-pack-lock.json` already pin plugins and work anywhere
 with git + neovim. Nix's job for nvim is the binary and the config tree.
 
-### Ruby uses per-project development shells
+### Ruby uses per-project development environments
 
-Projects declare their Ruby in their own `flake.nix` + `.envrc`; the
-shared module only enables `direnv` + `nix-direnv`.
+Projects declare Ruby in their own `devenv.nix`; the shared module only
+enables `direnv` and `nix-direnv`.
 
 ### Homebrew manages GUI applications
 
