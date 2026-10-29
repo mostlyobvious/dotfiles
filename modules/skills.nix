@@ -71,6 +71,10 @@
         from = "mutant";
         path = ".";
       };
+      mutmut = {
+        from = "local";
+        path = "mutmut";
+      };
       change-writing = {
         from = "local";
         path = "change-writing";
