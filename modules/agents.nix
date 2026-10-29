@@ -44,7 +44,8 @@ let
 
     ## Removing dead code
 
-    - Open it as its own MR and include a reasoning trace: which commit orphaned it, what last referenced it, and how you confirmed nothing loads it.
+    - When the requested change makes code dead, remove it in the same MR. Remove pre-existing dead code in its own MR.
+    - Either way, include a reasoning trace: which commit orphaned it, what last referenced it, and how you confirmed nothing loads it.
 
     ## Tests
 
