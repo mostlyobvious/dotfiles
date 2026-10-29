@@ -34,6 +34,8 @@ Before drafting the message, read and apply `../change-writing/SKILL.md`.
 1. Read `../change-writing/SKILL.md`.
 2. `git status` + `git diff --staged` (and `git diff` if unstaged) to confirm scope.
 3. Draft subject + body.
-4. Commit when the staged files match one logical change and the message follows this skill.
-5. Report the commit hash and subject.
-6. No `--no-verify`. No amending published commits. Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
+4. When the staged files match one logical change and the message follows this skill, write the exact message to a temporary file with Write.
+5. Commit with `git commit -F <message-file>`.
+6. Verify that `git show -s --format=%B HEAD` matches the draft exactly.
+7. Report the commit hash and subject.
+8. No `--no-verify`. No amending published commits. Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
