@@ -77,7 +77,6 @@
           "claude-code"
           "berkeley-mono"
           "pragmatapro"
-          "terraform"
           "vault"
         ];
 

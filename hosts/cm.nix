@@ -41,6 +41,7 @@
         (
           { lib, pkgs, ... }:
           let
+            terraformVersion = "1.5.7";
             mcpClickhouse = pkgs.writeShellScript "mcp-clickhouse" ''
               exec ${lib.getExe' pkgs.uv "uvx"} \
                 --quiet \
@@ -59,7 +60,11 @@
             '';
             programs.uv.python.versions = lib.mkForce [ ];
             programs.uv.tool.packages = lib.mkForce [ ];
-            home.packages = [ pkgs.terraform ];
+            home.packages = [ pkgs.tfenv ];
+            home.activation.terraform = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+              run ${lib.getExe pkgs.tfenv} install ${terraformVersion}
+              run ${lib.getExe pkgs.tfenv} use ${terraformVersion}
+            '';
             home.file.".local/bin/mcp-clickhouse" = {
               source = mcpClickhouse;
               force = true;
