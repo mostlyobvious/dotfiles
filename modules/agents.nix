@@ -62,10 +62,16 @@ let
 
     - Checklist items are short titles in plain language, one supported behaviour change each. Tests belong with the item when they pin intended behaviour; do not add negative tests for deleted behaviour unless the absence is itself a public contract or regression risk.
 
+    ## File editing
+
+    - Use Edit for targeted changes to existing files.
+    - Use Write for new files and complete rewrites.
+    - Use Bash for inspection and verification. Repository-owned formatters, generators, and dependency commands may update files.
+    - If Edit cannot express a targeted change, report the blocker before choosing another editing method.
+
     ## Tools
 
-    - Prefer the Edit tool over sed or inline scripts for file edits.
-    - Fish is the default shell; prefer Fish for new scripts.
+    - Fish is the login shell; prefer Fish for standalone scripts.
 
     ## Working method
 
