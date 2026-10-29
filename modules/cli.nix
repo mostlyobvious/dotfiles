@@ -23,7 +23,6 @@ in
     devenv
     glab
     pythonCommands
-    terraform
     yq
   ];
 

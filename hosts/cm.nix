@@ -59,6 +59,7 @@
             '';
             programs.uv.python.versions = lib.mkForce [ ];
             programs.uv.tool.packages = lib.mkForce [ ];
+            home.packages = [ pkgs.terraform ];
             home.file.".local/bin/mcp-clickhouse" = {
               source = mcpClickhouse;
               force = true;
