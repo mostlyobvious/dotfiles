@@ -1,6 +1,15 @@
-{ ... }:
+{ config, lib, ... }:
 
 let
+  availableTools = lib.sort builtins.lessThan (
+    lib.unique (
+      lib.filter (tool: tool != null) (
+        map (package: package.meta.mainProgram or null) config.home.packages
+      )
+    )
+  );
+  availableToolList = lib.concatMapStringsSep ", " (tool: "`${tool}`") availableTools;
+
   # One instruction set for every coding agent. Imported by claude.nix and
   # pi.nix (deduplicated).
   instructions = ''
@@ -72,6 +81,8 @@ let
 
     ## Tools
 
+    - Primary profile commands on this host: ${availableToolList}.
+    - Before writing an ad hoc validator in a general-purpose language, use a purpose-built profile or repository command when one fits.
     - Fish is the login shell; prefer Fish for standalone scripts.
 
     ## Working method
