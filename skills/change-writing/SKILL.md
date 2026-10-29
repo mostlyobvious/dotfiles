@@ -100,7 +100,7 @@ When writing user-facing or admin-facing docs, include the relevant subset:
 
 Run this on the finished draft before presenting it, and revise every hit:
 
-1. Search the whole text, headings, titles, and list items included, for em and en dashes, not-X-but-Y contrasts, groups of three, bold labels that restate their text, one-line closers, and chat wrappers.
+1. Search the whole text, headings, titles, and list items included, for not-X-but-Y contrasts, groups of three, bold labels that restate their text, one-line closers, and chat wrappers.
 2. Check that the text is:
    - Accurate against the code, diff, tests, and linked sources.
    - Complete for the audience's next action, but no broader.

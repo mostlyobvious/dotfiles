@@ -40,7 +40,7 @@ let
     - Active voice by default; name what acts.
     - Every "it", "this", "that" must point to one thing in the same paragraph; otherwise repeat the noun.
     - Headings say what the section concludes, not its topic.
-    - Vary sentence shape; no em-dashes, bold lead-ins, or groups of three as habits.
+    - Vary sentence shape; no bold lead-ins or groups of three as habits.
 
     ## Removing dead code
 
