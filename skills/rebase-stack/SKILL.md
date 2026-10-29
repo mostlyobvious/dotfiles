@@ -5,12 +5,12 @@ description: Rebase one MR or a stack of dependent MRs onto their targets and pu
 
 # Rebase Stack
 
-A stack is a chain of MRs where each MR targets the branch of the one before it; the first targets `main`.
+A stack is a chain of MRs where each MR targets the branch of the one before it; the first targets the stack's base branch, usually `main`.
 
 ## Procedure
 
-1. Resolve the stack: for each MR, read its source and target branch with `glab mr view <iid> -F json`. Order the chain from the MR that targets `main` outwards.
-2. Show the chain as `main ← A ← B ← C`. Flag any MR whose target does not match the previous MR's source branch, and fix the target only when the user confirms.
+1. Resolve the stack: for each MR, read its source and target branch with `glab mr view <iid> -F json`. Follow target branches inward until the target has no MR in the stack; that target is the base branch. Follow source branches outwards from there.
+2. Show the chain as `<base> ← A ← B ← C`. Flag any MR whose target does not match the previous MR's source branch, and fix the target only when the user confirms.
 3. `git fetch origin`, then for each MR in order, in its worktree:
    - `git rebase origin/<target>`
    - resolve conflicts; stop and report when a conflict needs a decision
