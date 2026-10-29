@@ -1,9 +1,25 @@
 { config, lib, ... }:
 
 let
+  purposeBuiltTools = [
+    "argo"
+    "ast-grep"
+    "devenv"
+    "gcloud"
+    "gh"
+    "glab"
+    "jq"
+    "kubectl"
+    "redocly"
+    "rg"
+    "secretspec"
+    "tfenv"
+    "vault"
+    "yq"
+  ];
   availableTools = lib.sort builtins.lessThan (
     lib.unique (
-      lib.filter (tool: tool != null) (
+      lib.filter (tool: tool != null && builtins.elem tool purposeBuiltTools) (
         map (package: package.meta.mainProgram or null) config.home.packages
       )
     )
@@ -81,7 +97,7 @@ let
 
     ## Tools
 
-    - Primary profile commands on this host: ${availableToolList}.
+    - Purpose-built profile commands on this host: ${availableToolList}.
     - Before writing an ad hoc validator in a general-purpose language, use a purpose-built profile or repository command when one fits.
     - Fish is the login shell; prefer Fish for standalone scripts.
 
