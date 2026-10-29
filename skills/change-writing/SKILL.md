@@ -49,7 +49,7 @@ Choose the shape that matches the task:
 - For MR/PR descriptions, do not include test counts; they go stale during rebases.
 - Link source material when it influenced the change: issue, MR, Slack thread, article, docs, changelog, release, or compare view.
 - Trace historical and behavioural claims to a commit, date, or document. When the source cannot be found, say so instead of paraphrasing what it probably said.
-- When behaviour changes, include a concrete before/after example in the commit body and MR/PR description.
+- Include a concrete before/after example when it clarifies caller-visible behaviour that the diff does not show directly.
 - Write for a reader with no prior context. Replace assumptions about prior knowledge with a concrete example.
 - For dependency upgrades, link the changelog for the traversed version range. When no changelog exists, link the release or compare view instead.
 - Use plain language. Avoid marketing tone, hero language, drama, jargon, filler, and restating the diff.
