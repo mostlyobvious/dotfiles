@@ -14,6 +14,7 @@ let
     "rg"
     "secretspec"
     "tfenv"
+    "tuicr"
     "vault"
     "yq"
   ];

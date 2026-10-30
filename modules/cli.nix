@@ -23,6 +23,7 @@ in
     devenv
     glab
     pythonCommands
+    tuicr
     yq
   ];
 
