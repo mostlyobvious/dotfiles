@@ -1,0 +1,5 @@
+source "https://rubygems.org"
+
+gem "minitest", "~> 6.0"
+gem "mutant", "~> 0.17.1"
+gem "mutant-minitest", "~> 0.17.1"

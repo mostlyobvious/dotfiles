@@ -61,11 +61,7 @@ let
     ];
     text = builtins.readFile ./claude/worktree-create.sh;
   };
-  requireEnterWorktree = pkgs.writeShellApplication {
-    name = "require-enter-worktree";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/require-enter-worktree.sh;
-  };
+  agentGuard = pkgs.callPackage ../packages/agent-guard.nix { };
   recordDevenvUp = pkgs.writeShellApplication {
     name = "record-devenv-up";
     runtimeInputs = [
@@ -118,7 +114,7 @@ in
     home.file.".claude/hooks/remind-mr-description.sh".source = lib.getExe remindMrDescription;
     home.file.".claude/hooks/remind-review-pass.sh".source = lib.getExe remindReviewPass;
     home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
-    home.file.".claude/hooks/require-enter-worktree.sh".source = lib.getExe requireEnterWorktree;
+    home.file.".claude/hooks/require-enter-worktree.sh".source = lib.getExe agentGuard;
     home.file.".claude/hooks/record-devenv-up.sh".source = lib.getExe recordDevenvUp;
     home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
 

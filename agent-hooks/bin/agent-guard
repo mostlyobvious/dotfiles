@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require "json"
+require_relative "../lib/agent_hooks/guard"
+
+status, message = AgentHooks::Guard.call(JSON.parse($stdin.read), ENV.fetch("HOME"))
+$stderr.write(message)
+exit status

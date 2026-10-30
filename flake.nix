@@ -198,6 +198,12 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          rubyEnv = pkgs.bundlerEnv {
+            name = "agent-hooks-ruby-env";
+            gemdir = ./agent-hooks;
+            ruby = pkgs.ruby_3_4;
+          };
+          agentGuard = pkgs.callPackage ./packages/agent-guard.nix { };
         in
         {
           nixfmt = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
@@ -210,7 +216,31 @@
             touch $out
           '';
         }
-        // lib.optionalAttrs (system == "aarch64-darwin") darwinChecks
+        // lib.optionalAttrs (system == "aarch64-darwin") (
+          darwinChecks
+          // {
+            agent-hooks =
+              pkgs.runCommand "agent-hooks-check"
+                {
+                  nativeBuildInputs = [
+                    rubyEnv
+                    rubyEnv.wrappedRuby
+                  ];
+                }
+                ''
+                  cp -R ${./agent-hooks} agent-hooks
+                  chmod -R u+w agent-hooks
+                  cd agent-hooks
+                  export HOME=$TMPDIR/home
+                  export RUBYOPT=-W0
+
+                  ruby -Itest -e 'Dir["test/**/*_test.rb"].sort.each { |file| require File.expand_path(file) }'
+                  AGENT_GUARD=${lib.getExe agentGuard} ruby test/agent_guard_test.rb
+                  mutant run --usage opensource --integration minitest --include lib --require agent_hooks/guard 'AgentHooks::Guard*'
+                  touch $out
+                '';
+          }
+        )
         // lib.optionalAttrs (system == "aarch64-linux") linuxChecks
       );
 
@@ -221,6 +251,11 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          rubyEnv = pkgs.bundlerEnv {
+            name = "agent-hooks-ruby-env";
+            gemdir = ./agent-hooks;
+            ruby = pkgs.ruby_3_4;
+          };
         in
         {
           default = pkgs.mkShell {
@@ -228,6 +263,9 @@
               nixd
               nixfmt
               deadnix
+              rubyEnv
+              rubyEnv.wrappedRuby
+              (callPackage ./packages/spinel.nix { })
             ];
           };
         }
