@@ -22,6 +22,10 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("before_agent_start", () => {
 		changeWritingApplied = false;
+		run("agent-worktree", {
+			hook_event_name: "Heartbeat",
+			session_id: sessionId,
+		});
 	});
 
 	pi.on("tool_call", (event, ctx) => {
@@ -49,18 +53,27 @@ export default function (pi: ExtensionAPI) {
 		let toolInput: Record<string, unknown>;
 		if (isBashToolResult(event)) {
 			toolInput = { command: event.input.command };
-			if (!event.isError) {
-				run("agent-worktree", {
-					hook_event_name: "PostToolUse",
-					session_id: sessionId,
-					tool_input: toolInput,
-					cwd: ctx.cwd,
-				});
-			}
+			run("agent-worktree", {
+				hook_event_name: event.isError ? "Heartbeat" : "PostToolUse",
+				session_id: sessionId,
+				tool_input: toolInput,
+				cwd: ctx.cwd,
+			});
 		} else if (isWriteToolResult(event) || isEditToolResult(event)) {
 			toolInput = { path: event.input.path };
 		} else {
+			run("agent-worktree", {
+				hook_event_name: "Heartbeat",
+				session_id: sessionId,
+			});
 			return;
+		}
+
+		if (!isBashToolResult(event)) {
+			run("agent-worktree", {
+				hook_event_name: "Heartbeat",
+				session_id: sessionId,
+			});
 		}
 
 		const result = run("agent-guard", {

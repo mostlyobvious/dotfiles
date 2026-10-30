@@ -1,6 +1,6 @@
 module AgentHooks
   module Guard
-    BLOCKED_MESSAGE = "BLOCKED: create worktrees with EnterWorktree (name), which runs the WorktreeCreate hook and moves this session into the new worktree.\n"
+    BLOCKED_MESSAGE = "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
     CHANGE_WRITING_MESSAGE = "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
     ATTRIBUTION_MESSAGE = "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
     SHELL_EDIT_MESSAGE = "edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites."
@@ -51,7 +51,7 @@ module AgentHooks
         cwd = event.fetch("cwd")
         return [0, ""] if cwd == target || cwd.start_with?("#{target}/")
 
-        return [2, "BLOCKED: this session runs in #{cwd}. Call EnterWorktree with path #{target} so every command starts there, then rerun without the cd.\n"]
+        return [2, "BLOCKED: this session runs in #{cwd}. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"]
       end
 
       [0, ""]
@@ -157,7 +157,11 @@ module AgentHooks
 
       "#{root}#{repository}/#{worktree}"
     end
-    private_class_method :reminder_output, :dangerous_git_message, :shell_edit_message, :change_writing_message,
-      :writes_prose?, :script_path, :attribution_message, :blocked, :worktree_target
+    private_class_method :call, :reminder, :reminder_output, :dangerous_git_message, :shell_edit_message,
+      :change_writing_message, :writes_prose?, :script_path, :attribution_message, :blocked, :worktree_target
+    private_constant :BLOCKED_MESSAGE, :CHANGE_WRITING_MESSAGE, :ATTRIBUTION_MESSAGE, :SHELL_EDIT_MESSAGE,
+      :MR_REMINDER, :REVIEW_REMINDER, :WORKTREE_ADD, :BROAD_WORKTREE_ADD, :CHANGE_DIRECTORY,
+      :INLINE_MR_DESCRIPTION, :GIT_PUSH, :FORCE_PUSH, :PROTECTED_PUSH, :DANGEROUS_GIT, :SED_IN_PLACE,
+      :PERL_IN_PLACE, :MR_COMMAND, :COMMIT_COMMAND, :SHELL_SCRIPT, :COAUTHOR_ATTRIBUTION
   end
 end

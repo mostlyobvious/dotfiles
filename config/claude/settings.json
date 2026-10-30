@@ -36,10 +36,6 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/agent-guard"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/agent-worktree"
           }
         ]
       },
@@ -49,6 +45,34 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/agent-guard"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/agent-worktree"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/agent-worktree"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/agent-worktree"
           }
         ]
       }

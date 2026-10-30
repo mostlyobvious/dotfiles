@@ -7,6 +7,12 @@ module AgentHooks
   class GuardTest < Minitest::Test
     cover "AgentHooks::Guard*"
 
+    ATTRIBUTION_MESSAGE = "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
+    CHANGE_WRITING_MESSAGE = "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
+    MR_REMINDER = "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
+    REVIEW_REMINDER = "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
+    WORKTREE_MESSAGE = "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
+
     def test_direct_worktree_creation_is_blocked
       assert_equal blocked, call("git worktree add ../feature")
     end
@@ -66,7 +72,7 @@ module AgentHooks
     def test_entering_a_worktree_from_another_directory_is_blocked
       target = "/Users/agent/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Call EnterWorktree with path #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature && bundle exec rake")
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature && bundle exec rake")
     end
 
     def test_entering_the_current_worktree_is_allowed
@@ -102,13 +108,13 @@ module AgentHooks
     def test_home_variable_worktree_path_is_blocked
       target = "/Users/agent/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Call EnterWorktree with path #{target} so every command starts there, then rerun without the cd.\n"], call("cd $HOME/Code/worktrees/backend/feature")
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd $HOME/Code/worktrees/backend/feature")
     end
 
     def test_worktree_subdirectory_names_the_worktree_root
       target = "/Users/agent/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Call EnterWorktree with path #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature/app")
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature/app")
     end
 
     def test_dotfiles_worktree_from_main_checkout_is_blocked
@@ -174,11 +180,11 @@ module AgentHooks
     end
 
     def test_commit_requires_change_writing
-      assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message")
+      assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message")
     end
 
     def test_merge_request_create_requires_change_writing
-      assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("gh pr create --title ready")
+      assert_equal [2, CHANGE_WRITING_MESSAGE], call("gh pr create --title ready")
     end
 
     def test_fixup_commit_keeps_its_message
@@ -206,7 +212,7 @@ module AgentHooks
       Dir.mktmpdir do |directory|
         File.write("#{directory}/publish.sh", "glab mr create --title ready\n")
 
-        assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("./publish.sh", cwd: directory)
+        assert_equal [2, CHANGE_WRITING_MESSAGE], call("./publish.sh", cwd: directory)
       end
     end
 
@@ -225,13 +231,13 @@ module AgentHooks
     def test_claude_coauthor_is_blocked
       command = "git commit --fixup HEAD -m 'Co-authored-by: Claude <bot@anthropic.com>'"
 
-      assert_equal [2, Guard::ATTRIBUTION_MESSAGE], call(command)
+      assert_equal [2, ATTRIBUTION_MESSAGE], call(command)
     end
 
     def test_anthropic_before_coauthor_is_blocked
       command = "git commit --no-edit -m 'Anthropic bot Co-authored-by: Person'"
 
-      assert_equal [2, Guard::ATTRIBUTION_MESSAGE], call(command)
+      assert_equal [2, ATTRIBUTION_MESSAGE], call(command)
     end
 
     def test_noncommit_attribution_text_is_allowed
@@ -244,7 +250,7 @@ module AgentHooks
         "/Users/agent"
       )
 
-      assert_equal [0, "", reminder(Guard::MR_REMINDER)], output
+      assert_equal [0, "", reminder(MR_REMINDER)], output
     end
 
     def test_review_reminder_is_returned_for_description_write
@@ -253,7 +259,7 @@ module AgentHooks
         "/Users/agent"
       )
 
-      assert_equal [0, "", reminder(Guard::REVIEW_REMINDER)], output
+      assert_equal [0, "", reminder(REVIEW_REMINDER)], output
     end
 
     def test_other_post_tool_use_has_no_reminder
@@ -294,15 +300,15 @@ module AgentHooks
     end
 
     def test_merge_request_description_file_requires_change_writing
-      assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("glab mr update 42 --description-file /tmp/description")
+      assert_equal [2, CHANGE_WRITING_MESSAGE], call("glab mr update 42 --description-file /tmp/description")
     end
 
     def test_change_writing_false_still_blocks_commit
-      assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", change_writing_applied: false)
+      assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", change_writing_applied: false)
     end
 
     def test_missing_transcript_still_blocks_commit
-      assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", transcript_path: "/missing")
+      assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", transcript_path: "/missing")
     end
 
     def test_unread_transcript_still_blocks_commit
@@ -310,7 +316,7 @@ module AgentHooks
         transcript = "#{directory}/transcript"
         File.write(transcript, "other skill\n")
 
-        assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", transcript_path: transcript)
+        assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", transcript_path: transcript)
       end
     end
 
@@ -319,16 +325,14 @@ module AgentHooks
         script = "#{directory}/publish.sh"
         File.write(script, "gh pr edit 42 --title ready\n")
 
-        assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], call(script)
+        assert_equal [2, CHANGE_WRITING_MESSAGE], call(script)
       end
     end
 
     def test_home_script_that_creates_an_mr_requires_change_writing
       Dir.mktmpdir do |home|
         File.write("#{home}/publish.sh", "glab mr edit 42 --title ready\n")
-        event = {"tool_input" => {"command" => "~/publish.sh"}, "cwd" => "/tmp"}
-
-        assert_equal [2, Guard::CHANGE_WRITING_MESSAGE], Guard.call(event, home)
+        assert_equal [2, CHANGE_WRITING_MESSAGE], call("~/publish.sh", cwd: "/tmp", home: home)
       end
     end
 
@@ -338,7 +342,7 @@ module AgentHooks
         "/Users/agent"
       )
 
-      assert_equal [2, Guard::CHANGE_WRITING_MESSAGE, nil], output
+      assert_equal [2, CHANGE_WRITING_MESSAGE, nil], output
     end
 
     def test_pre_tool_use_passes_home_to_worktree_policy
@@ -348,7 +352,7 @@ module AgentHooks
         "/Users/agent"
       )
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp. Call EnterWorktree with path #{target} so every command starts there, then rerun without the cd.\n", nil], output
+      assert_equal [2, "BLOCKED: this session runs in /tmp. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n", nil], output
     end
 
     def test_post_tool_use_file_without_command_has_no_push_reminder
@@ -366,13 +370,13 @@ module AgentHooks
         "/Users/agent"
       )
 
-      assert_equal [0, "", reminder(Guard::REVIEW_REMINDER)], output
+      assert_equal [0, "", reminder(REVIEW_REMINDER)], output
     end
 
     private
 
     def blocked
-      [2, Guard::BLOCKED_MESSAGE]
+      [2, WORKTREE_MESSAGE]
     end
 
     def policy_blocked(command, reason)
@@ -387,11 +391,12 @@ module AgentHooks
       [2, "BLOCKED: '#{command}' edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites.\n"]
     end
 
-    def call(command, cwd: "/tmp/repository", **event)
-      Guard.call(
-        {"tool_input" => {"command" => command}, "cwd" => cwd}.merge(event.transform_keys(&:to_s)),
-        "/Users/agent"
+    def call(command, cwd: "/tmp/repository", home: "/Users/agent", **event)
+      status, message, = Guard.run(
+        {"hook_event_name" => "PreToolUse", "tool_input" => {"command" => command}, "cwd" => cwd}.merge(event.transform_keys(&:to_s)),
+        home
       )
+      [status, message]
     end
   end
 end

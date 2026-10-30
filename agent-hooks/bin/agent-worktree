@@ -4,4 +4,4 @@ require "json"
 require "agent_hooks/worktree"
 
 event = JSON.parse($stdin.read)
-exit AgentHooks::Worktree.run(event)
+exit AgentHooks::Worktree.run(event, env: ENV, out: $stdout, err: $stderr, now: Time.now.to_i)
