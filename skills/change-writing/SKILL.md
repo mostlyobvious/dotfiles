@@ -42,7 +42,7 @@ Choose the shape that matches the task:
 - Use progressive disclosure: start with what the reader needs now, then add details.
 - Prefer task-based writing for guides: goal, prerequisites, steps, expected result, troubleshooting.
 - Include examples when they reduce ambiguity; keep them tested or clearly illustrative.
-- Include diagrams, screenshots, or tables only when they clarify more than text would.
+- In MR/PR descriptions and technical docs, when prose asks the reader to track one input through two or more paths, replace the comparison with a compact plain-text diagram.
 - Include only implementation details that affect review, operation, migration, API use, or future changes.
 - Call out risks, compatibility behavior, rollout constraints, and follow-ups when they matter.
 - State how the change was verified when the format calls for verification. Never add a verification section or verification bullet to commit messages.
@@ -64,6 +64,34 @@ Choose the shape that matches the task:
 - When a number, name, or mechanism is missing from the sources, say so ("We have not benchmarked query time before and after") instead of estimating one.
 - Docs and code comments describe current behavior. The previous approach belongs in the commit, changelog, or migration guide.
 - Write only text addressed to the reader. Instructions about the text ("keep it short") and chat wrappers ("Let me know if you'd like me to", "I've gone ahead and") stay in the conversation.
+
+## Plain-text diagrams
+
+In MR/PR descriptions and technical docs, use a fenced plain-text diagram when a reviewer must compare execution paths, data flows, state transitions, or before/after outcomes.
+
+Use this shape for divergent behaviour:
+
+```text
+                         <shared input>
+                               │
+                ┌──────────────┴──────────────┐
+                ▼                             ▼
+             <path A>                      <path B>
+             <choice>                      <choice>
+                │                             │
+                ▼                             ▼
+          <outcome A>                   <outcome B>
+                └──────────────┬──────────────┘
+                               ▼
+                       <observed problem>
+```
+
+- Replace every placeholder with verified domain values and terms.
+- Label behaviour and outcomes rather than only class or method names.
+- Keep arrows directional, each diagram focused on one question, and every line within 90 columns.
+- Check alignment in a monospace rendering.
+- Let the prose after the diagram explain the fix or decision instead of repeating every label.
+- Prefer plain text when the artifact must remain readable in a terminal, commit message, or copied review; otherwise choose the format that communicates the relationship most clearly.
 
 ## Improving Existing Text
 
