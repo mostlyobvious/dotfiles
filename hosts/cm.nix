@@ -12,7 +12,10 @@
   };
 
   homebrew = {
-    brews = [ ];
+    brews = [
+      "apache-arrow-glib"
+      "gobject-introspection"
+    ];
     casks = [
       "ghostty"
       "logseq"
