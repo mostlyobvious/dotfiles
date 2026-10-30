@@ -17,11 +17,6 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/block-dangerous-git.sh;
   };
-  blockShellEdits = pkgs.writeShellApplication {
-    name = "block-shell-edits";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/block-shell-edits.sh;
-  };
   enforceChangeWriting = pkgs.writeShellApplication {
     name = "enforce-change-writing";
     runtimeInputs = [ pkgs.jq ];
@@ -107,7 +102,7 @@ in
     # Static scripts referenced by settings.json under stable ~/.claude paths.
     home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
     home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
-    home.file.".claude/hooks/block-shell-edits.sh".source = lib.getExe blockShellEdits;
+    home.file.".claude/hooks/block-shell-edits.sh".source = lib.getExe agentGuard;
     home.file.".claude/hooks/enforce-change-writing.sh".source = lib.getExe enforceChangeWriting;
     home.file.".claude/hooks/block-anthropic-attribution.sh".source =
       lib.getExe blockAnthropicAttribution;

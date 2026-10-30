@@ -1,18 +1,10 @@
-require "json"
-require "open3"
-require "pathname"
-require "rbconfig"
 require "minitest/autorun"
+require_relative "support/guard_runner"
 
 class AgentGuardTest < Minitest::Test
-  ROOT = Pathname(__dir__).join("..").expand_path
-  GUARD = if ENV["AGENT_GUARD"]
-    [ENV.fetch("AGENT_GUARD")]
-  else
-    [RbConfig.ruby, "--disable-gems", ROOT.join("bin/agent-guard").to_s]
-  end.freeze
+  include GuardRunner
+
   BLOCKED_MESSAGE = "BLOCKED: create worktrees with EnterWorktree (name), which runs the WorktreeCreate hook and moves this session into the new worktree.\n"
-  HOME = "/Users/agent"
 
   def test_direct_worktree_creation_uses_enter_worktree
     result = run_guard("git worktree add ../feature")
@@ -23,7 +15,7 @@ class AgentGuardTest < Minitest::Test
   end
 
   def test_worktree_creation_with_an_explicit_repository_uses_enter_worktree
-    result = run_guard("git -C ~/Code/dotfiles worktree add ../dotfiles-feature")
+    result = run_guard("git -C ~/Code/backend/backend worktree add ../backend-feature")
 
     assert_equal 2, result[:status]
     assert_equal "", result[:stdout]
@@ -58,15 +50,4 @@ class AgentGuardTest < Minitest::Test
     assert_equal "", result[:stderr]
   end
 
-  private
-
-  def run_guard(command, cwd: "/tmp/repository")
-    stdout, stderr, status = Open3.capture3(
-      {"HOME" => HOME, "RUBYOPT" => nil, "RUBYLIB" => nil},
-      *GUARD,
-      stdin_data: JSON.generate(tool_input: {command: command}, cwd: cwd)
-    )
-
-    {stdout: stdout, stderr: stderr, status: status.exitstatus}
-  end
 end
