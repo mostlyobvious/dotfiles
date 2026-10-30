@@ -27,6 +27,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/block-anthropic-attribution.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/require-enter-worktree.sh"
           }
         ]
       }
