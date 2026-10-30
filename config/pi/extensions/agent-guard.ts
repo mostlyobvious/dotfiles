@@ -6,6 +6,7 @@ import {
 	isWriteToolResult,
 } from "@earendil-works/pi-coding-agent";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { worktreeEventForToolResult } from "./lib/agent-worktree-events.mjs";
 
 const changeWritingSkillPath = /(^|\/)skills\/change-writing\/SKILL\.md$/;
 
@@ -53,27 +54,20 @@ export default function (pi: ExtensionAPI) {
 		let toolInput: Record<string, unknown>;
 		if (isBashToolResult(event)) {
 			toolInput = { command: event.input.command };
-			run("agent-worktree", {
-				hook_event_name: event.isError ? "Heartbeat" : "PostToolUse",
-				session_id: sessionId,
-				tool_input: toolInput,
+			run("agent-worktree", worktreeEventForToolResult({
+				tool: "bash",
+				isError: event.isError,
+				command: event.input.command,
 				cwd: ctx.cwd,
-			});
-		} else if (isWriteToolResult(event) || isEditToolResult(event)) {
-			toolInput = { path: event.input.path };
+				sessionId,
+			}));
 		} else {
-			run("agent-worktree", {
-				hook_event_name: "Heartbeat",
-				session_id: sessionId,
-			});
-			return;
-		}
-
-		if (!isBashToolResult(event)) {
-			run("agent-worktree", {
-				hook_event_name: "Heartbeat",
-				session_id: sessionId,
-			});
+			run("agent-worktree", worktreeEventForToolResult({ tool: "other", sessionId }));
+			if (isWriteToolResult(event) || isEditToolResult(event)) {
+				toolInput = { path: event.input.path };
+			} else {
+				return;
+			}
 		}
 
 		const result = run("agent-guard", {

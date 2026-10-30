@@ -86,6 +86,42 @@ module WorktreeHarness
     File.write("#{directory}/state.json", JSON.generate(state))
   end
 
+  def observe_concurrently(ownerships, at:)
+    reader, writer = IO.pipe
+    pids = ownerships.map do |session, root|
+      fork do
+        writer.close
+        reader.read(1)
+        environment = worktree_environment(
+          "GIT_ROOT" => root,
+          "GIT_ROOT_DELAY" => "0.2"
+        )
+        event = {
+          "hook_event_name" => "PostToolUse",
+          "session_id" => session,
+          "cwd" => root,
+          "tool_input" => {"command" => "devenv up"}
+        }
+        status = nil
+        with_environment(environment) do
+          status = AgentHooks::Worktree.run(
+            event,
+            out: StringIO.new,
+            err: StringIO.new,
+            env: environment,
+            now: at
+          )
+        end
+        exit! status
+      end
+    end
+    reader.close
+    writer.write("x" * ownerships.length)
+    writer.close
+    statuses = pids.map { |pid| Process.wait2(pid).last }
+    raise "concurrent observation failed" unless statuses.all?(&:success?)
+  end
+
   private
 
   def stringify(value)

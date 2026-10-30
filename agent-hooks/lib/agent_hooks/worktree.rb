@@ -65,10 +65,11 @@ module AgentHooks
         touch(state, session, timestamp)
         expire(state, timestamp)
 
-        command = event.fetch("tool_input")["command"]
-        if DEVENV_UP.match?(command)
-          root = capture("git", "-C", event.fetch("cwd"), "rev-parse", "--show-toplevel")
+        case [event.fetch("tool_input").dig("command"), event["cwd"]]
+        in [String => command, String => cwd] if DEVENV_UP.match?(command)
+          root = capture("git", "-C", cwd, "rev-parse", "--show-toplevel")
           claim(state, root.chomp, session, timestamp, env) if root
+        else
         end
 
         reconcile(state, err)
@@ -138,14 +139,16 @@ module AgentHooks
       directory = File.join(state_home, "agent-worktree")
       FileUtils.mkdir_p(directory)
       lock = File.new("#{directory}/lock", File::CREAT, 0o600)
-      lock.flock(File::LOCK_EX)
-      path = "#{directory}/state.json"
-      state = File.file?(path) ? normalize(JSON.parse(File.read(path))) : {"roots" => {}}
-      yield state
-      File.write("#{path}.next", JSON.generate(state))
-      File.rename("#{path}.next", path)
-    ensure
-      lock&.close
+      begin
+        lock.flock(File::LOCK_EX)
+        path = "#{directory}/state.json"
+        state = File.file?(path) ? normalize(JSON.parse(File.read(path))) : {"roots" => {}}
+        yield state
+        File.write("#{path}.next", JSON.generate(state))
+        File.rename("#{path}.next", path)
+      ensure
+        lock.close
+      end
     end
 
     def self.normalize(state)

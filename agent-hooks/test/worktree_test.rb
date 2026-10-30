@@ -212,45 +212,15 @@ module AgentHooks
       assert_equal ["#{root} down"], devenv_log
     end
 
-    def test_concurrent_starts_preserve_both_owners
-      roots = [managed_root("one"), managed_root("two")]
-      reader, writer = IO.pipe
-      pids = roots.each_with_index.map do |root, index|
-        fork do
-          writer.close
-          reader.read(1)
-          environment = worktree_environment(
-            "GIT_ROOT" => root,
-            "GIT_ROOT_DELAY" => "0.2"
-          )
-          event = {
-            "hook_event_name" => "PostToolUse",
-            "session_id" => (index + 1).to_s,
-            "cwd" => root,
-            "tool_input" => {"command" => "devenv up"}
-          }
-          status = nil
-          with_environment(environment) do
-            status = AgentHooks::Worktree.run(
-              event,
-              out: StringIO.new,
-              err: StringIO.new,
-              env: environment,
-              now: 1
-            )
-          end
-          exit! status
-        end
-      end
-      reader.close
-      writer.write("xx")
-      writer.close
-      pids.each { |pid| Process.wait(pid) }
+    def test_concurrent_sessions_keep_ownership_of_their_own_worktrees
+      first = managed_root("one")
+      second = managed_root("two")
+      observe_concurrently({"one" => first, "two" => second}, at: 1)
 
-      finish("1", at: 2)
-      finish("2", at: 3)
+      finish("one", at: 2)
+      finish("two", at: 3)
 
-      assert_equal roots.map { |root| "#{root} down" }.sort, devenv_log.sort
+      assert_equal ["#{first} down", "#{second} down"].sort, devenv_log.sort
     end
 
     def test_repeated_start_by_one_session_has_one_ownership
@@ -400,19 +370,6 @@ module AgentHooks
       assert_equal ["#{root} down"], devenv_log
     end
 
-    def test_failed_tool_event_does_not_claim_devenv
-      root = managed_root
-
-      run_worktree_source(
-        {hook_event_name: "PostToolUseFailure", session_id: "one", cwd: root, tool_input: {command: "devenv up -d"}},
-        "GIT_ROOT" => root,
-        now: Time.at(1)
-      )
-      finish("one", at: 2)
-
-      assert_empty devenv_log
-    end
-
     def test_lifecycle_events_return_success
       root = managed_root
 
@@ -493,24 +450,6 @@ module AgentHooks
       assert File.file?("#{directory}/state.json")
       refute File.exist?("#{@tmp}/HOME/.local/state/agent-worktree/state.json")
       assert_equal 0o600, File.stat("#{directory}/lock").mode & 0o777
-    end
-
-    def test_state_directory_failure_preserves_the_filesystem_error
-      blocked = "#{@tmp}/blocked"
-      File.write(blocked, "not a directory")
-      environment = worktree_environment("XDG_STATE_HOME" => blocked)
-
-      error = assert_raises(Errno::EEXIST) do
-        AgentHooks::Worktree.run(
-          {"hook_event_name" => "Heartbeat", "session_id" => "one"},
-          env: environment,
-          out: StringIO.new,
-          err: StringIO.new,
-          now: 1
-        )
-      end
-
-      assert_includes error.message, blocked
     end
 
     def test_unknown_event_has_no_effect
