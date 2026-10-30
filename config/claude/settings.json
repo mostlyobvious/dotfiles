@@ -14,23 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/block-dangerous-git.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/block-shell-edits.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/enforce-change-writing.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/block-anthropic-attribution.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/require-enter-worktree.sh"
+            "command": "~/.claude/hooks/agent-guard"
           }
         ]
       }
@@ -40,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/worktree-create.sh"
+            "command": "~/.claude/hooks/agent-worktree"
           }
         ]
       }
@@ -51,11 +35,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/remind-mr-description.sh"
+            "command": "~/.claude/hooks/agent-guard"
           },
           {
             "type": "command",
-            "command": "~/.claude/hooks/record-devenv-up.sh"
+            "command": "~/.claude/hooks/agent-worktree"
           }
         ]
       },
@@ -64,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/remind-review-pass.sh"
+            "command": "~/.claude/hooks/agent-guard"
           }
         ]
       }
@@ -74,7 +58,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/stop-devenv.sh",
+            "command": "~/.claude/hooks/agent-worktree",
             "timeout": 10
           }
         ]

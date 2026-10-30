@@ -12,9 +12,9 @@ module GuardRunner
     [RbConfig.ruby, "--disable-gems", ROOT.join("bin/agent-guard").to_s]
   end.freeze
 
-  def run_guard(command, cwd: "/tmp/repository", transcript_path: nil)
-    event = {tool_input: {command: command}, cwd: cwd}
-    event[:transcript_path] = transcript_path if transcript_path
+  def run_guard(command = nil, cwd: "/tmp/repository", **extra)
+    tool_input = extra.delete(:tool_input) || {command: command}
+    event = {hook_event_name: "PreToolUse", tool_input: tool_input, cwd: cwd}.merge(extra)
 
     stdout, stderr, status = Open3.capture3(
       {"HOME" => HOME, "RUBYOPT" => nil, "RUBYLIB" => nil},

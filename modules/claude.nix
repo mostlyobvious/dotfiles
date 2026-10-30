@@ -12,26 +12,6 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/statusline-command.sh;
   };
-  blockDangerousGit = pkgs.writeShellApplication {
-    name = "block-dangerous-git";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/block-dangerous-git.sh;
-  };
-  enforceChangeWriting = pkgs.writeShellApplication {
-    name = "enforce-change-writing";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/enforce-change-writing.sh;
-  };
-  blockAnthropicAttribution = pkgs.writeShellApplication {
-    name = "block-anthropic-attribution";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/block-anthropic-attribution.sh;
-  };
-  remindMrDescription = pkgs.writeShellApplication {
-    name = "remind-mr-description";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/remind-mr-description.sh;
-  };
   mrDescribe = pkgs.writeShellApplication {
     name = "mr-describe";
     runtimeInputs = [
@@ -41,38 +21,8 @@ let
     ];
     text = builtins.readFile ./claude/mr-describe.sh;
   };
-  remindReviewPass = pkgs.writeShellApplication {
-    name = "remind-review-pass";
-    runtimeInputs = [ pkgs.jq ];
-    text = builtins.readFile ./claude/remind-review-pass.sh;
-  };
-  worktreeCreate = pkgs.writeShellApplication {
-    name = "worktree-create";
-    runtimeInputs = [
-      pkgs.jq
-      pkgs.git
-      pkgs.coreutils
-      pkgs.devenv
-    ];
-    text = builtins.readFile ./claude/worktree-create.sh;
-  };
   agentGuard = pkgs.callPackage ../packages/agent-guard.nix { };
-  recordDevenvUp = pkgs.writeShellApplication {
-    name = "record-devenv-up";
-    runtimeInputs = [
-      pkgs.git
-      pkgs.jq
-    ];
-    text = builtins.readFile ./claude/record-devenv-up.sh;
-  };
-  stopDevenv = pkgs.writeShellApplication {
-    name = "stop-devenv";
-    runtimeInputs = [
-      pkgs.devenv
-      pkgs.jq
-    ];
-    text = builtins.readFile ./claude/stop-devenv.sh;
-  };
+  agentWorktree = pkgs.callPackage ../packages/agent-worktree.nix { };
   mcpServers = config.my.claudeMcpServers;
   mcpServerNames = builtins.attrNames mcpServers;
   mcpConfig = (pkgs.formats.json { }).generate "managed-claude-mcp.json" {
@@ -101,17 +51,8 @@ in
 
     # Static scripts referenced by settings.json under stable ~/.claude paths.
     home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
-    home.file.".claude/hooks/block-dangerous-git.sh".source = lib.getExe blockDangerousGit;
-    home.file.".claude/hooks/block-shell-edits.sh".source = lib.getExe agentGuard;
-    home.file.".claude/hooks/enforce-change-writing.sh".source = lib.getExe enforceChangeWriting;
-    home.file.".claude/hooks/block-anthropic-attribution.sh".source =
-      lib.getExe blockAnthropicAttribution;
-    home.file.".claude/hooks/remind-mr-description.sh".source = lib.getExe remindMrDescription;
-    home.file.".claude/hooks/remind-review-pass.sh".source = lib.getExe remindReviewPass;
-    home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
-    home.file.".claude/hooks/require-enter-worktree.sh".source = lib.getExe agentGuard;
-    home.file.".claude/hooks/record-devenv-up.sh".source = lib.getExe recordDevenvUp;
-    home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
+    home.file.".claude/hooks/agent-guard".source = lib.getExe agentGuard;
+    home.file.".claude/hooks/agent-worktree".source = lib.getExe agentWorktree;
 
     home.packages = [ mrDescribe ];
 

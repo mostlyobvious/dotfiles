@@ -3,6 +3,7 @@
 require "json"
 require_relative "../lib/agent_hooks/guard"
 
-status, message = AgentHooks::Guard.call(JSON.parse($stdin.read), ENV.fetch("HOME"))
+status, message, output = AgentHooks::Guard.run(JSON.parse($stdin.read), ENV.fetch("HOME"))
 $stderr.write(message)
+$stdout.write(JSON.generate(output)) if output
 exit status

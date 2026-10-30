@@ -204,6 +204,7 @@
             ruby = pkgs.ruby_3_4;
           };
           agentGuard = pkgs.callPackage ./packages/agent-guard.nix { };
+          agentWorktree = pkgs.callPackage ./packages/agent-worktree.nix { };
         in
         {
           nixfmt = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
@@ -236,6 +237,7 @@
 
                   ruby -Itest -e 'Dir["test/**/*_test.rb"].sort.each { |file| require File.expand_path(file) }'
                   AGENT_GUARD=${lib.getExe agentGuard} ruby -Itest -e 'Dir["test/agent_guard*_test.rb"].sort.each { |file| require File.expand_path(file) }'
+                  AGENT_WORKTREE=${lib.getExe agentWorktree} ruby -Itest test/agent_worktree_test.rb
                   mutant run --usage opensource --integration minitest --include lib --require agent_hooks/guard 'AgentHooks::Guard*'
                   touch $out
                 '';
