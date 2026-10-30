@@ -1,24 +1,16 @@
 INPUT=$(cat)
-CWD=$(echo "$INPUT" | jq -r '.cwd // env.PWD')
+SESSION=$(echo "$INPUT" | jq -r '.session_id')
+STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/claude-code/devenv-up/$SESSION"
 
-case "$CWD" in
-  "$HOME"/Code/worktrees/*) ;;
-  *) exit 0 ;;
-esac
-
-ROOT=$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$CWD")
-
-case "$ROOT" in
-  "$HOME"/Code/worktrees/*) ;;
-  *) exit 0 ;;
-esac
-
-if [ ! -f "$ROOT/devenv.nix" ] && [ ! -f "$ROOT/devenv.yaml" ] && [ ! -d "$ROOT/.devenv" ]; then
+if [ ! -f "$STATE_FILE" ]; then
   exit 0
 fi
 
-cd "$ROOT"
+while IFS= read -r ROOT; do
+  [ -d "$ROOT" ] || continue
+  if ! OUTPUT=$(cd "$ROOT" && devenv down 2>&1) && ! echo "$OUTPUT" | grep -q 'No process manager is running'; then
+    echo "Failed to stop devenv processes for $ROOT" >&2
+  fi
+done <"$STATE_FILE"
 
-if ! devenv down >/dev/null 2>&1; then
-  echo "Failed to stop devenv processes for $ROOT" >&2
-fi
+rm -f "$STATE_FILE"

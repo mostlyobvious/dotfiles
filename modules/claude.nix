@@ -66,11 +66,18 @@ let
     runtimeInputs = [ pkgs.jq ];
     text = builtins.readFile ./claude/require-enter-worktree.sh;
   };
+  recordDevenvUp = pkgs.writeShellApplication {
+    name = "record-devenv-up";
+    runtimeInputs = [
+      pkgs.git
+      pkgs.jq
+    ];
+    text = builtins.readFile ./claude/record-devenv-up.sh;
+  };
   stopDevenv = pkgs.writeShellApplication {
     name = "stop-devenv";
     runtimeInputs = [
       pkgs.devenv
-      pkgs.git
       pkgs.jq
     ];
     text = builtins.readFile ./claude/stop-devenv.sh;
@@ -112,6 +119,7 @@ in
     home.file.".claude/hooks/remind-review-pass.sh".source = lib.getExe remindReviewPass;
     home.file.".claude/hooks/worktree-create.sh".source = lib.getExe worktreeCreate;
     home.file.".claude/hooks/require-enter-worktree.sh".source = lib.getExe requireEnterWorktree;
+    home.file.".claude/hooks/record-devenv-up.sh".source = lib.getExe recordDevenvUp;
     home.file.".claude/hooks/stop-devenv.sh".source = lib.getExe stopDevenv;
 
     home.packages = [ mrDescribe ];
