@@ -20,7 +20,6 @@
       "autodesk-fusion"
       "blender"
       "brave-browser"
-      "google-chrome"
       "slack"
       "signal"
       "affinity"
@@ -29,8 +28,6 @@
       "insta360-studio"
       "ia-presenter"
       "whatsapp"
-      "1password"
-      "1password-cli"
     ];
     masApps = {
       "iA Writer" = 775737590;
