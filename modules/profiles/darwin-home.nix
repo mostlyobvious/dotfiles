@@ -13,6 +13,7 @@
     ../ghostty.nix
     ../zed.nix
     ../ssh.nix
+    ../container.nix
     ../fonts.nix
     ../macos-defaults.nix
   ];
