@@ -80,6 +80,14 @@
           "vault"
         ];
 
+      agentHooksRuby =
+        pkgs:
+        pkgs.bundlerEnv {
+          name = "agent-hooks-ruby-env";
+          gemdir = ./agent-hooks;
+          ruby = pkgs.ruby_3_4;
+        };
+
       forAllSystems = lib.genAttrs [
         "aarch64-darwin"
         "aarch64-linux"
@@ -198,11 +206,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          rubyEnv = pkgs.bundlerEnv {
-            name = "agent-hooks-ruby-env";
-            gemdir = ./agent-hooks;
-            ruby = pkgs.ruby_3_4;
-          };
+          rubyEnv = agentHooksRuby pkgs;
           agentGuard = pkgs.callPackage ./packages/agent-guard.nix { };
           agentWorktree = pkgs.callPackage ./packages/agent-worktree.nix { };
         in
@@ -257,11 +261,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          rubyEnv = pkgs.bundlerEnv {
-            name = "agent-hooks-ruby-env";
-            gemdir = ./agent-hooks;
-            ruby = pkgs.ruby_3_4;
-          };
+          rubyEnv = agentHooksRuby pkgs;
         in
         {
           default = pkgs.mkShell {
