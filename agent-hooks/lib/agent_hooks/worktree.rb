@@ -1,4 +1,5 @@
 require "fileutils"
+require "agent_hooks/worktree/command_runner"
 require "agent_hooks/worktree/lease_decider"
 require "agent_hooks/worktree/state_file"
 
@@ -109,25 +110,21 @@ module AgentHooks
     def self.stop(root, err)
       return true unless File.directory?(root)
 
-      output = IO.popen(["devenv", "down"], chdir: root, err: [:child, :out], &:read)
-      return true if $?.success? || output.include?(NO_PROCESS_MANAGER)
+      result = CommandRunner.run(["devenv", "down"], chdir: root)
+      return true if result.success || result.output.include?(NO_PROCESS_MANAGER)
 
-      err.puts("Failed to stop devenv processes for #{root}: #{output}")
+      err.puts("Failed to stop devenv processes for #{root}: #{result.output}")
     end
 
     def self.capture(*command)
-      output = IO.popen(command, err: File::NULL, &:read)
-      output if $?.success?
+      result = CommandRunner.run(command)
+      result.output if result.success
     end
 
     def self.execute(command, err, chdir: nil)
-      output = if chdir
-        IO.popen(command, chdir: chdir, err: [:child, :out], &:read)
-      else
-        IO.popen(command, err: [:child, :out], &:read)
-      end
-      err.write(output)
-      $?.success?
+      result = CommandRunner.run(command, chdir: chdir)
+      err.write(result.output)
+      result.success
     end
 
     def self.fail_with(message, err)
