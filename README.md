@@ -1,23 +1,21 @@
 # dotfiles
 
-Nix-managed: nix-darwin for macOS system state, home-manager for every
-account, and NixOS for Linux VMs. This flake owns machine orchestration
-and pins every input in `flake.lock`.
+Nix-managed: nix-darwin for macOS system state and home-manager for every
+account. This flake owns machine orchestration and pins every input in
+`flake.lock`.
 
 ## Layout
 
 - `hosts/`: the root of the tree, with one file per machine containing
-  its system modules, Homebrew casks, accounts, and VMs.
+  its system modules, Homebrew casks, and accounts.
 - `lib/`: turns the host tree into flake outputs through `mk-darwin.nix`,
   `mk-home.nix`, and `apps.nix`.
 - `modules/`: nix-darwin and home-manager modules selected by each
   account in `hosts/`.
 - `config/`: raw dotfiles delivered by the modules.
-- `vms/`: Lima guests containing NixOS configuration and `lima.yaml`.
 
-Outputs mirror the tree: `darwinConfigurations.<host>`,
-`homeConfigurations."<host>-<user>"` and `."<vm>"`,
-`nixosConfigurations.<vm>`, plus a check per system and home.
+Outputs mirror the tree: `darwinConfigurations.<host>` and
+`homeConfigurations."<host>-<user>"`, plus a check per system and home.
 
 ## Apply
 
@@ -27,9 +25,8 @@ make check   # = nix flake check
 ```
 
 `switch` derives the host from `scutil --get LocalHostName` and converges
-everything in order: the nix-darwin system, each account's home (the
-invoking user directly, other accounts via `sudo -u`), then each VM
-(started via Lima, rebuilt from the read-only `/mnt/dotfiles` mount).
+everything in order: the nix-darwin system, then each account's home (the
+invoking user directly, other accounts via `sudo -u`).
 
 ## Bootstrap fresh Mac
 
@@ -105,15 +102,21 @@ upgrade, activation stops any running container services. The package
 requires macOS 26 or later. The `cm` host's launch agent starts the CLI
 from its package path. See [Apple's releases](https://github.com/apple/container/releases).
 
-### VM isolation
-
-Nothing credential- or host-bound crosses into modules shared with VMs.
-SSH keys and config stay on the host; the VM uses its own. Commit
-identity (name, email) does cross, deliberately: work done in a VM
-should be attributable.
-
 ### Theme
 
 Nightfox (Duskfox dark, Dawnfox light) across terminals, editors, CLI
 tools, and agent UI. Match new tool config to
 <https://github.com/EdenEast/nightfox.nvim> when it supports theming.
+
+## Linux VMs
+
+A host can declare Lima guests under `vms`; none is enabled now. Each guest
+lives in `vms/` with its NixOS configuration and `lima.yaml`, and adds
+`nixosConfigurations.<vm>` and `homeConfigurations."<vm>"` outputs.
+`switch` starts each declared guest after the accounts and rebuilds it from
+the read-only `/mnt/dotfiles` mount.
+
+Nothing credential- or host-bound crosses into modules shared with VMs.
+SSH keys and config stay on the host; the VM uses its own. Commit
+identity (name, email) does cross, deliberately: work done in a VM
+should be attributable.
