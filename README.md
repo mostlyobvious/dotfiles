@@ -54,9 +54,9 @@ daemon settings go through `determinateNix.customSettings`, which lands in
 
 ### The dotfiles flake owns switching
 
-`hosts/cm.nix` keeps the work machine in the same host tree and imports
-`inputs.chattermill.homeModules.default` for private work settings. The
-`chattermill` repository remains a separate pinned flake input. Evaluating
+`hosts/cm.nix` keeps the work machine in the same host tree and imports the
+private Chattermill Home Manager and Darwin modules for work requirements.
+The `chattermill` repository remains a separate pinned flake input. Evaluating
 or switching the `cm` configuration requires SSH access to that repository.
 
 ### Unstable everywhere
