@@ -37,7 +37,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 vim.diagnostic.config({
   virtual_lines = { current_line = true },
   underline = false,
-  update_in_insert = false,
 })
 
 vim.lsp.enable({
