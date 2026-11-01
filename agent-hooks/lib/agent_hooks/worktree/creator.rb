@@ -7,32 +7,92 @@ module AgentHooks
         home = env.fetch("HOME")
         name = event.fetch("name")
         cwd = event.fetch("cwd")
-        common_dir = capture(["git", "-C", cwd, "rev-parse", "--path-format=absolute", "--git-common-dir"])
-        return fail_with("Could not find the repository for #{cwd}", err) unless common_dir
+        common_dir =
+          capture(
+            [
+              "git",
+              "-C",
+              cwd,
+              "rev-parse",
+              "--path-format=absolute",
+              "--git-common-dir"
+            ]
+          )
+        unless common_dir
+          return fail_with("Could not find the repository for #{cwd}", err)
+        end
 
         main_root = File.dirname(common_dir)
-        return fail_with("dotfiles is edited in its main checkout, never in a linked worktree.", err) if main_root == "#{home}/Code/dotfiles"
+        if main_root == "#{home}/Code/dotfiles"
+          return(
+            fail_with(
+              "dotfiles is edited in its main checkout, never in a linked worktree.",
+              err
+            )
+          )
+        end
 
         slug = name.gsub(/[^[:alnum:]._-]/, "-")
-        destination = "#{home}/Code/worktrees/#{File.basename(main_root)}/#{slug}"
-        return fail_with("Worktree path already exists: #{destination}", err) if File.exist?(destination)
-
-        origin_head = capture(["git", "-C", main_root, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"])
-        unless origin_head
-          execute(["git", "-C", main_root, "remote", "set-head", "origin", "--auto"], err)
-          origin_head = capture(["git", "-C", main_root, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"])
+        destination =
+          "#{home}/Code/worktrees/#{File.basename(main_root)}/#{slug}"
+        if File.exist?(destination)
+          return fail_with("Worktree path already exists: #{destination}", err)
         end
-        base_ref = origin_head ? origin_head.chomp.sub(%r{\Arefs/remotes/}, "") : "HEAD"
+
+        origin_head =
+          capture(
+            [
+              "git",
+              "-C",
+              main_root,
+              "symbolic-ref",
+              "--quiet",
+              "refs/remotes/origin/HEAD"
+            ]
+          )
+        unless origin_head
+          execute(
+            ["git", "-C", main_root, "remote", "set-head", "origin", "--auto"],
+            err
+          )
+          origin_head =
+            capture(
+              [
+                "git",
+                "-C",
+                main_root,
+                "symbolic-ref",
+                "--quiet",
+                "refs/remotes/origin/HEAD"
+              ]
+            )
+        end
+        base_ref =
+          origin_head ? origin_head.chomp.sub(%r{\Arefs/remotes/}, "") : "HEAD"
 
         FileUtils.mkdir_p(File.dirname(destination))
-        branch_exists = !capture(["git", "-C", main_root, "show-ref", "--verify", "--quiet", "refs/heads/#{name}"]).nil?
+        branch_exists =
+          !capture(
+            [
+              "git",
+              "-C",
+              main_root,
+              "show-ref",
+              "--verify",
+              "--quiet",
+              "refs/heads/#{name}"
+            ]
+          ).nil?
         command = ["git", "-C", main_root, "worktree", "add"]
         command += ["-b", name, destination, base_ref] unless branch_exists
         command += [destination, name] if branch_exists
         return 1 unless execute(command, err)
 
-        if File.file?("#{destination}/devenv.nix") && !execute(["devenv", "allow"], err, chdir: destination)
-          err.puts("devenv allow failed for #{destination}; run it there before using devenv.")
+        if File.file?("#{destination}/devenv.nix") &&
+             !execute(%w[devenv allow], err, chdir: destination)
+          err.puts(
+            "devenv allow failed for #{destination}; run it there before using devenv."
+          )
         end
         out.puts(destination)
         0

@@ -7,18 +7,24 @@ module AgentHooks
   class GuardTest < Minitest::Test
     cover "AgentHooks::Guard*"
 
-    ATTRIBUTION_MESSAGE = "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
-    CHANGE_WRITING_MESSAGE = "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
-    MR_REMINDER = "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
-    REVIEW_REMINDER = "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
-    WORKTREE_MESSAGE = "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
+    ATTRIBUTION_MESSAGE =
+      "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
+    CHANGE_WRITING_MESSAGE =
+      "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
+    MR_REMINDER =
+      "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
+    REVIEW_REMINDER =
+      "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
+    WORKTREE_MESSAGE =
+      "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
 
     def test_direct_worktree_creation_is_blocked
       assert_equal blocked, call("git worktree add ../feature")
     end
 
     def test_explicit_repository_worktree_creation_is_blocked
-      assert_equal blocked, call("git -C ~/Code/backend/backend worktree add ../feature")
+      assert_equal blocked,
+                   call("git -C ~/Code/backend/backend worktree add ../feature")
     end
 
     def test_worktree_creation_after_another_command_is_blocked
@@ -42,7 +48,8 @@ module AgentHooks
     end
 
     def test_sed_short_in_place_option_is_blocked
-      assert_equal shell_edit_blocked("sed -i '' 's/old/new/' file"), call("sed -i '' 's/old/new/' file")
+      assert_equal shell_edit_blocked("sed -i '' 's/old/new/' file"),
+                   call("sed -i '' 's/old/new/' file")
     end
 
     def test_sed_long_in_place_option_is_blocked
@@ -96,39 +103,60 @@ module AgentHooks
     def test_entering_a_worktree_from_another_directory_is_blocked
       target = "/Users/agent/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature && bundle exec rake")
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call(
+                     "cd ~/Code/worktrees/backend/feature && bundle exec rake"
+                   )
     end
 
     def test_entering_a_worktree_later_in_a_command_chain_is_blocked
       target = "/Users/agent/Code/worktrees/backend/feature"
       command = "printf ready && cd ~/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call(command)
     end
 
     def test_current_worktree_does_not_hide_a_later_worktree_transition
       target = "/Users/agent/Code/worktrees/backend/other"
-      command = "cd ~/Code/worktrees/backend/feature && cd ~/Code/worktrees/backend/other"
+      command =
+        "cd ~/Code/worktrees/backend/feature && cd ~/Code/worktrees/backend/other"
 
-      assert_equal [2, "BLOCKED: this session runs in /Users/agent/Code/worktrees/backend/feature. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command, cwd: "/Users/agent/Code/worktrees/backend/feature")
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /Users/agent/Code/worktrees/backend/feature. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call(
+                     command,
+                     cwd: "/Users/agent/Code/worktrees/backend/feature"
+                   )
     end
 
     def test_entering_the_current_worktree_is_allowed
-      assert_equal [0, ""], call(
-        "cd $HOME/Code/worktrees/backend/feature && bundle exec rake",
-        cwd: "/Users/agent/Code/worktrees/backend/feature/app"
-      )
+      assert_equal [0, ""],
+                   call(
+                     "cd $HOME/Code/worktrees/backend/feature && bundle exec rake",
+                     cwd: "/Users/agent/Code/worktrees/backend/feature/app"
+                   )
     end
 
     def test_entering_the_worktree_root_is_allowed
-      assert_equal [0, ""], call(
-        "cd ~/Code/worktrees/backend/feature",
-        cwd: "/Users/agent/Code/worktrees/backend/feature"
-      )
+      assert_equal [0, ""],
+                   call(
+                     "cd ~/Code/worktrees/backend/feature",
+                     cwd: "/Users/agent/Code/worktrees/backend/feature"
+                   )
     end
 
     def test_entering_a_regular_directory_is_allowed
-      assert_equal [0, ""], call("cd ~/Code/backend/backend && bundle exec rake")
+      assert_equal [0, ""],
+                   call("cd ~/Code/backend/backend && bundle exec rake")
     end
 
     def test_cd_without_a_path_is_allowed
@@ -139,21 +167,34 @@ module AgentHooks
       target = "/Users/agent/Code/worktrees/backend/feature"
       command = "cd && cd ~/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call(command)
     end
 
     def test_regular_cd_does_not_hide_a_later_worktree_transition
       target = "/Users/agent/Code/worktrees/backend/feature"
       command = "cd /tmp && cd ~/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call(command)
     end
 
     def test_worktree_repository_cd_does_not_hide_a_later_transition
       target = "/Users/agent/Code/worktrees/backend/feature"
-      command = "cd ~/Code/worktrees/backend && cd ~/Code/worktrees/backend/feature"
+      command =
+        "cd ~/Code/worktrees/backend && cd ~/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call(command)
     end
 
     def test_non_cd_command_with_a_worktree_path_is_allowed
@@ -169,52 +210,68 @@ module AgentHooks
     end
 
     def test_a_similar_worktree_prefix_is_allowed
-      assert_equal [0, ""], call("cd /Users/agent/Code/worktrees-other/backend/feature")
+      assert_equal [0, ""],
+                   call("cd /Users/agent/Code/worktrees-other/backend/feature")
     end
 
     def test_home_variable_worktree_path_is_blocked
       target = "/Users/agent/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd $HOME/Code/worktrees/backend/feature")
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call("cd $HOME/Code/worktrees/backend/feature")
     end
 
     def test_worktree_subdirectory_names_the_worktree_root
       target = "/Users/agent/Code/worktrees/backend/feature"
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature/app")
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                   ],
+                   call("cd ~/Code/worktrees/backend/feature/app")
     end
 
     def test_dotfiles_worktree_from_main_checkout_is_blocked
       command = "git worktree add ../feature"
-      reason = "adds a worktree to dotfiles, which is edited in its main checkout."
+      reason =
+        "adds a worktree to dotfiles, which is edited in its main checkout."
 
-      assert_equal policy_blocked(command, reason), call(command, cwd: "/Users/agent/Code/dotfiles")
+      assert_equal policy_blocked(command, reason),
+                   call(command, cwd: "/Users/agent/Code/dotfiles")
     end
 
     def test_dotfiles_worktree_named_in_command_is_blocked
-      command = "git -C ~/Code/backend/backend worktree add ~/Code/dotfiles/feature"
-      reason = "adds a worktree to dotfiles, which is edited in its main checkout."
+      command =
+        "git -C ~/Code/backend/backend worktree add ~/Code/dotfiles/feature"
+      reason =
+        "adds a worktree to dotfiles, which is edited in its main checkout."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
 
     def test_inline_merge_request_description_is_blocked
       command = "glab mr update 42 --description=ready"
-      reason = "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
+      reason =
+        "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
 
     def test_short_inline_merge_request_description_is_blocked
       command = "glab mr create -d ready"
-      reason = "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
+      reason =
+        "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
 
     def test_separate_inline_merge_request_description_is_blocked
       command = "glab mr update 42 --description ready"
-      reason = "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
+      reason =
+        "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
@@ -270,13 +327,15 @@ module AgentHooks
     def test_push_to_main_is_blocked
       command = "git push origin HEAD:main"
 
-      assert_equal policy_blocked(command, "pushes a protected branch."), call(command)
+      assert_equal policy_blocked(command, "pushes a protected branch."),
+                   call(command)
     end
 
     def test_push_of_local_main_is_blocked
       command = "git push origin main"
 
-      assert_equal policy_blocked(command, "pushes a protected branch."), call(command)
+      assert_equal policy_blocked(command, "pushes a protected branch."),
+                   call(command)
     end
 
     def test_branch_ending_in_main_is_allowed
@@ -320,7 +379,8 @@ module AgentHooks
       "nested reset" => ["tool reset --hard", "reset --hard"]
     }.each do |name, (command, pattern)|
       define_method("test_#{name.tr(" ", "_")}_is_blocked") do
-        expected = "BLOCKED: '#{command}' matches dangerous pattern '#{pattern}'. The user has prevented you from doing this.\n"
+        expected =
+          "BLOCKED: '#{command}' matches dangerous pattern '#{pattern}'. The user has prevented you from doing this.\n"
 
         assert_equal [2, expected], call(command)
       end
@@ -328,13 +388,15 @@ module AgentHooks
 
     def test_clean_with_other_arguments_is_blocked
       command = "git clean -fd ignored"
-      expected = "BLOCKED: '#{command}' matches dangerous pattern 'git clean -fd'. The user has prevented you from doing this.\n"
+      expected =
+        "BLOCKED: '#{command}' matches dangerous pattern 'git clean -fd'. The user has prevented you from doing this.\n"
 
       assert_equal [2, expected], call(command)
     end
 
     def test_commit_requires_change_writing
-      assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message")
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   call("git commit -F /tmp/message")
     end
 
     def test_commit_in_a_command_chain_requires_change_writing
@@ -344,7 +406,8 @@ module AgentHooks
     end
 
     def test_merge_request_create_requires_change_writing
-      assert_equal [2, CHANGE_WRITING_MESSAGE], call("gh pr create --title ready")
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   call("gh pr create --title ready")
     end
 
     def test_fixup_commit_keeps_its_message
@@ -356,7 +419,11 @@ module AgentHooks
     end
 
     def test_applied_change_writing_allows_commit
-      assert_equal [0, ""], call("git commit -F /tmp/message", change_writing_applied: true)
+      assert_equal [0, ""],
+                   call(
+                     "git commit -F /tmp/message",
+                     change_writing_applied: true
+                   )
     end
 
     def test_transcript_with_change_writing_allows_commit
@@ -364,7 +431,11 @@ module AgentHooks
         transcript = "#{directory}/transcript"
         File.write(transcript, "# Change Writing\n")
 
-        assert_equal [0, ""], call("git commit -F /tmp/message", transcript_path: transcript)
+        assert_equal [0, ""],
+                     call(
+                       "git commit -F /tmp/message",
+                       transcript_path: transcript
+                     )
       end
     end
 
@@ -372,15 +443,20 @@ module AgentHooks
       Dir.mktmpdir do |directory|
         File.write("#{directory}/publish.sh", "glab mr create --title ready\n")
 
-        assert_equal [2, CHANGE_WRITING_MESSAGE], call("./publish.sh", cwd: directory)
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call("./publish.sh", cwd: directory)
       end
     end
 
     def test_script_with_one_mr_command_requires_change_writing
       Dir.mktmpdir do |directory|
-        File.write("#{directory}/publish.sh", "printf ready\nglab mr create --title ready\n")
+        File.write(
+          "#{directory}/publish.sh",
+          "printf ready\nglab mr create --title ready\n"
+        )
 
-        assert_equal [2, CHANGE_WRITING_MESSAGE], call("./publish.sh", cwd: directory)
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call("./publish.sh", cwd: directory)
       end
     end
 
@@ -405,7 +481,8 @@ module AgentHooks
     end
 
     def test_claude_coauthor_is_blocked
-      command = "git commit --fixup HEAD -m 'Co-authored-by: Claude <bot@anthropic.com>'"
+      command =
+        "git commit --fixup HEAD -m 'Co-authored-by: Claude <bot@anthropic.com>'"
 
       assert_equal [2, ATTRIBUTION_MESSAGE], call(command)
     end
@@ -431,77 +508,109 @@ module AgentHooks
     end
 
     def test_push_reminder_is_returned_after_tool_use
-      output = Guard.run(
-        {"hook_event_name" => "PostToolUse", "tool_input" => {"command" => "git push origin feature"}},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "command" => "git push origin feature"
+            }
+          },
+          "/Users/agent"
+        )
 
       assert_equal [0, "", reminder(MR_REMINDER)], output
     end
 
     def test_push_in_a_command_chain_returns_the_merge_request_reminder
-      output = Guard.run(
-        {"hook_event_name" => "PostToolUse", "tool_input" => {"command" => "git push origin feature && git status"}},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "command" => "git push origin feature && git status"
+            }
+          },
+          "/Users/agent"
+        )
 
       assert_equal [0, "", reminder(MR_REMINDER)], output
     end
 
     def test_review_reminder_is_returned_for_description_write
-      output = Guard.run(
-        {"hook_event_name" => "PostToolUse", "tool_input" => {"file_path" => "/tmp/mr-description.md"}},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "file_path" => "/tmp/mr-description.md"
+            }
+          },
+          "/Users/agent"
+        )
 
       assert_equal [0, "", reminder(REVIEW_REMINDER)], output
     end
 
     def test_other_post_tool_use_has_no_reminder
-      output = Guard.run(
-        {"hook_event_name" => "PostToolUse", "tool_input" => {"command" => "git status"}},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "command" => "git status"
+            }
+          },
+          "/Users/agent"
+        )
 
       assert_equal [0, "", nil], output
     end
 
     def test_dotfiles_cwd_does_not_block_unrelated_command
-      assert_equal [0, ""], call("git status", cwd: "/Users/agent/Code/dotfiles")
+      assert_equal [0, ""],
+                   call("git status", cwd: "/Users/agent/Code/dotfiles")
     end
 
     def test_dotfiles_cwd_allows_worktree_listing
-      assert_equal [0, ""], call("git worktree list", cwd: "/Users/agent/Code/dotfiles")
+      assert_equal [0, ""],
+                   call("git worktree list", cwd: "/Users/agent/Code/dotfiles")
     end
 
     def test_dotfiles_cwd_allows_other_add_subcommands
-      assert_equal [0, ""], call("git branch add", cwd: "/Users/agent/Code/dotfiles")
+      assert_equal [0, ""],
+                   call("git branch add", cwd: "/Users/agent/Code/dotfiles")
     end
 
     def test_dotfiles_worktree_under_worktrees_directory_is_blocked
       command = "git worktree add ~/worktrees/dotfiles/feature"
-      reason = "adds a worktree to dotfiles, which is edited in its main checkout."
+      reason =
+        "adds a worktree to dotfiles, which is edited in its main checkout."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
 
     def test_dotfiles_worktree_from_subdirectory_is_blocked
       command = "git worktree add ../feature"
-      reason = "adds a worktree to dotfiles, which is edited in its main checkout."
+      reason =
+        "adds a worktree to dotfiles, which is edited in its main checkout."
 
-      assert_equal policy_blocked(command, reason), call(command, cwd: "/Users/agent/Code/dotfiles/modules")
+      assert_equal policy_blocked(command, reason),
+                   call(command, cwd: "/Users/agent/Code/dotfiles/modules")
     end
 
     def test_push_to_master_ref_is_blocked
       command = "git push origin HEAD:refs/heads/master"
 
-      assert_equal policy_blocked(command, "pushes a protected branch."), call(command)
+      assert_equal policy_blocked(command, "pushes a protected branch."),
+                   call(command)
     end
 
     def test_each_command_in_a_chain_is_guarded
       command = "git push origin feature && git reset --hard"
 
-      expected = "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. The user has prevented you from doing this.\n"
+      expected =
+        "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. The user has prevented you from doing this.\n"
 
       assert_equal [2, expected], call(command)
     end
@@ -512,28 +621,39 @@ module AgentHooks
 
     def test_dynamic_shell_command_is_blocked_when_it_cannot_be_inspected
       command = 'printf "$(date)"'
-      message = "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+      message =
+        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
 
       assert_equal [2, message], call(command)
     end
 
     def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
       command = "printf 'unfinished"
-      message = "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+      message =
+        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
 
       assert_equal [2, message], call(command)
     end
 
     def test_merge_request_description_file_requires_change_writing
-      assert_equal [2, CHANGE_WRITING_MESSAGE], call("glab mr update 42 --description-file /tmp/description")
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   call("glab mr update 42 --description-file /tmp/description")
     end
 
     def test_change_writing_false_still_blocks_commit
-      assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", change_writing_applied: false)
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   call(
+                     "git commit -F /tmp/message",
+                     change_writing_applied: false
+                   )
     end
 
     def test_missing_transcript_still_blocks_commit
-      assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", transcript_path: "/missing")
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   call(
+                     "git commit -F /tmp/message",
+                     transcript_path: "/missing"
+                   )
     end
 
     def test_unread_transcript_still_blocks_commit
@@ -541,7 +661,11 @@ module AgentHooks
         transcript = "#{directory}/transcript"
         File.write(transcript, "other skill\n")
 
-        assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message", transcript_path: transcript)
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call(
+                       "git commit -F /tmp/message",
+                       transcript_path: transcript
+                     )
       end
     end
 
@@ -557,43 +681,75 @@ module AgentHooks
     def test_home_script_that_creates_an_mr_requires_change_writing
       Dir.mktmpdir do |home|
         File.write("#{home}/publish.sh", "glab mr edit 42 --title ready\n")
-        assert_equal [2, CHANGE_WRITING_MESSAGE], call("~/publish.sh", cwd: "/tmp", home: home)
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call("~/publish.sh", cwd: "/tmp", home: home)
       end
     end
 
     def test_pre_tool_use_runs_guard_policy
-      output = Guard.run(
-        {"hook_event_name" => "PreToolUse", "tool_input" => {"command" => "git commit -F /tmp/message"}, "cwd" => "/tmp"},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PreToolUse",
+            "tool_input" => {
+              "command" => "git commit -F /tmp/message"
+            },
+            "cwd" => "/tmp"
+          },
+          "/Users/agent"
+        )
 
       assert_equal [2, CHANGE_WRITING_MESSAGE, nil], output
     end
 
     def test_pre_tool_use_passes_home_to_worktree_policy
       target = "/Users/agent/Code/worktrees/backend/feature"
-      output = Guard.run(
-        {"hook_event_name" => "PreToolUse", "tool_input" => {"command" => "cd ~/Code/worktrees/backend/feature"}, "cwd" => "/tmp"},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PreToolUse",
+            "tool_input" => {
+              "command" => "cd ~/Code/worktrees/backend/feature"
+            },
+            "cwd" => "/tmp"
+          },
+          "/Users/agent"
+        )
 
-      assert_equal [2, "BLOCKED: this session runs in /tmp. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n", nil], output
+      assert_equal [
+                     2,
+                     "BLOCKED: this session runs in /tmp. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n",
+                     nil
+                   ],
+                   output
     end
 
     def test_post_tool_use_file_without_command_has_no_push_reminder
-      output = Guard.run(
-        {"hook_event_name" => "PostToolUse", "tool_input" => {"file_path" => "/tmp/file.rb"}},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "file_path" => "/tmp/file.rb"
+            }
+          },
+          "/Users/agent"
+        )
 
       assert_equal [0, "", nil], output
     end
 
     def test_path_field_also_returns_review_reminder
-      output = Guard.run(
-        {"hook_event_name" => "PostToolUse", "tool_input" => {"path" => "mr-description.md"}},
-        "/Users/agent"
-      )
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "path" => "mr-description.md"
+            }
+          },
+          "/Users/agent"
+        )
 
       assert_equal [0, "", reminder(REVIEW_REMINDER)], output
     end
@@ -605,22 +761,40 @@ module AgentHooks
     end
 
     def policy_blocked(command, reason)
-      [2, "BLOCKED: '#{command}' #{reason} The user has prevented you from doing this.\n"]
+      [
+        2,
+        "BLOCKED: '#{command}' #{reason} The user has prevented you from doing this.\n"
+      ]
     end
 
     def reminder(message)
-      {"hookSpecificOutput" => {"hookEventName" => "PostToolUse", "additionalContext" => message}}
+      {
+        "hookSpecificOutput" => {
+          "hookEventName" => "PostToolUse",
+          "additionalContext" => message
+        }
+      }
     end
 
     def shell_edit_blocked(command)
-      [2, "BLOCKED: '#{command}' edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites.\n"]
+      [
+        2,
+        "BLOCKED: '#{command}' edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites.\n"
+      ]
     end
 
     def call(command, cwd: "/tmp/repository", home: "/Users/agent", **event)
-      status, message, = Guard.run(
-        {"hook_event_name" => "PreToolUse", "tool_input" => {"command" => command}, "cwd" => cwd}.merge(event.transform_keys(&:to_s)),
-        home
-      )
+      status, message, =
+        Guard.run(
+          {
+            "hook_event_name" => "PreToolUse",
+            "tool_input" => {
+              "command" => command
+            },
+            "cwd" => cwd
+          }.merge(event.transform_keys(&:to_s)),
+          home
+        )
       [status, message]
     end
   end

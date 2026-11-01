@@ -27,12 +27,27 @@ module AgentHooks
       return 0 unless session
 
       StateFile.update(env) do |state|
-        LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
-        LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
+        LeaseDecider.apply(
+          state,
+          type: :record_activity,
+          session: session,
+          at: timestamp
+        )
+        LeaseDecider.apply(
+          state,
+          type: :expire_leases,
+          before: timestamp - STALE_AFTER
+        )
 
         root = Devenv.started_root(event)
         if root&.start_with?("#{env.fetch("HOME")}/Code/worktrees/")
-          LeaseDecider.apply(state, type: :record_devenv_started, root: root, session: session, at: timestamp)
+          LeaseDecider.apply(
+            state,
+            type: :record_devenv_started,
+            root: root,
+            session: session,
+            at: timestamp
+          )
         end
 
         reconcile(state, err)
@@ -44,8 +59,17 @@ module AgentHooks
       return 0 unless session
 
       StateFile.update(env) do |state|
-        LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
-        LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
+        LeaseDecider.apply(
+          state,
+          type: :record_activity,
+          session: session,
+          at: timestamp
+        )
+        LeaseDecider.apply(
+          state,
+          type: :expire_leases,
+          before: timestamp - STALE_AFTER
+        )
         reconcile(state, err)
       end
     end
@@ -61,9 +85,13 @@ module AgentHooks
     end
 
     def self.reconcile(state, err)
-      LeaseDecider.unowned_roots(state).each do |root|
-        LeaseDecider.apply(state, type: :remove_root, root: root) if Devenv.stop(root, err)
-      end
+      LeaseDecider
+        .unowned_roots(state)
+        .each do |root|
+          if Devenv.stop(root, err)
+            LeaseDecider.apply(state, type: :remove_root, root: root)
+          end
+        end
     end
 
     private_class_method :observe, :heartbeat, :finish, :reconcile

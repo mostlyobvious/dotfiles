@@ -237,6 +237,7 @@
                   export RUBYOPT=-W0
 
                   node --test ${./config/pi}/test/agent-worktree-events.test.mjs
+                  stree check bin/* $(find lib test -type f -name '*.rb' | sort)
                   ruby -Itest -Ilib -e 'Dir["test/**/*_test.rb"].sort.each { |file| require File.expand_path(file) }'
                   AGENT_GUARD=${lib.getExe agentGuard} ruby -Itest -e 'Dir["test/agent_guard*_test.rb"].sort.each { |file| require File.expand_path(file) }'
                   AGENT_WORKTREE=${lib.getExe agentWorktree} ruby -Itest test/agent_worktree_test.rb

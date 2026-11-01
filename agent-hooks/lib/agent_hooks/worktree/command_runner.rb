@@ -4,7 +4,7 @@ module AgentHooks
       Result = Struct.new(:output, :success, keyword_init: true)
 
       def self.run(command, chdir: nil)
-        options = {err: [:child, :out]}
+        options = { err: %i[child out] }
         options[:chdir] = chdir if chdir
         output = IO.popen(command, **options, &:read)
         Result.new(output: output, success: $?.success?)

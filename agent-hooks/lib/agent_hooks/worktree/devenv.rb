@@ -1,7 +1,8 @@
 module AgentHooks
   module Worktree
     module Devenv
-      START = /
+      START =
+        /
         (?:\A | [&|;(]\s*)
         devenv
         (?:\s+ [^&|;\s]+)*
@@ -13,7 +14,10 @@ module AgentHooks
       def self.started_root(event)
         case [event.fetch("tool_input").dig("command"), event["cwd"]]
         in [String => command, String => cwd] if START.match?(command)
-          result = CommandRunner.run(["git", "-C", cwd, "rev-parse", "--show-toplevel"])
+          result =
+            CommandRunner.run(
+              ["git", "-C", cwd, "rev-parse", "--show-toplevel"]
+            )
           result.output.chomp if result.success
         else
         end
@@ -22,10 +26,14 @@ module AgentHooks
       def self.stop(root, err)
         return true unless File.directory?(root)
 
-        result = CommandRunner.run(["devenv", "down"], chdir: root)
-        return true if result.success || result.output.include?(NO_PROCESS_MANAGER)
+        result = CommandRunner.run(%w[devenv down], chdir: root)
+        if result.success || result.output.include?(NO_PROCESS_MANAGER)
+          return true
+        end
 
-        err.puts("Failed to stop devenv processes for #{root}: #{result.output}")
+        err.puts(
+          "Failed to stop devenv processes for #{root}: #{result.output}"
+        )
       end
       private_constant :START, :NO_PROCESS_MANAGER
     end

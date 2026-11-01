@@ -38,8 +38,17 @@ module WorktreeHarness
     }.merge(extra)
   end
 
-  def run_worktree_source(event, extra = nil, now: Time.now, xdg_state: true, **variables)
-    environment = worktree_environment((extra || {}).merge(variables.transform_keys(&:to_s)))
+  def run_worktree_source(
+    event,
+    extra = nil,
+    now: Time.now,
+    xdg_state: true,
+    **variables
+  )
+    environment =
+      worktree_environment(
+        (extra || {}).merge(variables.transform_keys(&:to_s))
+      )
     environment.delete("XDG_STATE_HOME") unless xdg_state
     stdout = StringIO.new
     stderr = StringIO.new
@@ -47,29 +56,32 @@ module WorktreeHarness
 
     with_environment(environment) do
       Dir.chdir(@tmp) do
-        status = AgentHooks::Worktree.run(
-          stringify(event),
-          env: environment,
-          out: stdout,
-          err: stderr,
-          now: now.to_i
-        )
+        status =
+          AgentHooks::Worktree.run(
+            stringify(event),
+            env: environment,
+            out: stdout,
+            err: stderr,
+            now: now.to_i
+          )
       end
     end
 
-    {status: status, stdout: stdout.string, stderr: stderr.string}
+    { status: status, stdout: stdout.string, stderr: stderr.string }
   end
 
   def run_worktree_process(event, extra = {})
     executable = ENV["AGENT_WORKTREE"]
-    command = executable ? [executable] : [RbConfig.ruby, "-Ilib", "bin/agent-worktree"]
-    stdout, stderr, status = Open3.capture3(
-      worktree_environment(extra),
-      *command,
-      stdin_data: JSON.generate(event),
-      chdir: File.expand_path("../..", __dir__)
-    )
-    {status: status.exitstatus, stdout: stdout, stderr: stderr}
+    command =
+      executable ? [executable] : [RbConfig.ruby, "-Ilib", "bin/agent-worktree"]
+    stdout, stderr, status =
+      Open3.capture3(
+        worktree_environment(extra),
+        *command,
+        stdin_data: JSON.generate(event),
+        chdir: File.expand_path("../..", __dir__)
+      )
+    { status: status.exitstatus, stdout: stdout, stderr: stderr }
   end
 
   def git_log
@@ -88,33 +100,35 @@ module WorktreeHarness
 
   def observe_concurrently(ownerships, at:)
     reader, writer = IO.pipe
-    pids = ownerships.map do |session, root|
-      fork do
-        writer.close
-        reader.read(1)
-        environment = worktree_environment(
-          "GIT_ROOT" => root,
-          "GIT_ROOT_DELAY" => "0.2"
-        )
-        event = {
-          "hook_event_name" => "PostToolUse",
-          "session_id" => session,
-          "cwd" => root,
-          "tool_input" => {"command" => "devenv up"}
-        }
-        status = nil
-        with_environment(environment) do
-          status = AgentHooks::Worktree.run(
-            event,
-            out: StringIO.new,
-            err: StringIO.new,
-            env: environment,
-            now: at
-          )
+    pids =
+      ownerships.map do |session, root|
+        fork do
+          writer.close
+          reader.read(1)
+          environment =
+            worktree_environment("GIT_ROOT" => root, "GIT_ROOT_DELAY" => "0.2")
+          event = {
+            "hook_event_name" => "PostToolUse",
+            "session_id" => session,
+            "cwd" => root,
+            "tool_input" => {
+              "command" => "devenv up"
+            }
+          }
+          status = nil
+          with_environment(environment) do
+            status =
+              AgentHooks::Worktree.run(
+                event,
+                out: StringIO.new,
+                err: StringIO.new,
+                env: environment,
+                now: at
+              )
+          end
+          exit! status
         end
-        exit! status
       end
-    end
     reader.close
     writer.write("x" * ownerships.length)
     writer.close

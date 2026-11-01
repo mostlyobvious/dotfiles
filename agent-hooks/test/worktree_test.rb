@@ -23,13 +23,17 @@ module AgentHooks
       main = "#{@home}/Code/backend"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "arrow  26", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "arrow  26", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git"
+        )
 
       destination = "#{@home}/Code/worktrees/backend/arrow--26"
-      assert_equal({status: 0, stdout: "#{destination}\n", stderr: ""}, result)
+      assert_equal(
+        { status: 0, stdout: "#{destination}\n", stderr: "" },
+        result
+      )
       assert_equal(
         [
           "-C #{main} rev-parse --path-format=absolute --git-common-dir",
@@ -46,72 +50,102 @@ module AgentHooks
       main = "#{@home}/Code/backend"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git",
-        "GIT_BRANCH_EXISTS" => "1"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "GIT_BRANCH_EXISTS" => "1"
+        )
 
       destination = "#{@home}/Code/worktrees/backend/feature"
       assert_equal 0, result[:status]
-      assert_equal "-C #{main} worktree add #{destination} feature", git_log.last
+      assert_equal "-C #{main} worktree add #{destination} feature",
+                   git_log.last
     end
 
     def test_head_is_used_when_origin_has_no_default_branch
       main = "#{@home}/Code/backend"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git",
-        "GIT_ORIGIN_STATUS" => "1"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "GIT_ORIGIN_STATUS" => "1"
+        )
 
       assert_equal 0, result[:status]
       assert_includes git_log, "-C #{main} remote set-head origin --auto"
-      assert_equal "-C #{main} worktree add -b feature #{@home}/Code/worktrees/backend/feature HEAD", git_log.last
+      assert_equal "-C #{main} worktree add -b feature #{@home}/Code/worktrees/backend/feature HEAD",
+                   git_log.last
     end
 
     def test_origin_default_branch_is_retried_after_refresh
       main = "#{@home}/Code/backend"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git",
-        "GIT_ORIGIN_RECOVER" => "1",
-        "GIT_ORIGIN_HEAD" => "refs/remotes/origin/trunk"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "GIT_ORIGIN_RECOVER" => "1",
+          "GIT_ORIGIN_HEAD" => "refs/remotes/origin/trunk"
+        )
 
       assert_equal 0, result[:status]
-      assert_equal ["-C #{main} symbolic-ref --quiet refs/remotes/origin/HEAD"] * 2,
-        git_log.select { |command| command.include?("symbolic-ref") }
-      assert_equal "-C #{main} worktree add -b feature #{@home}/Code/worktrees/backend/feature origin/trunk", git_log.last
+      assert_equal [
+                     "-C #{main} symbolic-ref --quiet refs/remotes/origin/HEAD"
+                   ] * 2,
+                   git_log.select { |command| command.include?("symbolic-ref") }
+      assert_equal "-C #{main} worktree add -b feature #{@home}/Code/worktrees/backend/feature origin/trunk",
+                   git_log.last
     end
 
     def test_dotfiles_worktree_is_rejected
       main = "#{@home}/Code/dotfiles"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git"
+        )
 
-      assert_equal({status: 1, stdout: "", stderr: "dotfiles is edited in its main checkout, never in a linked worktree.\n"}, result)
+      assert_equal(
+        {
+          status: 1,
+          stdout: "",
+          stderr:
+            "dotfiles is edited in its main checkout, never in a linked worktree.\n"
+        },
+        result
+      )
     end
 
     def test_missing_repository_is_reported_without_git_noise
       result = nil
-      process_output = capture_subprocess_io do
-        result = run_worktree_source(
-          {hook_event_name: "WorktreeCreate", name: "feature", cwd: "/missing"},
-          "GIT_COMMON_STATUS" => "1"
-        )
-      end
+      process_output =
+        capture_subprocess_io do
+          result =
+            run_worktree_source(
+              {
+                hook_event_name: "WorktreeCreate",
+                name: "feature",
+                cwd: "/missing"
+              },
+              "GIT_COMMON_STATUS" => "1"
+            )
+        end
 
       assert_equal ["", ""], process_output
-      assert_equal({status: 1, stdout: "", stderr: "Could not find the repository for /missing\n"}, result)
+      assert_equal(
+        {
+          status: 1,
+          stdout: "",
+          stderr: "Could not find the repository for /missing\n"
+        },
+        result
+      )
     end
 
     def test_existing_destination_is_reported
@@ -119,25 +153,37 @@ module AgentHooks
       destination = "#{@home}/Code/worktrees/backend/feature"
       FileUtils.mkdir_p(["#{main}/.git", destination])
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git"
+        )
 
-      assert_equal({status: 1, stdout: "", stderr: "Worktree path already exists: #{destination}\n"}, result)
+      assert_equal(
+        {
+          status: 1,
+          stdout: "",
+          stderr: "Worktree path already exists: #{destination}\n"
+        },
+        result
+      )
     end
 
     def test_git_creation_failure_is_returned
       main = "#{@home}/Code/backend"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git",
-        "GIT_WORKTREE_STATUS" => "1"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "GIT_WORKTREE_STATUS" => "1"
+        )
 
-      assert_equal({status: 1, stdout: "", stderr: "worktree failed\n"}, result)
+      assert_equal(
+        { status: 1, stdout: "", stderr: "worktree failed\n" },
+        result
+      )
     end
 
     def test_devenv_allow_failure_warns_but_keeps_the_created_worktree
@@ -145,20 +191,23 @@ module AgentHooks
       FileUtils.mkdir_p("#{main}/.git")
 
       result = nil
-      process_output = capture_subprocess_io do
-        result = run_worktree_source(
-          {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-          "GIT_COMMON_DIR" => "#{main}/.git",
-          "CREATE_DEVENV_NIX" => "1",
-          "DEVENV_ALLOW_STATUS" => "1"
-        )
-      end
+      process_output =
+        capture_subprocess_io do
+          result =
+            run_worktree_source(
+              { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+              "GIT_COMMON_DIR" => "#{main}/.git",
+              "CREATE_DEVENV_NIX" => "1",
+              "DEVENV_ALLOW_STATUS" => "1"
+            )
+        end
 
       destination = "#{@home}/Code/worktrees/backend/feature"
       assert_equal ["", ""], process_output
       assert_equal 0, result[:status]
       assert_equal "#{destination}\n", result[:stdout]
-      assert_equal "allow command failed\ndevenv allow failed for #{destination}; run it there before using devenv.\n", result[:stderr]
+      assert_equal "allow command failed\ndevenv allow failed for #{destination}; run it there before using devenv.\n",
+                   result[:stderr]
       assert_equal ["#{destination} allow"], devenv_log
     end
 
@@ -166,14 +215,18 @@ module AgentHooks
       main = "#{@home}/Code/backend"
       FileUtils.mkdir_p("#{main}/.git")
 
-      result = run_worktree_source(
-        {hook_event_name: "WorktreeCreate", name: "feature", cwd: main},
-        "GIT_COMMON_DIR" => "#{main}/.git",
-        "CREATE_DEVENV_NIX" => "1"
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "CREATE_DEVENV_NIX" => "1"
+        )
 
       destination = "#{@home}/Code/worktrees/backend/feature"
-      assert_equal({status: 0, stdout: "#{destination}\n", stderr: ""}, result)
+      assert_equal(
+        { status: 0, stdout: "#{destination}\n", stderr: "" },
+        result
+      )
       assert_equal ["#{destination} allow"], devenv_log
     end
 
@@ -215,7 +268,7 @@ module AgentHooks
     def test_concurrent_sessions_keep_ownership_of_their_own_worktrees
       first = managed_root("one")
       second = managed_root("two")
-      observe_concurrently({"one" => first, "two" => second}, at: 1)
+      observe_concurrently({ "one" => first, "two" => second }, at: 1)
 
       finish("one", at: 2)
       finish("two", at: 3)
@@ -255,7 +308,16 @@ module AgentHooks
     def test_failed_root_lookup_does_not_claim_a_worktree
       root = managed_root
 
-      result = post("one", root, "devenv up", at: 1, extra: {"GIT_ROOT_STATUS" => "1"})
+      result =
+        post(
+          "one",
+          root,
+          "devenv up",
+          at: 1,
+          extra: {
+            "GIT_ROOT_STATUS" => "1"
+          }
+        )
       finish("one", at: 2)
 
       assert_equal 0, result[:status]
@@ -318,11 +380,22 @@ module AgentHooks
       root = managed_root
       observe("one", root, at: 1)
 
-      first = finish("one", at: 2, extra: {"DEVENV_DOWN_RESULT" => "failure"})
-      second = heartbeat("other", at: 3, extra: {"DEVENV_DOWN_RESULT" => "failure"})
-      third = post("other", root, "git status", at: 4, extra: {"DEVENV_DOWN_RESULT" => "failure"})
+      first = finish("one", at: 2, extra: { "DEVENV_DOWN_RESULT" => "failure" })
+      second =
+        heartbeat("other", at: 3, extra: { "DEVENV_DOWN_RESULT" => "failure" })
+      third =
+        post(
+          "other",
+          root,
+          "git status",
+          at: 4,
+          extra: {
+            "DEVENV_DOWN_RESULT" => "failure"
+          }
+        )
 
-      message = "Failed to stop devenv processes for #{root}: process manager failed\n"
+      message =
+        "Failed to stop devenv processes for #{root}: process manager failed\n"
       assert_equal message, first[:stderr]
       assert_equal message, second[:stderr]
       assert_equal message, third[:stderr]
@@ -335,7 +408,7 @@ module AgentHooks
       root = managed_root
       observe("one", root, at: 1)
 
-      finish("one", at: 2, extra: {"DEVENV_DOWN_RESULT" => "missing"})
+      finish("one", at: 2, extra: { "DEVENV_DOWN_RESULT" => "missing" })
       heartbeat("other", at: 3)
 
       assert_equal ["#{root} down"], devenv_log
@@ -356,9 +429,15 @@ module AgentHooks
     def test_legacy_ownership_state_is_migrated
       root = managed_root
       write_legacy_state(
-        "sessions" => {"one" => [root]},
-        "roots" => {root => ["one"]},
-        "seen" => {"one" => 1}
+        "sessions" => {
+          "one" => [root]
+        },
+        "roots" => {
+          root => ["one"]
+        },
+        "seen" => {
+          "one" => 1
+        }
       )
 
       finish("one", at: 2)
@@ -369,9 +448,15 @@ module AgentHooks
     def test_legacy_timestamp_keeps_recent_ownership_active
       root = managed_root
       write_legacy_state(
-        "sessions" => {"one" => [root]},
-        "roots" => {root => ["one"]},
-        "seen" => {"one" => WEEK}
+        "sessions" => {
+          "one" => [root]
+        },
+        "roots" => {
+          root => ["one"]
+        },
+        "seen" => {
+          "one" => WEEK
+        }
       )
 
       heartbeat("other", at: WEEK + 2)
@@ -397,10 +482,17 @@ module AgentHooks
       root = managed_root
       observe("one", root, at: 1)
 
-      result = run_worktree_source(
-        {hook_event_name: "PostToolUse", session_id: "one", tool_input: {path: "/tmp/file"}},
-        now: Time.at(WEEK)
-      )
+      result =
+        run_worktree_source(
+          {
+            hook_event_name: "PostToolUse",
+            session_id: "one",
+            tool_input: {
+              path: "/tmp/file"
+            }
+          },
+          now: Time.at(WEEK)
+        )
       heartbeat("other", at: WEEK + 2)
 
       assert_equal 0, result[:status]
@@ -408,25 +500,32 @@ module AgentHooks
     end
 
     def test_post_tool_use_without_an_identifier_is_ignored
-      result = run_worktree_source(
-        {hook_event_name: "PostToolUse", tool_input: {command: "devenv up"}, cwd: managed_root}
-      )
+      result =
+        run_worktree_source(
+          {
+            hook_event_name: "PostToolUse",
+            tool_input: {
+              command: "devenv up"
+            },
+            cwd: managed_root
+          }
+        )
 
-      assert_equal({status: 0, stdout: "", stderr: ""}, result)
+      assert_equal({ status: 0, stdout: "", stderr: "" }, result)
       refute File.exist?(state_file)
     end
 
     def test_heartbeat_without_an_identifier_is_ignored
-      result = run_worktree_source({hook_event_name: "Heartbeat"})
+      result = run_worktree_source({ hook_event_name: "Heartbeat" })
 
-      assert_equal({status: 0, stdout: "", stderr: ""}, result)
+      assert_equal({ status: 0, stdout: "", stderr: "" }, result)
       refute File.exist?(state_file)
     end
 
     def test_session_end_without_an_identifier_is_ignored
-      result = run_worktree_source({hook_event_name: "SessionEnd"})
+      result = run_worktree_source({ hook_event_name: "SessionEnd" })
 
-      assert_equal({status: 0, stdout: "", stderr: ""}, result)
+      assert_equal({ status: 0, stdout: "", stderr: "" }, result)
       refute File.exist?(state_file)
     end
 
@@ -451,10 +550,11 @@ module AgentHooks
     end
 
     def test_home_state_directory_is_used_without_xdg_state
-      result = run_worktree_source(
-        {hook_event_name: "Heartbeat", session_id: "one"},
-        xdg_state: false
-      )
+      result =
+        run_worktree_source(
+          { hook_event_name: "Heartbeat", session_id: "one" },
+          xdg_state: false
+        )
 
       directory = "#{@home}/.local/state/agent-worktree"
       assert_equal 0, result[:status]
@@ -464,9 +564,10 @@ module AgentHooks
     end
 
     def test_unknown_event_has_no_effect
-      result = run_worktree_source({hook_event_name: "Unknown", session_id: "one"})
+      result =
+        run_worktree_source({ hook_event_name: "Unknown", session_id: "one" })
 
-      assert_equal({status: 0, stdout: "", stderr: ""}, result)
+      assert_equal({ status: 0, stdout: "", stderr: "" }, result)
       refute File.exist?(state_file)
     end
 
@@ -474,23 +575,37 @@ module AgentHooks
 
     def observe(session, root, at: Time.now.to_i)
       run_worktree_source(
-        {hook_event_name: "PostToolUse", session_id: session, cwd: root, tool_input: {command: "devenv up -d"}},
-        {"GIT_ROOT" => root},
+        {
+          hook_event_name: "PostToolUse",
+          session_id: session,
+          cwd: root,
+          tool_input: {
+            command: "devenv up -d"
+          }
+        },
+        { "GIT_ROOT" => root },
         now: Time.at(at)
       )
     end
 
     def post(session, root, command, at: Time.now.to_i, extra: {})
       run_worktree_source(
-        {hook_event_name: "PostToolUse", session_id: session, cwd: root, tool_input: {command: command}},
-        {"GIT_ROOT" => root}.merge(extra),
+        {
+          hook_event_name: "PostToolUse",
+          session_id: session,
+          cwd: root,
+          tool_input: {
+            command: command
+          }
+        },
+        { "GIT_ROOT" => root }.merge(extra),
         now: Time.at(at)
       )
     end
 
     def heartbeat(session, at: Time.now.to_i, extra: {})
       run_worktree_source(
-        {hook_event_name: "Heartbeat", session_id: session},
+        { hook_event_name: "Heartbeat", session_id: session },
         extra,
         now: Time.at(at)
       )
@@ -498,7 +613,7 @@ module AgentHooks
 
     def lifecycle(name, session, at: Time.now.to_i)
       run_worktree_source(
-        {hook_event_name: name, session_id: session},
+        { hook_event_name: name, session_id: session },
         now: Time.at(at)
       )
     end
@@ -509,7 +624,7 @@ module AgentHooks
 
     def finish(session, at: Time.now.to_i, extra: {})
       run_worktree_source(
-        {hook_event_name: "SessionEnd", session_id: session},
+        { hook_event_name: "SessionEnd", session_id: session },
         extra,
         now: Time.at(at)
       )

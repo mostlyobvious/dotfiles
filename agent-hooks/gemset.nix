@@ -158,6 +158,16 @@
     };
     version = "0.6.4";
   };
+  prettier_print = {
+    groups = [ "default" ];
+    platforms = [ ];
+    source = {
+      remotes = [ "https://rubygems.org" ];
+      sha256 = "1ybgks9862zmlx71zd4j20ky86fsrp6j6m0az4hzzb1zyaskha57";
+      type = "gem";
+    };
+    version = "1.2.1";
+  };
   prettyprint = {
     groups = [ "default" ];
     platforms = [ ];
@@ -259,6 +269,17 @@
       type = "gem";
     };
     version = "0.6.13610";
+  };
+  syntax_tree = {
+    dependencies = [ "prettier_print" ];
+    groups = [ "default" ];
+    platforms = [ ];
+    source = {
+      remotes = [ "https://rubygems.org" ];
+      sha256 = "0ggi6p7xxjsj42q8pp0yz6z7dbwlbr6fjbs4qnafr667jab5mqjn";
+      type = "gem";
+    };
+    version = "6.3.0";
   };
   tsort = {
     groups = [ "default" ];

@@ -25,7 +25,7 @@ module AgentHooks
       end
 
       def self.load(path)
-        return {"roots" => {}} unless File.file?(path)
+        return { "roots" => {} } unless File.file?(path)
 
         normalize(JSON.parse(File.read(path)))
       end
@@ -34,11 +34,15 @@ module AgentHooks
         return state unless state.key?("sessions")
 
         seen = state.fetch("seen")
-        roots = state.fetch("roots").to_h do |root, sessions|
-          owners = sessions.to_h { |session| [session, seen.fetch(session)] }
-          [root, {"owners" => owners}]
-        end
-        {"roots" => roots}
+        roots =
+          state
+            .fetch("roots")
+            .to_h do |root, sessions|
+              owners =
+                sessions.to_h { |session| [session, seen.fetch(session)] }
+              [root, { "owners" => owners }]
+            end
+        { "roots" => roots }
       end
 
       private_class_method :state_home, :load, :normalize
