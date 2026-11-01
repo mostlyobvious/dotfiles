@@ -150,7 +150,10 @@ module WorktreeHarness
           ;;
         *"rev-parse --show-toplevel"*)
           [ -z "${GIT_ROOT_DELAY:-}" ] || sleep "$GIT_ROOT_DELAY"
-          [ "${GIT_ROOT_STATUS:-0}" -eq 0 ] || exit "$GIT_ROOT_STATUS"
+          if [ "${GIT_ROOT_STATUS:-0}" -ne 0 ]; then
+            printf '%s\n' "$GIT_ROOT" >&2
+            exit "$GIT_ROOT_STATUS"
+          fi
           printf '%s\n' "$GIT_ROOT"
           ;;
         *"symbolic-ref --quiet refs/remotes/origin/HEAD"*)

@@ -1,14 +1,12 @@
 require "fileutils"
 require "agent_hooks/worktree/command_runner"
+require "agent_hooks/worktree/devenv"
 require "agent_hooks/worktree/lease_decider"
 require "agent_hooks/worktree/state_file"
 
 module AgentHooks
   module Worktree
     STALE_AFTER = 7 * 24 * 60 * 60
-    DEVENV_UP = /(?:\A|[&|;(]\s*)devenv(?:\s+[^&|;\s]+)*\s+up(?:\s|\z)/
-    NO_PROCESS_MANAGER = "No process manager is running"
-
     def self.run(event, env:, out:, err:, now:)
       case event.fetch("hook_event_name")
       when "WorktreeCreate"
@@ -67,13 +65,9 @@ module AgentHooks
         LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
         LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
 
-        case [event.fetch("tool_input").dig("command"), event["cwd"]]
-        in [String => command, String => cwd] if DEVENV_UP.match?(command)
-          root = capture("git", "-C", cwd, "rev-parse", "--show-toplevel")
-          if root&.start_with?("#{env.fetch("HOME")}/Code/worktrees/")
-            LeaseDecider.apply(state, type: :record_devenv_started, root: root.chomp, session: session, at: timestamp)
-          end
-        else
+        root = Devenv.started_root(event)
+        if root&.start_with?("#{env.fetch("HOME")}/Code/worktrees/")
+          LeaseDecider.apply(state, type: :record_devenv_started, root: root, session: session, at: timestamp)
         end
 
         reconcile(state, err)
@@ -103,17 +97,8 @@ module AgentHooks
 
     def self.reconcile(state, err)
       LeaseDecider.unowned_roots(state).each do |root|
-        LeaseDecider.apply(state, type: :remove_root, root: root) if stop(root, err)
+        LeaseDecider.apply(state, type: :remove_root, root: root) if Devenv.stop(root, err)
       end
-    end
-
-    def self.stop(root, err)
-      return true unless File.directory?(root)
-
-      result = CommandRunner.run(["devenv", "down"], chdir: root)
-      return true if result.success || result.output.include?(NO_PROCESS_MANAGER)
-
-      err.puts("Failed to stop devenv processes for #{root}: #{result.output}")
     end
 
     def self.capture(*command)
@@ -133,7 +118,7 @@ module AgentHooks
     end
 
     private_class_method :create, :observe, :heartbeat, :finish, :reconcile,
-      :stop, :capture, :execute, :fail_with
-    private_constant :STALE_AFTER, :DEVENV_UP, :NO_PROCESS_MANAGER
+      :capture, :execute, :fail_with
+    private_constant :STALE_AFTER
   end
 end
