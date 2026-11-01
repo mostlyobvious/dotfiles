@@ -181,7 +181,7 @@ module AgentHooks
                   end
               script = command.executable
               publishes =
-                if script.end_with?(".sh")
+                if script&.end_with?(".sh")
                   path =
                     if script.start_with?("/")
                       script

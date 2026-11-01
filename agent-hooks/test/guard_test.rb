@@ -35,6 +35,10 @@ module AgentHooks
       assert_equal [0, ""], call("git -C ~/Code/backend/backend status --short")
     end
 
+    def test_environment_assignment_is_allowed
+      assert_equal [0, ""], call("FOO=bar")
+    end
+
     def test_worktree_list_is_allowed
       assert_equal [0, ""], call("git worktree list")
     end

@@ -32,6 +32,14 @@ class AgentGuardTest < Minitest::Test
     assert_equal "", result[:stderr]
   end
 
+  def test_environment_assignment_continues
+    result = run_guard("FOO=bar")
+
+    assert_equal 0, result[:status]
+    assert_equal "", result[:stdout]
+    assert_equal "", result[:stderr]
+  end
+
   def test_entering_a_worktree_from_another_directory_uses_enter_worktree
     target = "#{HOME}/Code/worktrees/backend/feature"
     result =
