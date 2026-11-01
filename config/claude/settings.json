@@ -4,8 +4,10 @@
     "pr": ""
   },
   "permissions": {
-    "defaultMode": "auto",
-    "allow": ["Bash(glab mr update *)"]
+    "allow": [
+      "Bash(glab mr update *)"
+    ],
+    "defaultMode": "auto"
   },
   "model": "opus",
   "hooks": {
@@ -96,7 +98,8 @@
   },
   "enabledPlugins": {
     "ruby-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true
   },
   "feedbackDrafts": "off",
   "modelSettings": {
@@ -106,7 +109,7 @@
   },
   "awaySummaryEnabled": false,
   "autoMemoryEnabled": false,
+  "skipWorkflowUsageWarning": true,
   "theme": "auto",
-  "preferredNotifChannel": "notifications_disabled",
-  "skipWorkflowUsageWarning": true
+  "preferredNotifChannel": "notifications_disabled"
 }
