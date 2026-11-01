@@ -48,6 +48,7 @@ vim.lsp.enable({
   "ruff",
   "ruby_lsp",
   "rust_analyzer",
+  "stylua",
   "tailwindcss",
   "yamlls",
 })
