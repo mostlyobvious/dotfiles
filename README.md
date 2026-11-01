@@ -77,10 +77,6 @@ be rolled back. `config/` holds only exceptions where an application owns
 the file, rewrites it through its UI, or needs a live edit loop, such as
 Neovim, Zed, and agent settings.
 
-Claude and pi `settings.json` are tracked but locally marked
-`skip-worktree` because the agents rewrite them during normal use. To
-commit a settings change: clear the bit, commit, restore it.
-
 ### Neovim plugins stay in vim.pack
 
 `vim.pack` + `nvim-pack-lock.json` already pin plugins and work anywhere
