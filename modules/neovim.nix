@@ -13,6 +13,7 @@
   home.packages = with pkgs; [
     lua-language-server
     stylua
+    tree-sitter
     vscode-langservers-extracted
     yaml-language-server
   ];

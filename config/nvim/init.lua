@@ -20,7 +20,7 @@ vim.wo.signcolumn = "yes"
 
 vim.keymap.set("n", "<Leader>vn", "<Cmd>e ~/.config/nvim<CR>", { desc = "Edit nvim" })
 vim.keymap.set("n", "<Leader>vf", "<Cmd>e ~/.config/fish<CR>", { desc = "Edit fish" })
-vim.keymap.set("t", "<Esc>", [[<C-\>][<C-n>]])
+vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]])
 
 -- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist)
 -- vim.keymap.set("n", "<leader>Q", vim.diagnostic.setqflist)
