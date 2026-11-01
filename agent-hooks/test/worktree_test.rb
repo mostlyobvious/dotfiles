@@ -265,12 +265,23 @@ module AgentHooks
     def test_post_tool_use_expires_other_idle_owners
       old_root = managed_root("old")
       active_root = managed_root("active")
-      observe("old", old_root, at: 1)
-      observe("active", active_root, at: 2)
+      observe("old", old_root, at: 5 * WEEK)
+      observe("active", active_root, at: 10 * WEEK)
 
-      post("active", active_root, "git status", at: WEEK + 2)
+      post("active", active_root, "git status", at: 10 * WEEK + 2)
 
       assert_equal ["#{old_root} down"], devenv_log
+    end
+
+    def test_post_tool_use_preserves_other_recent_owners
+      root = managed_root
+      observe("recent", root, at: 10 * WEEK - 1)
+      observe("active", root, at: 10 * WEEK)
+
+      post("active", root, "git status", at: 10 * WEEK + 1)
+      finish("active", at: 10 * WEEK + 2)
+
+      assert_empty devenv_log
     end
 
     def test_current_owner_is_refreshed_before_expiry

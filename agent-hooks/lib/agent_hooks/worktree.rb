@@ -1,5 +1,6 @@
 require "fileutils"
 require "json"
+require "agent_hooks/worktree/lease_decider"
 
 module AgentHooks
   module Worktree
@@ -62,13 +63,15 @@ module AgentHooks
       return 0 unless session
 
       with_state(env) do |state|
-        touch(state, session, timestamp)
-        expire(state, timestamp)
+        LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
+        LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
 
         case [event.fetch("tool_input").dig("command"), event["cwd"]]
         in [String => command, String => cwd] if DEVENV_UP.match?(command)
           root = capture("git", "-C", cwd, "rev-parse", "--show-toplevel")
-          claim(state, root.chomp, session, timestamp, env) if root
+          if root&.start_with?("#{env.fetch("HOME")}/Code/worktrees/")
+            LeaseDecider.apply(state, type: :record_devenv_started, root: root.chomp, session: session, at: timestamp)
+          end
         else
         end
 
@@ -81,8 +84,8 @@ module AgentHooks
       return 0 unless session
 
       with_state(env) do |state|
-        touch(state, session, timestamp)
-        expire(state, timestamp)
+        LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
+        LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
         reconcile(state, err)
       end
     end
@@ -92,35 +95,14 @@ module AgentHooks
       return 0 unless session
 
       with_state(env) do |state|
-        state.fetch("roots").each_value { |root| root.fetch("owners").delete(session) }
+        LeaseDecider.apply(state, type: :end_session, session: session)
         reconcile(state, err)
       end
     end
 
-    def self.claim(state, root, session, timestamp, env)
-      return unless root.start_with?("#{env.fetch("HOME")}/Code/worktrees/")
-
-      ownership = state.fetch("roots")[root] ||= {"owners" => {}}
-      ownership.fetch("owners")[session] = timestamp
-    end
-
-    def self.touch(state, session, timestamp)
-      state.fetch("roots").each_value do |root|
-        owners = root.fetch("owners")
-        owners[session] = timestamp if owners.key?(session)
-      end
-    end
-
-    def self.expire(state, timestamp)
-      cutoff = timestamp - STALE_AFTER
-      state.fetch("roots").each_value do |root|
-        root.fetch("owners").delete_if { |_session, seen| seen < cutoff }
-      end
-    end
-
     def self.reconcile(state, err)
-      state.fetch("roots").delete_if do |root, ownership|
-        ownership.fetch("owners").empty? && stop(root, err)
+      LeaseDecider.unowned_roots(state).each do |root|
+        LeaseDecider.apply(state, type: :remove_root, root: root) if stop(root, err)
       end
     end
 
@@ -182,7 +164,7 @@ module AgentHooks
       1
     end
 
-    private_class_method :create, :observe, :heartbeat, :finish, :claim, :touch, :expire, :reconcile,
+    private_class_method :create, :observe, :heartbeat, :finish, :reconcile,
       :stop, :with_state, :normalize, :capture, :execute, :fail_with
     private_constant :STALE_AFTER, :DEVENV_UP, :NO_PROCESS_MANAGER
   end

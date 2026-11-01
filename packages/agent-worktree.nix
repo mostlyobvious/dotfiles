@@ -11,6 +11,7 @@ let
     fileset = lib.fileset.unions [
       ../agent-hooks/bin/agent-worktree
       ../agent-hooks/lib/agent_hooks/worktree.rb
+      ../agent-hooks/lib/agent_hooks/worktree
     ];
   };
 in
