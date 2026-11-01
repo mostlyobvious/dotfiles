@@ -68,10 +68,6 @@
     "which-key.nvim": {
       "rev": "3aab2147e74890957785941f0c1ad87d0a44c15a",
       "src": "https://github.com/folke/which-key.nvim"
-    },
-    "zoomwintab.vim": {
-      "rev": "3b76f740534ecc4114bc8a207ecb0db77b2fb002",
-      "src": "https://github.com/troydm/zoomwintab.vim"
     }
   }
 }
