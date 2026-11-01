@@ -4,7 +4,8 @@
     "pr": ""
   },
   "permissions": {
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "allow": ["Bash(glab mr update *)"]
   },
   "model": "opus",
   "hooks": {
