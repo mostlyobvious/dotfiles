@@ -23,7 +23,6 @@ home-manager.lib.homeManagerConfiguration {
     inherit inputs;
   };
   modules = [
-    ../modules/manual.nix
     inputs.agent-skills.homeManagerModules.default
   ]
   ++ modules;

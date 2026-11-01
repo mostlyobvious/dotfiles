@@ -43,9 +43,6 @@
     # Empty file; its mere existence suppresses the login banner.
     home.file.".hushlogin".text = "";
 
-    # Keep the local option index installed; modules/manual.nix strips declaration
-    # locations to avoid Nix's context warning while Home Manager upstream catches up.
-    manual.json.enable = true;
     manual.manpages.enable = false;
   };
 }
