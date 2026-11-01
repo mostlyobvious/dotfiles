@@ -1,6 +1,6 @@
 require "fileutils"
-require "json"
 require "agent_hooks/worktree/lease_decider"
+require "agent_hooks/worktree/state_file"
 
 module AgentHooks
   module Worktree
@@ -62,7 +62,7 @@ module AgentHooks
       session = event["session_id"]
       return 0 unless session
 
-      with_state(env) do |state|
+      StateFile.update(env) do |state|
         LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
         LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
 
@@ -83,7 +83,7 @@ module AgentHooks
       session = event["session_id"]
       return 0 unless session
 
-      with_state(env) do |state|
+      StateFile.update(env) do |state|
         LeaseDecider.apply(state, type: :record_activity, session: session, at: timestamp)
         LeaseDecider.apply(state, type: :expire_leases, before: timestamp - STALE_AFTER)
         reconcile(state, err)
@@ -94,7 +94,7 @@ module AgentHooks
       session = event["session_id"]
       return 0 unless session
 
-      with_state(env) do |state|
+      StateFile.update(env) do |state|
         LeaseDecider.apply(state, type: :end_session, session: session)
         reconcile(state, err)
       end
@@ -113,35 +113,6 @@ module AgentHooks
       return true if $?.success? || output.include?(NO_PROCESS_MANAGER)
 
       err.puts("Failed to stop devenv processes for #{root}: #{output}")
-    end
-
-    def self.with_state(env)
-      state_home = env["XDG_STATE_HOME"]
-      state_home ||= File.join(env.fetch("HOME"), ".local", "state")
-      directory = File.join(state_home, "agent-worktree")
-      FileUtils.mkdir_p(directory)
-      lock = File.new("#{directory}/lock", File::CREAT, 0o600)
-      begin
-        lock.flock(File::LOCK_EX)
-        path = "#{directory}/state.json"
-        state = File.file?(path) ? normalize(JSON.parse(File.read(path))) : {"roots" => {}}
-        yield state
-        File.write("#{path}.next", JSON.generate(state))
-        File.rename("#{path}.next", path)
-      ensure
-        lock.close
-      end
-    end
-
-    def self.normalize(state)
-      return state unless state.key?("sessions")
-
-      seen = state.fetch("seen")
-      roots = state.fetch("roots").to_h do |root, sessions|
-        owners = sessions.to_h { |session| [session, seen.fetch(session)] }
-        [root, {"owners" => owners}]
-      end
-      {"roots" => roots}
     end
 
     def self.capture(*command)
@@ -165,7 +136,7 @@ module AgentHooks
     end
 
     private_class_method :create, :observe, :heartbeat, :finish, :reconcile,
-      :stop, :with_state, :normalize, :capture, :execute, :fail_with
+      :stop, :capture, :execute, :fail_with
     private_constant :STALE_AFTER, :DEVENV_UP, :NO_PROCESS_MANAGER
   end
 end
