@@ -32,11 +32,11 @@ let
   # invoking user, else via sudo -u. Not gated on admin-ness — any admin can
   # run switch, and only sudo (step 1 above) requires one.
   accountScript = hostName: accountName: ''
-    nix build ${self}#homeConfigurations."${hostName}-${accountName}".activationPackage
+    RESULT="$(nix build ${self}#homeConfigurations."${hostName}-${accountName}".activationPackage --no-link --print-out-paths)"
     if [ "$WHOAMI" = "${accountName}" ]; then
-      HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
+      HOME_MANAGER_BACKUP_EXT=hm-bak "$RESULT/activate"
     else
-      sudo -u ${accountName} -H env HOME_MANAGER_BACKUP_EXT=hm-bak ./result/activate
+      sudo -u ${accountName} -H env HOME_MANAGER_BACKUP_EXT=hm-bak "$RESULT/activate"
     fi
   '';
 
