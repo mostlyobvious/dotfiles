@@ -29,12 +29,30 @@ module AgentHooks
       assert_equal [0, ""], call("git -C ~/Code/backend/backend status --short")
     end
 
+    def test_worktree_list_is_allowed
+      assert_equal [0, ""], call("git worktree list")
+    end
+
+    def test_other_command_with_add_argument_is_allowed
+      assert_equal [0, ""], call("git branch add")
+    end
+
+    def test_non_git_worktree_command_is_allowed
+      assert_equal [0, ""], call("worktree add feature")
+    end
+
     def test_sed_short_in_place_option_is_blocked
       assert_equal shell_edit_blocked("sed -i '' 's/old/new/' file"), call("sed -i '' 's/old/new/' file")
     end
 
     def test_sed_long_in_place_option_is_blocked
       command = "sed --in-place=.bak 's/old/new/' file"
+
+      assert_equal shell_edit_blocked(command), call(command)
+    end
+
+    def test_sed_long_in_place_flag_is_blocked
+      command = "sed --in-place 's/old/new/' file"
 
       assert_equal shell_edit_blocked(command), call(command)
     end
@@ -47,6 +65,12 @@ module AgentHooks
 
     def test_perl_in_place_option_is_blocked
       command = "perl -pi -e 's/old/new/' file"
+
+      assert_equal shell_edit_blocked(command), call(command)
+    end
+
+    def test_perl_bare_in_place_option_is_blocked
+      command = "perl -i -e 's/old/new/' file"
 
       assert_equal shell_edit_blocked(command), call(command)
     end
@@ -75,6 +99,20 @@ module AgentHooks
       assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call("cd ~/Code/worktrees/backend/feature && bundle exec rake")
     end
 
+    def test_entering_a_worktree_later_in_a_command_chain_is_blocked
+      target = "/Users/agent/Code/worktrees/backend/feature"
+      command = "printf ready && cd ~/Code/worktrees/backend/feature"
+
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+    end
+
+    def test_current_worktree_does_not_hide_a_later_worktree_transition
+      target = "/Users/agent/Code/worktrees/backend/other"
+      command = "cd ~/Code/worktrees/backend/feature && cd ~/Code/worktrees/backend/other"
+
+      assert_equal [2, "BLOCKED: this session runs in /Users/agent/Code/worktrees/backend/feature. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command, cwd: "/Users/agent/Code/worktrees/backend/feature")
+    end
+
     def test_entering_the_current_worktree_is_allowed
       assert_equal [0, ""], call(
         "cd $HOME/Code/worktrees/backend/feature && bundle exec rake",
@@ -91,6 +129,35 @@ module AgentHooks
 
     def test_entering_a_regular_directory_is_allowed
       assert_equal [0, ""], call("cd ~/Code/backend/backend && bundle exec rake")
+    end
+
+    def test_cd_without_a_path_is_allowed
+      assert_equal [0, ""], call("cd")
+    end
+
+    def test_cd_without_a_path_does_not_hide_a_later_worktree_transition
+      target = "/Users/agent/Code/worktrees/backend/feature"
+      command = "cd && cd ~/Code/worktrees/backend/feature"
+
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+    end
+
+    def test_regular_cd_does_not_hide_a_later_worktree_transition
+      target = "/Users/agent/Code/worktrees/backend/feature"
+      command = "cd /tmp && cd ~/Code/worktrees/backend/feature"
+
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+    end
+
+    def test_worktree_repository_cd_does_not_hide_a_later_transition
+      target = "/Users/agent/Code/worktrees/backend/feature"
+      command = "cd ~/Code/worktrees/backend && cd ~/Code/worktrees/backend/feature"
+
+      assert_equal [2, "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"], call(command)
+    end
+
+    def test_non_cd_command_with_a_worktree_path_is_allowed
+      assert_equal [0, ""], call("printf ~/Code/worktrees/backend/feature")
     end
 
     def test_a_regular_command_with_a_relative_cwd_is_allowed
@@ -138,14 +205,60 @@ module AgentHooks
       assert_equal policy_blocked(command, reason), call(command)
     end
 
+    def test_short_inline_merge_request_description_is_blocked
+      command = "glab mr create -d ready"
+      reason = "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
+
+      assert_equal policy_blocked(command, reason), call(command)
+    end
+
+    def test_separate_inline_merge_request_description_is_blocked
+      command = "glab mr update 42 --description ready"
+      reason = "passes an MR description inline. Use mr-describe <iid> <file> to update one, or a shell script that reads the file to create one."
+
+      assert_equal policy_blocked(command, reason), call(command)
+    end
+
+    def test_issue_description_is_not_treated_as_an_mr_description
+      assert_equal [0, ""], call("glab issue update 42 --description ready")
+    end
+
+    def test_merge_request_view_is_not_treated_as_an_update
+      assert_equal [0, ""], call("glab mr view 42 --description")
+    end
+
     def test_plain_force_push_is_blocked
       command = "git push --force origin feature"
 
       assert_equal policy_blocked(command, "is a force push."), call(command)
     end
 
+    def test_force_push_after_an_unspaced_pipe_is_blocked
+      command = "printf ready|git push --force origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."), call(command)
+    end
+
+    def test_environment_prefixed_force_push_is_blocked
+      command = "env GIT_TRACE=1 git push --force origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."), call(command)
+    end
+
+    def test_force_push_with_a_quoted_repository_path_is_blocked
+      command = "git -C '/tmp/repository path' push --force origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."), call(command)
+    end
+
     def test_short_force_push_is_blocked
       command = "git push -f origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."), call(command)
+    end
+
+    def test_combined_short_force_push_is_blocked
+      command = "git push -vf origin feature"
 
       assert_equal policy_blocked(command, "is a force push."), call(command)
     end
@@ -160,8 +273,42 @@ module AgentHooks
       assert_equal policy_blocked(command, "pushes a protected branch."), call(command)
     end
 
+    def test_push_of_local_main_is_blocked
+      command = "git push origin main"
+
+      assert_equal policy_blocked(command, "pushes a protected branch."), call(command)
+    end
+
+    def test_branch_ending_in_main_is_allowed
+      assert_equal [0, ""], call("git push origin domain")
+    end
+
     def test_feature_push_is_allowed
       assert_equal [0, ""], call("git push origin feature")
+    end
+
+    def test_soft_reset_is_allowed
+      assert_equal [0, ""], call("git reset --soft HEAD")
+    end
+
+    def test_clean_without_force_is_allowed
+      assert_equal [0, ""], call("git clean -d")
+    end
+
+    def test_checkout_of_one_file_is_allowed
+      assert_equal [0, ""], call("git checkout file.rb")
+    end
+
+    def test_restore_of_one_file_is_allowed
+      assert_equal [0, ""], call("git restore file.rb")
+    end
+
+    def test_unrelated_reset_subcommand_is_allowed
+      assert_equal [0, ""], call("tool reset --soft")
+    end
+
+    def test_unrelated_hard_option_is_allowed
+      assert_equal [0, ""], call("tool hard --hard")
     end
 
     {
@@ -179,8 +326,21 @@ module AgentHooks
       end
     end
 
+    def test_clean_with_other_arguments_is_blocked
+      command = "git clean -fd ignored"
+      expected = "BLOCKED: '#{command}' matches dangerous pattern 'git clean -fd'. The user has prevented you from doing this.\n"
+
+      assert_equal [2, expected], call(command)
+    end
+
     def test_commit_requires_change_writing
       assert_equal [2, CHANGE_WRITING_MESSAGE], call("git commit -F /tmp/message")
+    end
+
+    def test_commit_in_a_command_chain_requires_change_writing
+      command = "git status && git commit -F /tmp/message"
+
+      assert_equal [2, CHANGE_WRITING_MESSAGE], call(command)
     end
 
     def test_merge_request_create_requires_change_writing
@@ -216,11 +376,27 @@ module AgentHooks
       end
     end
 
+    def test_script_with_one_mr_command_requires_change_writing
+      Dir.mktmpdir do |directory|
+        File.write("#{directory}/publish.sh", "printf ready\nglab mr create --title ready\n")
+
+        assert_equal [2, CHANGE_WRITING_MESSAGE], call("./publish.sh", cwd: directory)
+      end
+    end
+
     def test_regular_script_is_allowed
       Dir.mktmpdir do |directory|
         File.write("#{directory}/check.sh", "make check\n")
 
         assert_equal [0, ""], call("./check.sh", cwd: directory)
+      end
+    end
+
+    def test_non_shell_script_with_mr_command_is_allowed
+      Dir.mktmpdir do |directory|
+        File.write("#{directory}/publish", "glab mr create --title ready\n")
+
+        assert_equal [0, ""], call("./publish", cwd: directory)
       end
     end
 
@@ -244,9 +420,28 @@ module AgentHooks
       assert_equal [0, ""], call("printf 'Co-authored-by: Claude'")
     end
 
+    def test_git_status_with_attribution_text_is_allowed
+      assert_equal [0, ""], call("git status 'Co-authored-by: Claude'")
+    end
+
+    def test_commit_attribution_in_a_command_chain_is_blocked
+      command = "git status && git commit --no-edit -m 'Co-authored-by: Claude'"
+
+      assert_equal [2, ATTRIBUTION_MESSAGE], call(command)
+    end
+
     def test_push_reminder_is_returned_after_tool_use
       output = Guard.run(
         {"hook_event_name" => "PostToolUse", "tool_input" => {"command" => "git push origin feature"}},
+        "/Users/agent"
+      )
+
+      assert_equal [0, "", reminder(MR_REMINDER)], output
+    end
+
+    def test_push_in_a_command_chain_returns_the_merge_request_reminder
+      output = Guard.run(
+        {"hook_event_name" => "PostToolUse", "tool_input" => {"command" => "git push origin feature && git status"}},
         "/Users/agent"
       )
 
@@ -275,6 +470,14 @@ module AgentHooks
       assert_equal [0, ""], call("git status", cwd: "/Users/agent/Code/dotfiles")
     end
 
+    def test_dotfiles_cwd_allows_worktree_listing
+      assert_equal [0, ""], call("git worktree list", cwd: "/Users/agent/Code/dotfiles")
+    end
+
+    def test_dotfiles_cwd_allows_other_add_subcommands
+      assert_equal [0, ""], call("git branch add", cwd: "/Users/agent/Code/dotfiles")
+    end
+
     def test_dotfiles_worktree_under_worktrees_directory_is_blocked
       command = "git worktree add ~/worktrees/dotfiles/feature"
       reason = "adds a worktree to dotfiles, which is edited in its main checkout."
@@ -295,8 +498,30 @@ module AgentHooks
       assert_equal policy_blocked(command, "pushes a protected branch."), call(command)
     end
 
-    def test_push_skips_later_dangerous_text
-      assert_equal [0, ""], call("git push origin feature && git reset --hard")
+    def test_each_command_in_a_chain_is_guarded
+      command = "git push origin feature && git reset --hard"
+
+      expected = "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. The user has prevented you from doing this.\n"
+
+      assert_equal [2, expected], call(command)
+    end
+
+    def test_quoted_dangerous_command_is_plain_text
+      assert_equal [0, ""], call("printf 'git reset --hard'")
+    end
+
+    def test_dynamic_shell_command_is_blocked_when_it_cannot_be_inspected
+      command = 'printf "$(date)"'
+      message = "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+
+      assert_equal [2, message], call(command)
+    end
+
+    def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
+      command = "printf 'unfinished"
+      message = "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+
+      assert_equal [2, message], call(command)
     end
 
     def test_merge_request_description_file_requires_change_writing

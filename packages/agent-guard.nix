@@ -11,6 +11,7 @@ let
     fileset = lib.fileset.unions [
       ../agent-hooks/bin/agent-guard
       ../agent-hooks/lib/agent_hooks/guard.rb
+      ../agent-hooks/lib/agent_hooks/guard
     ];
   };
 in
