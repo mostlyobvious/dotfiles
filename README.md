@@ -10,12 +10,17 @@ account. This flake owns machine orchestration and pins every input in
   its system modules, Homebrew casks, and accounts.
 - `lib/`: turns the host tree into flake outputs through `mk-darwin.nix`,
   `mk-home.nix`, and `apps.nix`.
-- `modules/`: nix-darwin and home-manager modules selected by each
-  account in `hosts/`.
+- `modules/`: nix-darwin and home-manager modules selected by each host
+  and account in `hosts/`; `modules/profiles/` groups the ones every Mac
+  gets.
 - `config/`: raw dotfiles delivered by the modules.
+- `skills/`: agent skills installed for Claude Code and pi.
+- `agent-hooks/` and `packages/`: the Ruby source and Nix packages for the
+  `agent-guard` and `agent-worktree` hooks.
 
 Outputs mirror the tree: `darwinConfigurations.<host>` and
-`homeConfigurations."<host>-<user>"`, plus a check per system and home.
+`homeConfigurations."<host>-<user>"`. `make check` builds each of them and
+also runs nixfmt, deadnix, and the agent-hooks tests.
 
 ## Apply
 
@@ -34,8 +39,9 @@ invoking user directly, other accounts via `sudo -u`).
 make bootstrap HOST=<host>   # one of hosts/
 ```
 
-A pre-Nix shim only: starts the Xcode Command Line Tools installer if
-missing, installs Determinate Nix, then delegates to
+A pre-Nix shim only: when the Xcode Command Line Tools are missing, it
+starts their installer and exits; run it again once they finish. It then
+installs Determinate Nix and delegates to
 `nix run .#bootstrap -- <host>`, which installs Homebrew and runs the same
 convergence as switch. Open a new terminal afterwards; from then on plain
 `make`.
@@ -59,9 +65,9 @@ or switching the `cm` configuration requires SSH access to that repository.
 ### Unstable everywhere
 
 All outputs use `nixos-unstable`. `home-manager` and `nix-darwin` follow
-nixpkgs, leaving one nixpkgs in the closure and making shared modules
-evaluate identically on the host and VM. `flake.lock` provides
-determinism; `nix flake update` performs deliberate upgrades.
+the root nixpkgs, so shared modules evaluate against the same packages on
+every host and VM. `flake.lock` provides determinism; `nix flake update`
+performs deliberate upgrades.
 
 ### Dotfile delivery defaults to the Nix store
 
@@ -82,8 +88,9 @@ with git + neovim. Nix's job for nvim is the binary and the config tree.
 
 ### Ruby uses per-project development environments
 
-Projects declare Ruby in their own `devenv.nix`; the shared module only
-enables `direnv` and `nix-direnv`.
+Projects declare Ruby in their own `devenv.nix`, which `direnv` loads on
+entry; these dotfiles install no global Ruby. `modules/ruby.nix` holds
+only gem and IRB settings.
 
 ### Homebrew manages GUI applications
 
@@ -96,11 +103,11 @@ Homebrew installation; bootstrap and switch install Homebrew when absent.
 Apple's `container` CLI is installed from its signed package, not the
 Homebrew formula. The formula's binaries are ad hoc signed; the signed
 package places the CLI at `/usr/local/bin/container`. `make switch`
-installs the pinned 1.6.0 package after Homebrew removes the formula, and
-installs an updated package when the pin changes. Before an install or
-upgrade, activation stops any running container services. The package
-requires macOS 26 or later. Each account's launch agent starts the
-container service from the package path at login. See [Apple's releases](https://github.com/apple/container/releases).
+installs the pinned 1.6.0 package when the CLI is missing or a different
+version is installed, stopping any running container services first. The
+package requires macOS 26 or later. Each account's launch agent starts
+the container service from the package path at login. See
+[Apple's releases](https://github.com/apple/container/releases).
 
 ### Theme
 
