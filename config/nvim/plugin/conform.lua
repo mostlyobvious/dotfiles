@@ -20,7 +20,7 @@ require("lazyload").on_vim_enter(function()
       if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
         return
       end
-      return { timeout_ms = 500, lsp_fallback = true }
+      return { timeout_ms = 500, lsp_format = "fallback" }
     end,
     formatters = {
       elm_format = {
@@ -62,7 +62,7 @@ require("lazyload").on_vim_enter(function()
     end
     conform.format({
       async = true,
-      lsp_fallback = true,
+      lsp_format = "fallback",
       range = range,
     })
   end, { range = true })

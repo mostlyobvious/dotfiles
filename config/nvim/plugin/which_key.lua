@@ -1,4 +1,3 @@
-vim.o.timeout = true
 vim.o.timeoutlen = 300
 
 require("lazyload").on_vim_enter(function()

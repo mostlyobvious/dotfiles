@@ -60,34 +60,19 @@ require("lazyload").on_vim_enter(function()
   vim.keymap.set("n", "<leader>e", builtin.oldfiles, { desc = "Old files" })
   vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Buffers" })
 
-  function vim.getVisualSelection()
-    local current_clipboard_content = vim.fn.getreg('"')
-
-    vim.cmd('noau normal! "vy"')
-    local text = vim.fn.getreg("v")
-    vim.fn.setreg("v", {})
-
-    vim.fn.setreg('"', current_clipboard_content)
-
-    text = string.gsub(text, "\n", "")
-    if #text > 0 then
-      return text
-    else
-      return ""
-    end
+  local function visual_selection()
+    local lines = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() })
+    vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
+    return table.concat(lines, "")
   end
 
   vim.keymap.set("n", "<leader>g", builtin.current_buffer_fuzzy_find)
   vim.keymap.set("v", "<leader>g", function()
-    local text = vim.getVisualSelection()
-    builtin.current_buffer_fuzzy_find({
-      default_text = text,
-    })
+    builtin.current_buffer_fuzzy_find({ default_text = visual_selection() })
   end)
 
   vim.keymap.set("n", "<leader>G", builtin.live_grep)
   vim.keymap.set("v", "<leader>G", function()
-    local text = vim.getVisualSelection()
-    builtin.grep_string({ search = text })
+    builtin.grep_string({ search = visual_selection() })
   end)
 end)

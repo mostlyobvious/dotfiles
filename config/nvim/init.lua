@@ -26,27 +26,18 @@ vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]])
 -- vim.keymap.set("n", "<leader>Q", vim.diagnostic.setqflist)
 
 vim.api.nvim_create_autocmd("WinEnter", {
-  pattern = "*",
   callback = function()
     vim.o.cursorline = true
   end,
 })
 vim.api.nvim_create_autocmd("WinLeave", {
-  pattern = "*",
   callback = function()
     vim.o.cursorline = false
   end,
 })
 vim.api.nvim_create_autocmd("TextYankPost", {
-  pattern = "*",
   callback = function()
-    vim.highlight.on_yank({ timeout = 150 })
-  end,
-})
-vim.api.nvim_create_autocmd("InsertLeave", {
-  pattern = "*",
-  callback = function()
-    vim.o.paste = false
+    vim.hl.on_yank({ timeout = 150 })
   end,
 })
 
