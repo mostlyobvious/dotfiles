@@ -12,15 +12,13 @@ module AgentHooks
       COAUTHOR_ATTRIBUTION = /co-authored-by:.*(?:anthropic|claude)|(?:(?:anthropic|claude).*)co-authored-by:/i
 
       def self.evaluate(context)
-        pipeline.each do |policy|
-          decision = policy.call(context)
-          return decision if decision
-        end
-        Decision.new(status: 0, message: "")
-      end
-
-      def self.pipeline
-        [UnsupportedShell, Git, ShellEdit, ChangeWriting, Attribution, Worktree]
+        decision = UnsupportedShell.call(context)
+        decision ||= Git.call(context)
+        decision ||= ShellEdit.call(context)
+        decision ||= ChangeWriting.call(context)
+        decision ||= Attribution.call(context)
+        decision ||= Worktree.call(context)
+        decision || Decision.new(status: 0, message: "")
       end
 
       def self.blocked(context, reason)
@@ -186,7 +184,6 @@ module AgentHooks
         end
       end
 
-      private_class_method :pipeline
       private_constant :BLOCKED_MESSAGE, :CHANGE_WRITING_MESSAGE, :ATTRIBUTION_MESSAGE,
         :UNSUPPORTED_MESSAGE, :SHELL_EDIT_REASON, :COAUTHOR_ATTRIBUTION,
         :UnsupportedShell, :Git, :ShellEdit, :ChangeWriting, :Attribution, :Worktree
