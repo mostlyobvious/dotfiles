@@ -99,8 +99,8 @@ package places the CLI at `/usr/local/bin/container`. `make switch`
 installs the pinned 1.6.0 package after Homebrew removes the formula, and
 installs an updated package when the pin changes. Before an install or
 upgrade, activation stops any running container services. The package
-requires macOS 26 or later. The `cm` host's launch agent starts the CLI
-from its package path. See [Apple's releases](https://github.com/apple/container/releases).
+requires macOS 26 or later. Each account's launch agent starts the
+container service from the package path at login. See [Apple's releases](https://github.com/apple/container/releases).
 
 ### Theme
 
