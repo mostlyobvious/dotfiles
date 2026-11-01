@@ -1,7 +1,18 @@
+-- Registered before vim.pack.add so the first install also builds; the library must exist before load_extension.
+vim.api.nvim_create_autocmd("PackChanged", {
+  callback = function(ev)
+    local kind = ev.data.kind
+    if ev.data.spec.name == "telescope-fzf-native.nvim" and (kind == "install" or kind == "update") then
+      vim.system({ "make" }, { cwd = ev.data.path }):wait()
+    end
+  end,
+})
+
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
     "https://github.com/nvim-telescope/telescope.nvim",
     "https://github.com/nvim-lua/plenary.nvim",
+    "https://github.com/nvim-telescope/telescope-fzf-native.nvim",
   })
 
   local telescope = require("telescope")
@@ -35,6 +46,7 @@ require("lazyload").on_vim_enter(function()
       },
     },
   })
+  telescope.load_extension("fzf")
 
   vim.keymap.set("n", "<leader>p", builtin.find_files, { desc = "Find files" })
   vim.keymap.set("n", "<leader>e", builtin.oldfiles, { desc = "Old files" })
