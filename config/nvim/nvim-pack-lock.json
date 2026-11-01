@@ -1,9 +1,5 @@
 {
   "plugins": {
-    "async.nvim": {
-      "rev": "46adf61a022d5c923f981d527443f406e7d0f63e",
-      "src": "https://github.com/lewis6991/async.nvim"
-    },
     "blink.cmp": {
       "rev": "78336bc89ee5365633bcf754d93df01678b5c08f",
       "src": "https://github.com/Saghen/blink.cmp",
@@ -48,10 +44,6 @@
     "plenary.nvim": {
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
-    },
-    "refactoring.nvim": {
-      "rev": "64e10d782ae5b9653558482910213b8946651456",
-      "src": "https://github.com/theprimeagen/refactoring.nvim"
     },
     "render-markdown.nvim": {
       "rev": "f422cb5c6855f150e2ddcfaf44e7157b98b34f6a",
