@@ -29,6 +29,7 @@ require("nvim-treesitter").install({
   "nix",
   "python",
   "ruby",
+  "rust",
   "sql",
   "tsx",
   "typescript",

@@ -66,6 +66,7 @@ vim.lsp.enable({
   "pyright",
   "ruff",
   "ruby_lsp",
+  "rust_analyzer",
   "tailwindcss",
   "yamlls",
 })
