@@ -1,10 +1,4 @@
-{
-  lib,
-  homebrewCasks ? [ ],
-  homebrewMasApps ? { },
-  homebrewBrews ? [ ],
-  ...
-}:
+{ config, lib, ... }:
 
 {
   # nix-darwin does not install Homebrew itself; it must already exist (see bootstrap).
@@ -23,14 +17,10 @@
 
     };
 
-    # CLI tooling is in Nix; only host-declared tools remain here. mas is
-    # the installer nix-darwin shells out to for masApps.
-    brews = homebrewBrews ++ lib.optional (homebrewMasApps != { }) "mas";
-
-    casks = homebrewCasks;
-
-    # App Store apps (no cask). Requires being signed into the App Store; mas can
-    # reinstall apps tied to the Apple ID but can no longer sign in or purchase.
-    masApps = homebrewMasApps;
+    # CLI tooling is in Nix; hosts declare casks, any brews, and App Store
+    # apps. mas is the installer nix-darwin shells out to for masApps, which
+    # requires being signed into the App Store; mas can reinstall apps tied
+    # to the Apple ID but can no longer sign in or purchase.
+    brews = lib.optional (config.homebrew.masApps != { }) "mas";
   };
 }

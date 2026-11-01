@@ -8,11 +8,8 @@
       ../modules/profiles/darwin-system.nix
       inputs.chattermill.darwinModules.default
     ];
-  };
 
-  homebrew = {
-    brews = [ ];
-    casks = [
+    homebrew.casks = [
       "ghostty"
       "logseq"
       "zed"

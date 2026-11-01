@@ -36,9 +36,6 @@ nix-darwin.lib.darwinSystem {
     username = primaryUser;
     hostname = hostName;
     allAccounts = builtins.attrNames host.users;
-    homebrewCasks = host.homebrew.casks or [ ];
-    homebrewMasApps = host.homebrew.masApps or { };
-    homebrewBrews = host.homebrew.brews or [ ];
   };
   modules = [
     determinate.darwinModules.default

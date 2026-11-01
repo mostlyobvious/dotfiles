@@ -5,36 +5,35 @@
     imports = [
       ../modules/profiles/darwin-system.nix
     ];
-  };
 
-  # Homebrew installs are machine-wide, so casks/MAS apps are a host concern.
-  homebrew = {
-    brews = [ ];
-    casks = [
-      "discord"
-      "figma"
-      "ghostty"
-      "logseq"
-      "onyx"
-      "zed"
-      "autodesk-fusion"
-      "blender"
-      "brave-browser"
-      "slack"
-      "signal"
-      "affinity"
-      "deckset"
-      "claude"
-      "insta360-studio"
-      "ia-presenter"
-      "whatsapp"
-    ];
-    masApps = {
-      "iA Writer" = 775737590;
-      "Photomator" = 1444636541;
-      "Amphetamine" = 937984704;
-      "ActionBar" = 6758538752;
-      "AdGuard: Ad Blocker for Safari" = 1440147259;
+    # Homebrew installs are machine-wide, so casks/MAS apps are a host concern.
+    homebrew = {
+      casks = [
+        "discord"
+        "figma"
+        "ghostty"
+        "logseq"
+        "onyx"
+        "zed"
+        "autodesk-fusion"
+        "blender"
+        "brave-browser"
+        "slack"
+        "signal"
+        "affinity"
+        "deckset"
+        "claude"
+        "insta360-studio"
+        "ia-presenter"
+        "whatsapp"
+      ];
+      masApps = {
+        "iA Writer" = 775737590;
+        "Photomator" = 1444636541;
+        "Amphetamine" = 937984704;
+        "ActionBar" = 6758538752;
+        "AdGuard: Ad Blocker for Safari" = 1440147259;
+      };
     };
   };
 
