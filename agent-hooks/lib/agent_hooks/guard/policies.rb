@@ -8,7 +8,9 @@ module AgentHooks
       BLOCKED_MESSAGE =
         "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
       CHANGE_WRITING_MESSAGE =
-        "BLOCKED: commit messages, MR/PR descriptions, and artifacts require reading and applying change-writing/SKILL.md first.\n"
+        "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n"
+      LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
+      LINEAR_PROSE_KEYS = %w[body content description summary title].freeze
       ATTRIBUTION_MESSAGE =
         "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
       UNSUPPORTED_MESSAGE =
@@ -177,7 +179,7 @@ module AgentHooks
               context.event.fetch("tool_input").fetch("action", "publish") ==
                 "publish"
           writes_prose =
-            artifact ||
+            artifact || linear_publication?(context.event) ||
               context.program.commands.any? do |command|
                 commit =
                   command.git_subcommand == "commit" &&
@@ -214,6 +216,16 @@ module AgentHooks
 
           Decision.new(status: 2, message: CHANGE_WRITING_MESSAGE)
         end
+
+        def self.linear_publication?(event)
+          LINEAR_WRITE.match?(event.fetch("tool_name", nil)) &&
+            event
+              .fetch("tool_input")
+              .keys
+              .any? { |key| LINEAR_PROSE_KEYS.include?(key) }
+        end
+
+        private_class_method :linear_publication?
       end
 
       module Attribution
@@ -274,6 +286,8 @@ module AgentHooks
                        :UNSUPPORTED_MESSAGE,
                        :SHELL_EDIT_REASON,
                        :COAUTHOR_ATTRIBUTION,
+                       :LINEAR_WRITE,
+                       :LINEAR_PROSE_KEYS,
                        :UnsupportedShell,
                        :Git,
                        :ShellEdit,

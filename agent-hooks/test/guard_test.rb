@@ -10,7 +10,7 @@ module AgentHooks
     ATTRIBUTION_MESSAGE =
       "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
     CHANGE_WRITING_MESSAGE =
-      "BLOCKED: commit messages, MR/PR descriptions, and artifacts require reading and applying change-writing/SKILL.md first.\n"
+      "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n"
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
     REVIEW_REMINDER =
@@ -442,8 +442,85 @@ module AgentHooks
         File.write(transcript, "# Change Writing\n")
 
         assert_equal [0, ""],
-                     artifact(action: "publish", transcript_path: transcript)
+                     guarded_tool(
+                       "Artifact",
+                       { action: "publish" },
+                       transcript_path: transcript
+                     )
       end
+    end
+
+    def test_linear_issue_description_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   guarded_tool(
+                     "mcp__claude_ai_Linear__save_issue",
+                     { id: "APP-123", description: "Revised scope" }
+                   )
+    end
+
+    def test_linear_comment_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   guarded_tool(
+                     "mcp__claude_ai_Linear__save_comment",
+                     { issue: "APP-123", body: "Ready for review" }
+                   )
+    end
+
+    def test_linear_document_title_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   guarded_tool(
+                     "mcp__linear__save_document",
+                     { title: "Decision record" }
+                   )
+    end
+
+    def test_linear_document_content_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   guarded_tool(
+                     "mcp__linear__save_document",
+                     { content: "Decision" }
+                   )
+    end
+
+    def test_linear_diff_review_summary_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   guarded_tool(
+                     "mcp__claude_ai_Linear__submit_diff_review",
+                     { summary: "Ready to merge" }
+                   )
+    end
+
+    def test_linear_metadata_update_does_not_require_change_writing
+      assert_equal [0, ""],
+                   guarded_tool(
+                     "mcp__claude_ai_Linear__save_issue",
+                     { id: "APP-123", assignee: "me" }
+                   )
+    end
+
+    def test_non_linear_description_does_not_require_change_writing
+      assert_equal [0, ""],
+                   guarded_tool(
+                     "mcp__other__save_issue",
+                     { description: "Revised scope" }
+                   )
+    end
+
+    def test_linear_read_does_not_require_change_writing
+      assert_equal [0, ""],
+                   guarded_tool(
+                     "mcp__claude_ai_Linear__get_issue",
+                     { id: "APP-123" }
+                   )
+    end
+
+    def test_applied_change_writing_allows_linear_publication
+      assert_equal [0, ""],
+                   guarded_tool(
+                     "mcp__linear__save_document",
+                     { content: "Decision" },
+                     change_writing_applied: true
+                   )
     end
 
     def test_fixup_commit_keeps_its_message
@@ -793,10 +870,24 @@ module AgentHooks
     private
 
     def artifact(
+      tool_name: "Artifact",
       change_writing_applied: false,
       transcript_path: nil,
-      tool_name: "Artifact",
       **tool_input
+    )
+      guarded_tool(
+        tool_name,
+        tool_input,
+        change_writing_applied: change_writing_applied,
+        transcript_path: transcript_path
+      )
+    end
+
+    def guarded_tool(
+      tool_name,
+      tool_input,
+      change_writing_applied: false,
+      transcript_path: nil
     )
       status, message, =
         Guard.run(

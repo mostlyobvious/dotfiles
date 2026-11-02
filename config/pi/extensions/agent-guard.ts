@@ -9,6 +9,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { worktreeEventForToolResult } from "./lib/agent-worktree-events.mjs";
 
 const changeWritingSkillPath = /(^|\/)skills\/change-writing\/SKILL\.md$/;
+const linearToolName = /^mcp__.*linear__/i;
 
 function run(executable: string, event: Record<string, unknown>) {
 	return spawnSync(executable, [], {
@@ -34,11 +35,19 @@ export default function (pi: ExtensionAPI) {
 			if (changeWritingSkillPath.test(event.input.path)) changeWritingApplied = true;
 			return;
 		}
-		if (!isToolCallEventType("bash", event)) return;
+		let toolInput: Record<string, unknown>;
+		if (isToolCallEventType("bash", event)) {
+			toolInput = { command: event.input.command };
+		} else if (linearToolName.test(event.toolName)) {
+			toolInput = event.input as Record<string, unknown>;
+		} else {
+			return;
+		}
 
 		const result = run("agent-guard", {
 			hook_event_name: "PreToolUse",
-			tool_input: { command: event.input.command },
+			tool_name: event.toolName,
+			tool_input: toolInput,
 			cwd: ctx.cwd,
 			change_writing_applied: changeWritingApplied,
 		});
