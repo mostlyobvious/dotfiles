@@ -10,7 +10,7 @@ module AgentHooks
     ATTRIBUTION_MESSAGE =
       "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
     CHANGE_WRITING_MESSAGE =
-      "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
+      "BLOCKED: commit messages, MR/PR descriptions, and artifacts require reading and applying change-writing/SKILL.md first.\n"
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
     REVIEW_REMINDER =
@@ -414,6 +414,38 @@ module AgentHooks
                    call("gh pr create --title ready")
     end
 
+    def test_artifact_publish_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE], artifact(action: "publish")
+    end
+
+    def test_artifact_default_action_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   artifact(file_path: "/tmp/report.html")
+    end
+
+    def test_artifact_read_is_allowed_without_change_writing
+      assert_equal [0, ""], artifact(action: "read")
+    end
+
+    def test_other_publish_shaped_tool_input_is_allowed_without_change_writing
+      assert_equal [0, ""], artifact(tool_name: "Other", action: "publish")
+    end
+
+    def test_applied_change_writing_allows_artifact_publish
+      assert_equal [0, ""],
+                   artifact(action: "publish", change_writing_applied: true)
+    end
+
+    def test_transcript_with_change_writing_allows_artifact_publish
+      Dir.mktmpdir do |directory|
+        transcript = "#{directory}/transcript"
+        File.write(transcript, "# Change Writing\n")
+
+        assert_equal [0, ""],
+                     artifact(action: "publish", transcript_path: transcript)
+      end
+    end
+
     def test_fixup_commit_keeps_its_message
       assert_equal [0, ""], call("git commit --fixup HEAD")
     end
@@ -759,6 +791,27 @@ module AgentHooks
     end
 
     private
+
+    def artifact(
+      change_writing_applied: false,
+      transcript_path: nil,
+      tool_name: "Artifact",
+      **tool_input
+    )
+      status, message, =
+        Guard.run(
+          {
+            "hook_event_name" => "PreToolUse",
+            "tool_name" => tool_name,
+            "tool_input" => tool_input.transform_keys(&:to_s),
+            "cwd" => "/tmp",
+            "change_writing_applied" => change_writing_applied,
+            "transcript_path" => transcript_path
+          },
+          "/Users/agent"
+        )
+      [status, message]
+    end
 
     def blocked
       [2, WORKTREE_MESSAGE]

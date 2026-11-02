@@ -8,7 +8,7 @@ module AgentHooks
       BLOCKED_MESSAGE =
         "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
       CHANGE_WRITING_MESSAGE =
-        "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
+        "BLOCKED: commit messages, MR/PR descriptions, and artifacts require reading and applying change-writing/SKILL.md first.\n"
       ATTRIBUTION_MESSAGE =
         "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
       UNSUPPORTED_MESSAGE =
@@ -172,32 +172,37 @@ module AgentHooks
               end
             end
 
+          artifact =
+            context.event["tool_name"] == "Artifact" &&
+              context.event.fetch("tool_input").fetch("action", "publish") ==
+                "publish"
           writes_prose =
-            context.program.commands.any? do |command|
-              commit =
-                command.git_subcommand == "commit" &&
-                  !command.git_arguments.any? do |argument|
-                    argument == "--no-edit" || argument == "--fixup"
-                  end
-              script = command.executable
-              publishes =
-                if script&.end_with?(".sh")
-                  path =
-                    if script.start_with?("/")
-                      script
-                    elsif script.start_with?("~/")
-                      script.sub("~/", "#{context.home}/")
-                    else
-                      "#{context.cwd}/#{script}"
+            artifact ||
+              context.program.commands.any? do |command|
+                commit =
+                  command.git_subcommand == "commit" &&
+                    !command.git_arguments.any? do |argument|
+                      argument == "--no-edit" || argument == "--fixup"
                     end
-                  File.file?(path) &&
-                    ShellCommand
-                      .parse(File.read(path))
-                      .commands
-                      .any?(&merge_request)
-                end
-              merge_request.call(command) || commit || publishes
-            end
+                script = command.executable
+                publishes =
+                  if script&.end_with?(".sh")
+                    path =
+                      if script.start_with?("/")
+                        script
+                      elsif script.start_with?("~/")
+                        script.sub("~/", "#{context.home}/")
+                      else
+                        "#{context.cwd}/#{script}"
+                      end
+                    File.file?(path) &&
+                      ShellCommand
+                        .parse(File.read(path))
+                        .commands
+                        .any?(&merge_request)
+                  end
+                merge_request.call(command) || commit || publishes
+              end
           return unless writes_prose
           return if context.event["change_writing_applied"]
 

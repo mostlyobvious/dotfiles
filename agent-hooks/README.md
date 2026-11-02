@@ -42,8 +42,8 @@ For Claude Code, [`modules/claude.nix`](../modules/claude.nix) builds both Nix
 packages and links their executables to stable paths under `~/.claude/hooks/`.
 The out-of-store
 [`config/claude/settings.json`](../config/claude/settings.json) registers those
-paths for pre-tool, post-tool, worktree creation, activity, and session-end
-events.
+paths for shell and Artifact pre-tool checks, post-tool reminders, worktree
+creation, activity, and session-end events.
 
 For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 `PATH` and links [`config/pi/extensions/`](../config/pi/extensions/) to
@@ -81,7 +81,8 @@ independent while preserving policy order:
 1. reject unsupported shell syntax;
 2. protect Git and merge-request operations;
 3. reject in-place shell edits;
-4. require the change-writing skill before publishing prose;
+4. require the change-writing skill before commits, MR/PR publication, and
+   Artifact publication;
 5. reject agent co-author attribution;
 6. enforce worktree entry through the session host.
 

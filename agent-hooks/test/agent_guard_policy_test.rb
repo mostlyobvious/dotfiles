@@ -34,8 +34,25 @@ class AgentGuardPolicyTest < Minitest::Test
   def test_commit_requires_change_writing
     assert_message(
       "git commit -F /tmp/message",
-      "BLOCKED: commit messages and MR/PR descriptions require reading and applying change-writing/SKILL.md first.\n"
+      "BLOCKED: commit messages, MR/PR descriptions, and artifacts require reading and applying change-writing/SKILL.md first.\n"
     )
+  end
+
+  def test_artifact_publish_requires_change_writing
+    result =
+      run_guard(
+        nil,
+        tool_name: "Artifact",
+        tool_input: {
+          action: "publish",
+          file_path: "/tmp/report.html"
+        }
+      )
+
+    assert_equal 2, result[:status]
+    assert_equal "", result[:stdout]
+    assert_equal "BLOCKED: commit messages, MR/PR descriptions, and artifacts require reading and applying change-writing/SKILL.md first.\n",
+                 result[:stderr]
   end
 
   def test_claude_coauthor_is_blocked

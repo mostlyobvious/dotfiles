@@ -13,7 +13,7 @@ module AgentHooks
         return 0, "", reminder(event)
       end
 
-      command = event.fetch("tool_input").fetch("command")
+      command = event.fetch("tool_input")["command"] || ""
       context =
         Context.new(
           event: event,
