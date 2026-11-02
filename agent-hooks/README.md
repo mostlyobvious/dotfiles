@@ -49,7 +49,7 @@ For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 `PATH` and links [`config/pi/extensions/`](../config/pi/extensions/) to
 `~/.pi/agent/extensions`. Pi loads
 [`agent-guard.ts`](../config/pi/extensions/agent-guard.ts), which translates pi
-events, routes Bash and Linear MCP calls through the guard, invokes the
+events, routes Bash, Linear, and Slack MCP calls through the guard, invokes the
 appropriate executable by name, and injects guard reminders into tool results.
 
 [`packages/agent-guard.nix`](../packages/agent-guard.nix) and
@@ -84,10 +84,11 @@ independent while preserving policy order:
 4. reject in-place shell edits;
 5. require the change-writing skill before commits, MR/PR publication,
    Artifact publication, and Linear prose publication;
-6. require commit message files and validate their format;
-7. reject agent co-author attribution;
-8. require detached devenv startup from the worktree root;
-9. enforce worktree entry through the session host.
+6. consume exact `go` approval for one matching shared-system write;
+7. require commit message files and validate their format;
+8. reject agent co-author attribution;
+9. require detached devenv startup from the worktree root;
+10. enforce worktree entry through the session host.
 
 The explicit dispatch in `Policies.evaluate` is intentional. Spinel must see
 calls to the nested policy modules when it compiles the native executable.
@@ -165,6 +166,15 @@ Command policy is stateless and latency-sensitive. Worktree management owns
 persistent state and subprocess cleanup. Separate entry points keep those
 failure modes and interfaces independent while sharing the same packaging and
 test environment.
+
+### Approval stays exact and one-use
+
+Before a shared-system write, the agent presents an `Approval:` JSON envelope
+containing the exact tool name, tool input, and any local files that affect the
+write. The guard accepts only an exact lowercase `go`, compares the next call
+and file contents with that envelope, and rejects reuse after a tool result.
+Claude Code supplies its transcript path; pi passes the active session branch in
+the same normalized shape.
 
 ### Decisions stay separate from effects
 

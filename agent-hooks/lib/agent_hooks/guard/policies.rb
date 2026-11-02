@@ -25,6 +25,8 @@ module AgentHooks
         "BLOCKED: start worktree services with devenv up -d.\n"
       DEVENV_ROOT_MESSAGE =
         "BLOCKED: run devenv up -d from the worktree root.\n"
+      APPROVAL_MESSAGE =
+        "BLOCKED: present the exact shared-system write in an Approval JSON envelope, then wait for a one-use exact 'go'.\n"
       UNSUPPORTED_MESSAGE =
         "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
       SHELL_EDIT_REASON =
@@ -38,6 +40,7 @@ module AgentHooks
         decision ||= ShellEdit.call(context)
         decision ||= Devenv.call(context)
         decision ||= ChangeWriting.call(context)
+        decision ||= PublishingApproval.call(context)
         decision ||= MergeRequest.call(context)
         decision ||= Commit.call(context)
         decision ||= Attribution.call(context)
@@ -299,6 +302,62 @@ module AgentHooks
         private_class_method :linear_publication?
       end
 
+      module PublishingApproval
+        READ_ACTION = /\A(?:get|list|open|read|search)_/
+        SHARED_TOOL = /(?:Linear|Slack)/i
+
+        def self.call(context)
+          return unless required?(context)
+          return if Approval.authorized?(context.event)
+
+          Decision.new(status: 2, message: APPROVAL_MESSAGE)
+        end
+
+        def self.required?(context)
+          tool_name = context.event.fetch("tool_name")
+          tool_input = context.event.fetch("tool_input")
+          if tool_name == "Artifact"
+            return tool_input.fetch("action", "publish") == "publish"
+          end
+          if SHARED_TOOL.match?(tool_name)
+            action = tool_name.split("__").last
+            return !READ_ACTION.match?(action)
+          end
+
+          context.program.commands.any? do |command|
+            shared_shell_write?(command, context.cwd)
+          end
+        end
+
+        def self.shared_shell_write?(command, cwd)
+          return true if gitlab_write?(command)
+
+          script = command.executable
+          return false unless script&.end_with?(".sh")
+
+          path = File.expand_path(script, cwd)
+          File.file?(path) &&
+            ShellCommand
+              .parse(File.read(path))
+              .commands
+              .any? { |inner| gitlab_write?(inner) }
+        end
+
+        def self.gitlab_write?(command)
+          return true if command.executable == "mr-describe"
+
+          case command.argv
+          in ["glab", "mr", "create" | "update", *]
+            true
+          else
+            false
+          end
+        end
+
+        private_class_method :required?, :shared_shell_write?, :gitlab_write?
+        private_constant :READ_ACTION, :SHARED_TOOL
+      end
+
       module MergeRequest
         def self.call(context)
           if context.program.commands.any? { |command| create?(command) }
@@ -441,6 +500,7 @@ module AgentHooks
                        :MR_SQUASH_MESSAGE,
                        :DEVENV_DETACH_MESSAGE,
                        :DEVENV_ROOT_MESSAGE,
+                       :APPROVAL_MESSAGE,
                        :UNSUPPORTED_MESSAGE,
                        :SHELL_EDIT_REASON,
                        :COAUTHOR_ATTRIBUTION,
