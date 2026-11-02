@@ -3,10 +3,10 @@
 `agent-hooks` provides the shared policy and worktree lifecycle used by Claude
 Code and pi. It builds two native executables:
 
-- `agent-guard` inspects shell commands before execution and adds reminders
-  after selected tool calls.
-- `agent-worktree` creates linked worktrees and stops worktree-local devenv
-  services after the last agent session releases them.
+- [`agent-guard`](bin/agent-guard) inspects shell commands before execution and
+  adds reminders after selected tool calls.
+- [`agent-worktree`](bin/agent-worktree) creates linked worktrees and stops
+  worktree-local devenv services after the last agent session releases them.
 
 The agent integrations translate host events into JSON. The Ruby code owns the
 behaviour, so Claude Code and pi apply the same rules.
@@ -33,26 +33,33 @@ standard output.
 
 ## Dotfiles integration
 
-`modules/profiles/darwin-home.nix` imports both `modules/claude.nix` and
-`modules/pi.nix`, so every Darwin home profile installs the hooks.
+[`modules/profiles/darwin-home.nix`](../modules/profiles/darwin-home.nix)
+imports both [`modules/claude.nix`](../modules/claude.nix) and
+[`modules/pi.nix`](../modules/pi.nix), so every Darwin home profile installs the
+hooks.
 
-For Claude Code, `modules/claude.nix` builds both Nix packages and links their
-executables to stable paths under `~/.claude/hooks/`. The out-of-store
-`config/claude/settings.json` registers those paths for pre-tool, post-tool,
-worktree creation, activity, and session-end events.
+For Claude Code, [`modules/claude.nix`](../modules/claude.nix) builds both Nix
+packages and links their executables to stable paths under `~/.claude/hooks/`.
+The out-of-store
+[`config/claude/settings.json`](../config/claude/settings.json) registers those
+paths for pre-tool, post-tool, worktree creation, activity, and session-end
+events.
 
-For pi, `modules/pi.nix` adds both executables to pi's `PATH` and links
-`config/pi/extensions/` to `~/.pi/agent/extensions`. Pi loads
-`agent-guard.ts`, which translates pi events, invokes the appropriate
-executable by name, and injects guard reminders into tool results.
+For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
+`PATH` and links [`config/pi/extensions/`](../config/pi/extensions/) to
+`~/.pi/agent/extensions`. Pi loads
+[`agent-guard.ts`](../config/pi/extensions/agent-guard.ts), which translates pi
+events, invokes the appropriate executable by name, and injects guard reminders
+into tool results.
 
-`packages/agent-guard.nix` and `packages/agent-worktree.nix` compile the Ruby
+[`packages/agent-guard.nix`](../packages/agent-guard.nix) and
+[`packages/agent-worktree.nix`](../packages/agent-worktree.nix) compile the Ruby
 entry points with Spinel and install standalone executables. `make switch`
 builds and activates the packages through Home Manager.
 
 ## Guard flow
 
-`AgentHooks::Guard` has two paths:
+[`AgentHooks::Guard`](lib/agent_hooks/guard.rb) has two paths:
 
 1. A pre-tool event parses the shell source once and evaluates an ordered list
    of policies. The first blocking decision supplies exit status `2` and the
@@ -61,14 +68,15 @@ builds and activates the packages through Home Manager.
    push or an edit to `mr-description.md`, and returns additional context to the
    agent.
 
-`guard/shell_command.rb` turns shell source into normalized command
-invocations. It accounts for quoting, command chains, `env`, leading variable
-assignments, and `git -C`. Dynamic command construction with backticks or
-`$(...)` is rejected because the guard cannot reliably know which command the
-shell will execute. A reviewed script is the escape hatch for syntax outside
+[`guard/shell_command.rb`](lib/agent_hooks/guard/shell_command.rb) turns shell
+source into normalized command invocations. It accounts for quoting, command
+chains, `env`, leading variable assignments, and `git -C`. Dynamic command
+construction with backticks or `$(...)` is rejected because the guard cannot
+reliably know which command the shell will execute. A reviewed script is the escape hatch for syntax outside
 this inspectable subset.
 
-`guard/policies.rb` keeps each rule independent while preserving policy order:
+[`guard/policies.rb`](lib/agent_hooks/guard/policies.rb) keeps each rule
+independent while preserving policy order:
 
 1. reject unsupported shell syntax;
 2. protect Git and merge-request operations;
@@ -82,17 +90,20 @@ calls to the nested policy modules when it compiles the native executable.
 
 ## Worktree flow
 
-`AgentHooks::Worktree` dispatches lifecycle events and coordinates focused
-internal modules:
+[`AgentHooks::Worktree`](lib/agent_hooks/worktree.rb) dispatches lifecycle
+events and coordinates focused internal modules:
 
-- `Creator` discovers the main checkout and creates or reuses the named branch
-  under `~/Code/worktrees/<repository>/<name>`.
-- `Devenv` recognizes successful `devenv up` commands and stops services with
-  `devenv down`.
-- `LeaseDecider` decides ownership transitions without reading files or running
-  commands.
-- `StateFile` serializes access to persisted ownership state.
-- `CommandRunner` provides one boundary for Git and devenv subprocesses.
+- [`Creator`](lib/agent_hooks/worktree/creator.rb) discovers the main checkout
+  and creates or reuses the named branch under
+  `~/Code/worktrees/<repository>/<name>`.
+- [`Devenv`](lib/agent_hooks/worktree/devenv.rb) recognizes successful
+  `devenv up` commands and stops services with `devenv down`.
+- [`LeaseDecider`](lib/agent_hooks/worktree/lease_decider.rb) decides ownership
+  transitions without reading files or running commands.
+- [`StateFile`](lib/agent_hooks/worktree/state_file.rb) serializes access to
+  persisted ownership state.
+- [`CommandRunner`](lib/agent_hooks/worktree/command_runner.rb) provides one
+  boundary for Git and devenv subprocesses.
 
 ```text
 successful devenv up
@@ -175,7 +186,8 @@ modules.
 ## Changing the hooks
 
 Keep host adapters limited to event translation. Add policy to
-`guard/policies.rb`, lifecycle decisions to `worktree/lease_decider.rb`, and
+[`guard/policies.rb`](lib/agent_hooks/guard/policies.rb), lifecycle decisions to
+[`worktree/lease_decider.rb`](lib/agent_hooks/worktree/lease_decider.rb), and
 side effects to the matching boundary module. Run the repository check from the
 dotfiles root:
 
