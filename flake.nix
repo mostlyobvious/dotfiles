@@ -228,6 +228,7 @@
               pkgs.runCommand "agent-hooks-check"
                 {
                   nativeBuildInputs = [
+                    pkgs.git
                     pkgs.nodejs
                     rubyEnv
                     rubyEnv.wrappedRuby
@@ -266,6 +267,7 @@
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
+              git
               nixd
               nixfmt
               deadnix

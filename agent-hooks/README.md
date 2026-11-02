@@ -79,12 +79,15 @@ this inspectable subset.
 independent while preserving policy order:
 
 1. reject unsupported shell syntax;
-2. protect Git and merge-request operations;
-3. reject in-place shell edits;
-4. require the change-writing skill before commits, MR/PR publication,
+2. protect Git and merge-request operations, including protected-branch pushes;
+3. require GitLab MR creation through a script with squash disabled;
+4. reject in-place shell edits;
+5. require the change-writing skill before commits, MR/PR publication,
    Artifact publication, and Linear prose publication;
-5. reject agent co-author attribution;
-6. enforce worktree entry through the session host.
+6. require commit message files and validate their format;
+7. reject agent co-author attribution;
+8. require detached devenv startup from the worktree root;
+9. enforce worktree entry through the session host.
 
 The explicit dispatch in `Policies.evaluate` is intentional. Spinel must see
 calls to the nested policy modules when it compiles the native executable.

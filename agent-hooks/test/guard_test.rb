@@ -1,3 +1,4 @@
+require "fileutils"
 require "minitest/autorun"
 require "mutant/minitest/coverage"
 require "tmpdir"
@@ -17,6 +18,17 @@ module AgentHooks
       "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
     WORKTREE_MESSAGE =
       "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
+    COMMIT_FILE_MESSAGE =
+      "BLOCKED: write commit messages to a file and pass it with git commit -F.\n"
+    COMMIT_FORMAT_MESSAGE =
+      "BLOCKED: the commit message must have a capitalized subject of at most 50 characters without a trailing period, a blank line before its body, and body lines of at most 72 characters.\n"
+    MR_SCRIPT_MESSAGE =
+      "BLOCKED: open GitLab merge requests through a shell script that reads the approved description from a file.\n"
+    MR_SQUASH_MESSAGE =
+      "BLOCKED: GitLab merge request creation requires --squash-before-merge=false.\n"
+    DEVENV_DETACH_MESSAGE =
+      "BLOCKED: start worktree services with devenv up -d.\n"
+    DEVENV_ROOT_MESSAGE = "BLOCKED: run devenv up -d from the worktree root.\n"
 
     def test_direct_worktree_creation_is_blocked
       assert_equal blocked, call("git worktree add ../feature")
@@ -523,6 +535,293 @@ module AgentHooks
                    )
     end
 
+    def test_worktree_devenv_starts_detached
+      with_worktree do |root, home|
+        assert_equal [2, DEVENV_DETACH_MESSAGE],
+                     call("devenv up", cwd: root, home: home)
+      end
+    end
+
+    def test_worktree_devenv_starts_from_the_root
+      with_worktree do |root, home|
+        nested = "#{root}/app"
+        FileUtils.mkdir_p(nested)
+
+        assert_equal [2, DEVENV_ROOT_MESSAGE],
+                     call("devenv up -d", cwd: nested, home: home)
+      end
+    end
+
+    def test_detached_worktree_devenv_from_the_root_is_allowed
+      with_worktree do |root, home|
+        assert_equal [0, ""], call("devenv up -d", cwd: root, home: home)
+      end
+    end
+
+    def test_symlinked_worktree_root_is_allowed
+      Dir.mktmpdir do |home|
+        actual = "#{home}/actual"
+        root = "#{home}/Code/worktrees/project/task"
+        FileUtils.mkdir_p(File.dirname(root))
+        system(
+          "git",
+          "init",
+          "--quiet",
+          "--initial-branch=feature",
+          actual,
+          out: File::NULL,
+          err: File::NULL
+        ) or raise "git init failed"
+        File.symlink(actual, root)
+
+        assert_equal [0, ""], call("devenv up -d", cwd: root, home: home)
+      end
+    end
+
+    def test_devenv_outside_a_worktree_is_allowed
+      assert_equal [0, ""], call("devenv up")
+    end
+
+    def test_unrelated_up_command_in_a_worktree_is_allowed
+      with_worktree do |root, home|
+        assert_equal [0, ""], call("tool up", cwd: root, home: home)
+      end
+    end
+
+    def test_devenv_after_another_command_is_guarded
+      with_worktree do |root, home|
+        assert_equal [2, DEVENV_DETACH_MESSAGE],
+                     call("printf ready && devenv up", cwd: root, home: home)
+      end
+    end
+
+    def test_other_devenv_subcommand_in_a_worktree_is_allowed
+      with_worktree do |root, home|
+        assert_equal [0, ""], call("devenv shell", cwd: root, home: home)
+      end
+    end
+
+    def test_other_devenv_subcommand_does_not_hide_later_startup
+      with_worktree do |root, home|
+        assert_equal [2, DEVENV_DETACH_MESSAGE],
+                     call("devenv shell && devenv up", cwd: root, home: home)
+      end
+    end
+
+    def test_detached_devenv_in_a_non_repository_worktree_path_is_blocked
+      Dir.mktmpdir do |home|
+        root = "#{home}/Code/worktrees/project/task"
+        FileUtils.mkdir_p(root)
+
+        assert_equal [2, DEVENV_ROOT_MESSAGE],
+                     call("devenv up -d", cwd: root, home: home)
+      end
+    end
+
+    def test_gitlab_merge_request_creation_runs_from_a_script
+      assert_equal [2, MR_SCRIPT_MESSAGE],
+                   call(
+                     "glab mr create --squash-before-merge=false",
+                     change_writing_applied: true
+                   )
+    end
+
+    def test_gitlab_merge_request_script_disables_squash
+      Dir.mktmpdir do |directory|
+        File.write("#{directory}/publish.sh", "glab mr create\n")
+
+        assert_equal [2, MR_SQUASH_MESSAGE],
+                     call(
+                       "./publish.sh",
+                       cwd: directory,
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_gitlab_merge_request_script_with_squash_disabled_is_allowed
+      Dir.mktmpdir do |directory|
+        File.write(
+          "#{directory}/publish.sh",
+          "glab mr create --squash-before-merge=false\n"
+        )
+
+        assert_equal [0, ""],
+                     call(
+                       "./publish.sh",
+                       cwd: directory,
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_gitlab_merge_request_script_after_another_command_is_guarded
+      Dir.mktmpdir do |directory|
+        File.write("#{directory}/publish.sh", "glab mr create\n")
+
+        assert_equal [2, MR_SQUASH_MESSAGE],
+                     call(
+                       "printf ready && ./publish.sh",
+                       cwd: directory,
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_missing_script_does_not_hide_a_later_merge_request_script
+      Dir.mktmpdir do |directory|
+        File.write("#{directory}/publish.sh", "glab mr create\n")
+
+        assert_equal [2, MR_SQUASH_MESSAGE],
+                     call(
+                       "./missing.sh && ./publish.sh",
+                       cwd: directory,
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_commit_message_comes_from_a_file
+      assert_equal [2, COMMIT_FILE_MESSAGE],
+                   call("git commit -m ready", change_writing_applied: true)
+    end
+
+    def test_commit_cannot_skip_hooks
+      command = "git commit --no-verify -F /tmp/message"
+      reason = "skips commit hooks with --no-verify."
+
+      assert_equal policy_blocked(command, reason), call(command)
+    end
+
+    def test_noncommit_no_verify_option_is_allowed
+      assert_equal [0, ""], call("git fetch --no-verify")
+    end
+
+    def test_plain_push_outside_a_repository_is_allowed
+      Dir.mktmpdir do |directory|
+        assert_equal [0, ""], call("git push", cwd: directory)
+      end
+    end
+
+    def test_well_formed_commit_message_is_allowed
+      with_commit_message(
+        "Document hook policy\n\nExplain why it changes.\n"
+      ) do |path|
+        assert_equal [0, ""],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_message_path_can_be_relative_to_the_working_directory
+      Dir.mktmpdir do |directory|
+        File.write("#{directory}/message", "Document hook policy\n")
+
+        assert_equal [0, ""],
+                     call(
+                       "git commit -F message",
+                       cwd: directory,
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_commit_message_cannot_come_from_standard_input
+      assert_equal [2, COMMIT_FILE_MESSAGE],
+                   call("git commit -F -", change_writing_applied: true)
+    end
+
+    def test_commit_message_file_must_exist
+      assert_equal [2, COMMIT_FILE_MESSAGE],
+                   call(
+                     "git commit -F /missing/message",
+                     change_writing_applied: true
+                   )
+    end
+
+    def test_commit_message_flag_requires_a_path
+      assert_equal [2, COMMIT_FILE_MESSAGE],
+                   call("git commit -F", change_writing_applied: true)
+    end
+
+    def test_commit_message_flag_can_follow_other_options
+      with_commit_message("Document hook policy\n") do |path|
+        assert_equal [0, ""],
+                     call(
+                       "git commit --allow-empty -F #{path}",
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_empty_commit_message_is_rejected
+      with_commit_message("") do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_message_accepts_length_boundaries
+      with_commit_message("A#{"b" * 49}\n\n#{"c" * 72}\n") do |path|
+        assert_equal [0, ""],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_in_a_command_chain_uses_its_message_file
+      with_commit_message("Document hook policy\n") do |path|
+        assert_equal [0, ""],
+                     call(
+                       "git status && git commit -F #{path}",
+                       change_writing_applied: true
+                     )
+      end
+    end
+
+    def test_commit_subject_starts_with_a_capital
+      with_commit_message("document hook policy\n") do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_subject_has_at_most_fifty_characters
+      with_commit_message("A" * 51) do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_subject_has_no_trailing_period
+      with_commit_message("Document hook policy.\n") do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_body_follows_a_blank_line
+      with_commit_message(
+        "Document hook policy\nExplain why it changes.\n"
+      ) do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_commit_body_lines_have_at_most_seventy_two_characters
+      with_commit_message("Document hook policy\n\n#{"A" * 73}\n") do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
+    def test_every_commit_body_line_has_at_most_seventy_two_characters
+      message = "Document hook policy\n\nShort line\n#{"A" * 73}\n"
+      with_commit_message(message) do |path|
+        assert_equal [2, COMMIT_FORMAT_MESSAGE],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
+    end
+
     def test_fixup_commit_keeps_its_message
       assert_equal [0, ""], call("git commit --fixup HEAD")
     end
@@ -532,11 +831,10 @@ module AgentHooks
     end
 
     def test_applied_change_writing_allows_commit
-      assert_equal [0, ""],
-                   call(
-                     "git commit -F /tmp/message",
-                     change_writing_applied: true
-                   )
+      with_commit_message("Document hook policy\n") do |path|
+        assert_equal [0, ""],
+                     call("git commit -F #{path}", change_writing_applied: true)
+      end
     end
 
     def test_transcript_with_change_writing_allows_commit
@@ -544,11 +842,13 @@ module AgentHooks
         transcript = "#{directory}/transcript"
         File.write(transcript, "# Change Writing\n")
 
-        assert_equal [0, ""],
-                     call(
-                       "git commit -F /tmp/message",
-                       transcript_path: transcript
-                     )
+        with_commit_message("Document hook policy\n") do |path|
+          assert_equal [0, ""],
+                       call(
+                         "git commit -F #{path}",
+                         transcript_path: transcript
+                       )
+        end
       end
     end
 
@@ -710,6 +1010,62 @@ module AgentHooks
 
       assert_equal policy_blocked(command, reason),
                    call(command, cwd: "/Users/agent/Code/dotfiles/modules")
+    end
+
+    def test_plain_push_from_main_is_blocked
+      with_repository("backend", branch: "main") do |root, home|
+        assert_equal policy_blocked("git push", "pushes a protected branch."),
+                     call("git push", cwd: root, home: home)
+      end
+    end
+
+    def test_plain_push_from_a_feature_branch_is_allowed
+      with_repository("backend", branch: "feature") do |root, home|
+        assert_equal [0, ""], call("git push", cwd: root, home: home)
+      end
+    end
+
+    def test_main_branch_can_push_an_explicit_feature_ref
+      with_repository("backend", branch: "main") do |root, home|
+        assert_equal [0, ""],
+                     call("git push origin feature", cwd: root, home: home)
+        assert_equal [0, ""],
+                     call(
+                       "git push --porcelain origin feature",
+                       cwd: root,
+                       home: home
+                     )
+      end
+    end
+
+    def test_main_branch_cannot_push_implicitly_to_an_explicit_remote
+      with_repository("backend", branch: "main") do |root, home|
+        command = "git push origin"
+        assert_equal policy_blocked(command, "pushes a protected branch."),
+                     call(command, cwd: root, home: home)
+
+        command = "git push --porcelain origin"
+        assert_equal policy_blocked(command, "pushes a protected branch."),
+                     call(command, cwd: root, home: home)
+      end
+    end
+
+    def test_chattermill_pushes_main_directly
+      with_repository("chattermill", branch: "main") do |root, home|
+        assert_equal [0, ""], call("git push", cwd: root, home: home)
+        assert_equal [0, ""],
+                     call("git push origin main", cwd: root, home: home)
+      end
+    end
+
+    def test_chattermill_does_not_push_master
+      with_repository("chattermill", branch: "master") do |root, home|
+        assert_equal policy_blocked(
+                       "git push origin master",
+                       "pushes a protected branch."
+                     ),
+                     call("git push origin master", cwd: root, home: home)
+      end
     end
 
     def test_push_to_master_ref_is_blocked
@@ -902,6 +1258,48 @@ module AgentHooks
           "/Users/agent"
         )
       [status, message]
+    end
+
+    def with_repository(name, branch:)
+      Dir.mktmpdir do |home|
+        root = "#{home}/Code/#{name}"
+        FileUtils.mkdir_p(root)
+        system(
+          "git",
+          "init",
+          "--quiet",
+          "--initial-branch=#{branch}",
+          root,
+          out: File::NULL,
+          err: File::NULL
+        ) or raise "git init failed"
+        yield root, home
+      end
+    end
+
+    def with_worktree
+      Dir.mktmpdir do |home|
+        root = "#{home}/Code/worktrees/backend/feature"
+        FileUtils.mkdir_p(root)
+        system(
+          "git",
+          "init",
+          "--quiet",
+          "--initial-branch=feature",
+          root,
+          out: File::NULL,
+          err: File::NULL
+        ) or raise "git init failed"
+        yield root, home
+      end
+    end
+
+    def with_commit_message(message)
+      Dir.mktmpdir do |directory|
+        path = "#{directory}/message"
+        File.write(path, message)
+        yield path
+      end
     end
 
     def blocked
