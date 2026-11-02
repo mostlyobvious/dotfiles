@@ -31,14 +31,24 @@ operational errors go to standard error. `agent-guard` can also return a JSON
 reminder on standard output; `agent-worktree` returns a created worktree path on
 standard output.
 
-The host-specific wiring lives outside this directory:
+## Dotfiles integration
 
-- `config/claude/settings.json` registers the binaries directly as Claude Code
-  hooks.
-- `config/pi/extensions/agent-guard.ts` translates pi events and injects guard
-  reminders into tool results.
-- `packages/agent-guard.nix` and `packages/agent-worktree.nix` compile the Ruby
-  entry points with Spinel and install standalone executables.
+`modules/profiles/darwin-home.nix` imports both `modules/claude.nix` and
+`modules/pi.nix`, so every Darwin home profile installs the hooks.
+
+For Claude Code, `modules/claude.nix` builds both Nix packages and links their
+executables to stable paths under `~/.claude/hooks/`. The out-of-store
+`config/claude/settings.json` registers those paths for pre-tool, post-tool,
+worktree creation, activity, and session-end events.
+
+For pi, `modules/pi.nix` adds both executables to pi's `PATH` and links
+`config/pi/extensions/` to `~/.pi/agent/extensions`. Pi loads
+`agent-guard.ts`, which translates pi events, invokes the appropriate
+executable by name, and injects guard reminders into tool results.
+
+`packages/agent-guard.nix` and `packages/agent-worktree.nix` compile the Ruby
+entry points with Spinel and install standalone executables. `make switch`
+builds and activates the packages through Home Manager.
 
 ## Guard flow
 
