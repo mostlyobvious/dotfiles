@@ -116,7 +116,7 @@ module AgentHooks
           status: 1,
           stdout: "",
           stderr:
-            "dotfiles is edited in its main checkout, never in a linked worktree.\n"
+            "dotfiles is edited in its main checkout, never in a linked worktree. Continue in #{@home}/Code/dotfiles without EnterWorktree.\n"
         },
         result
       )
@@ -142,7 +142,8 @@ module AgentHooks
         {
           status: 1,
           stdout: "",
-          stderr: "Could not find the repository for /missing\n"
+          stderr:
+            "Could not find the repository for /missing. Start the session from a repository checkout, then run EnterWorktree again.\n"
         },
         result
       )
@@ -163,7 +164,8 @@ module AgentHooks
         {
           status: 1,
           stdout: "",
-          stderr: "Worktree path already exists: #{destination}\n"
+          stderr:
+            "Worktree path already exists: #{destination}. Use EnterWorktree with that path, or choose a different name.\n"
         },
         result
       )

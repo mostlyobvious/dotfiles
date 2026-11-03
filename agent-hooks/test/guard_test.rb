@@ -17,7 +17,7 @@ module AgentHooks
     REVIEW_REMINDER =
       "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
     WORKTREE_MESSAGE =
-      "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
+      "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree.\n"
     COMMIT_FILE_MESSAGE =
       "BLOCKED: write commit messages to a file and pass it with git commit -F.\n"
     COMMIT_FORMAT_MESSAGE =
@@ -123,7 +123,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call(
                      "cd ~/Code/worktrees/backend/feature && bundle exec rake"
@@ -136,7 +136,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call(command)
     end
@@ -148,7 +148,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /Users/agent/Code/worktrees/backend/feature. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /Users/agent/Code/worktrees/backend/feature. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call(
                      command,
@@ -187,7 +187,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call(command)
     end
@@ -198,7 +198,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call(command)
     end
@@ -210,7 +210,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call(command)
     end
@@ -237,7 +237,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call("cd $HOME/Code/worktrees/backend/feature")
     end
@@ -247,7 +247,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
                    ],
                    call("cd ~/Code/worktrees/backend/feature/app")
     end
@@ -1386,7 +1386,7 @@ module AgentHooks
     def test_dynamic_shell_command_is_blocked_when_it_cannot_be_inspected
       command = 'printf "$(date)"'
       message =
-        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
 
       assert_equal [2, message], call(command)
     end
@@ -1394,7 +1394,7 @@ module AgentHooks
     def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
       command = "printf 'unfinished"
       message =
-        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
 
       assert_equal [2, message], call(command)
     end
@@ -1483,7 +1483,7 @@ module AgentHooks
 
       assert_equal [
                      2,
-                     "BLOCKED: this session runs in /tmp. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n",
+                     "BLOCKED: this session runs in /tmp. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n",
                      nil
                    ],
                    output

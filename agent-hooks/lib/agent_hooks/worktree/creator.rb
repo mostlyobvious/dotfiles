@@ -19,14 +19,19 @@ module AgentHooks
             ]
           )
         unless common_dir
-          return fail_with("Could not find the repository for #{cwd}", err)
+          return(
+            fail_with(
+              "Could not find the repository for #{cwd}. Start the session from a repository checkout, then run EnterWorktree again.",
+              err
+            )
+          )
         end
 
         main_root = File.dirname(common_dir)
         if main_root == "#{home}/Code/dotfiles"
           return(
             fail_with(
-              "dotfiles is edited in its main checkout, never in a linked worktree.",
+              "dotfiles is edited in its main checkout, never in a linked worktree. Continue in #{home}/Code/dotfiles without EnterWorktree.",
               err
             )
           )
@@ -36,7 +41,12 @@ module AgentHooks
         destination =
           "#{home}/Code/worktrees/#{File.basename(main_root)}/#{slug}"
         if File.exist?(destination)
-          return fail_with("Worktree path already exists: #{destination}", err)
+          return(
+            fail_with(
+              "Worktree path already exists: #{destination}. Use EnterWorktree with that path, or choose a different name.",
+              err
+            )
+          )
         end
 
         origin_head =

@@ -5,7 +5,7 @@ class AgentGuardTest < Minitest::Test
   include GuardRunner
 
   BLOCKED_MESSAGE =
-    "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
+    "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree.\n"
 
   def test_direct_worktree_creation_uses_enter_worktree
     result = run_guard("git worktree add ../feature")
@@ -47,7 +47,7 @@ class AgentGuardTest < Minitest::Test
 
     assert_equal 2, result[:status]
     assert_equal "", result[:stdout]
-    assert_equal "BLOCKED: this session runs in /tmp/repository. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n",
+    assert_equal "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n",
                  result[:stderr]
   end
 

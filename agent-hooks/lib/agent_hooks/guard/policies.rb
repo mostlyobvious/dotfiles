@@ -6,7 +6,7 @@ module AgentHooks
 
     module Policies
       BLOCKED_MESSAGE =
-        "BLOCKED: create worktrees through the session host so every command starts in the worktree.\n"
+        "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree.\n"
       CHANGE_WRITING_MESSAGE =
         "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
@@ -28,7 +28,7 @@ module AgentHooks
       APPROVAL_MESSAGE =
         "BLOCKED: present the exact shared-system write in an Approval JSON envelope, then wait for a one-use exact 'go'.\n"
       UNSUPPORTED_MESSAGE =
-        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Put the command in a reviewed script and run that script.\n"
+        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
       SHELL_EDIT_REASON =
         "edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites."
       COAUTHOR_ATTRIBUTION =
@@ -483,7 +483,7 @@ module AgentHooks
               Decision.new(
                 status: 2,
                 message:
-                  "BLOCKED: this session runs in #{context.cwd}. Start or move the session to #{target} so every command starts there, then rerun without the cd.\n"
+                  "BLOCKED: this session runs in #{context.cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
               )
             )
           end

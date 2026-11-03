@@ -27,9 +27,9 @@ Claude Code hooks                         pi extension
 ```
 
 Both executables read one JSON event from standard input. Blocking messages and
-operational errors go to standard error. `agent-guard` can also return a JSON
-reminder on standard output; `agent-worktree` returns a created worktree path on
-standard output.
+operational errors go to standard error and name the safe next command or host
+tool when one exists. `agent-guard` can also return a JSON reminder on standard
+output; `agent-worktree` returns a created worktree path on standard output.
 
 ## Dotfiles integration
 
