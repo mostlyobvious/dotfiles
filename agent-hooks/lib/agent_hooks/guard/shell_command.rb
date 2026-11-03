@@ -51,6 +51,13 @@ module AgentHooks
             git_parts.drop(1)
           end
 
+          def git_directory
+            return unless git?
+
+            options = arguments.take(arguments.length - git_parts.length)
+            options.last
+          end
+
           private
 
           def command_words

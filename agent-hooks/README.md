@@ -93,7 +93,10 @@ independent while preserving policy order:
 6. require commit message files and validate their format;
 7. reject agent co-author attribution;
 8. require detached devenv startup from the worktree root;
-9. enforce worktree entry through the session host.
+9. enforce worktree creation and entry through the session host for the
+   session's own repository; another repository's worktree is created with
+   `git -C <repository> worktree add ~/Code/worktrees/<repository>/<name>` and
+   entered with `cd`.
 
 The explicit dispatch in `Policies.evaluate` is intentional. Spinel must see
 calls to the nested policy modules when it compiles the native executable.

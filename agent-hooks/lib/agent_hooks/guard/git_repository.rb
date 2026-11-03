@@ -11,6 +11,12 @@ module AgentHooks
         Repository.new(root: root.chomp, branch: branch.chomp)
       end
 
+      def self.main_root(path)
+        common_dir =
+          capture(path, %w[rev-parse --path-format=absolute --git-common-dir])
+        File.dirname(common_dir)
+      end
+
       def self.capture(cwd, arguments)
         output, = Open3.capture3("git", "-C", cwd, *arguments)
         output

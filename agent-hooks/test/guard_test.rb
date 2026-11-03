@@ -4,9 +4,11 @@ require "minitest/autorun"
 require "mutant/minitest/coverage"
 require "tmpdir"
 require_relative "../lib/agent_hooks/guard"
+require_relative "support/repositories"
 
 module AgentHooks
   class GuardTest < Minitest::Test
+    include Repositories
     cover "AgentHooks::Guard*"
 
     ATTRIBUTION_MESSAGE =
@@ -20,7 +22,7 @@ module AgentHooks
     REVIEW_REMINDER =
       "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
     WORKTREE_MESSAGE =
-      "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree.\n"
+      "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
     COMMIT_FILE_MESSAGE =
       "BLOCKED: write commit messages to a file and pass it with git commit -F.\n"
     COMMIT_FORMAT_MESSAGE =
@@ -119,58 +121,168 @@ module AgentHooks
       assert_equal [0, ""], call("perl -pe 's/old/new/' file")
     end
 
-    def test_entering_a_worktree_from_another_directory_is_blocked
-      target = "/Users/agent/Code/worktrees/backend/feature"
+    def test_other_repository_worktree_creation_is_allowed
+      with_repositories do |backend, home|
+        assert_equal [0, ""],
+                     call(
+                       "git -C ~/Code/renovate worktree add -b job ~/Code/worktrees/renovate/job origin/main",
+                       cwd: backend,
+                       home: home
+                     )
+        assert_equal [0, ""],
+                     call(
+                       "git -C $HOME/Code/renovate worktree add $HOME/Code/worktrees/renovate/job",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
 
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call(
-                     "cd ~/Code/worktrees/backend/feature && bundle exec rake"
-                   )
+    def test_relative_worktree_paths_follow_the_named_repository
+      with_repositories do |backend, home|
+        app = "#{backend}/app"
+        FileUtils.mkdir_p(app)
+
+        assert_equal [0, ""],
+                     call(
+                       "git -C ../../renovate worktree add ../worktrees/renovate/job",
+                       cwd: app,
+                       home: home
+                     )
+      end
+    end
+
+    def test_other_repository_worktree_outside_its_worktree_directory_is_blocked
+      with_repositories do |backend, home|
+        assert_equal blocked,
+                     call(
+                       "git -C ~/Code/renovate worktree add ~/Code/worktrees/backend/job",
+                       cwd: backend,
+                       home: home
+                     )
+        assert_equal blocked,
+                     call(
+                       "git -C ~/Code/renovate worktree add ~/Code/worktrees/renovate/job/app",
+                       cwd: backend,
+                       home: home
+                     )
+        assert_equal blocked,
+                     call(
+                       "git -C ~/Code/renovate worktree add ~/Code/worktrees/renovate/",
+                       cwd: backend,
+                       home: home
+                     )
+        assert_equal blocked,
+                     call(
+                       "git -C ~/Code/renovate worktree add /tmp/Code/worktrees/renovate/job",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
+
+    def test_session_repository_worktree_creation_is_blocked
+      with_repositories do |backend, home|
+        assert_equal blocked,
+                     call(
+                       "git -C ~/Code/backend worktree add ~/Code/worktrees/backend/job",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
+
+    def test_worktree_creation_for_a_missing_repository_is_blocked
+      with_repositories do |backend, home|
+        assert_equal blocked,
+                     call(
+                       "git -C ~/Code/missing worktree add ~/Code/worktrees/missing/job",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
+
+    def test_entering_a_worktree_from_another_directory_is_blocked
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd ~/Code/worktrees/backend/feature && bundle exec rake",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
+
+    def test_entering_another_repository_worktree_is_allowed
+      with_repositories do |backend, home|
+        assert_equal [0, ""],
+                     call(
+                       "cd ~/Code/worktrees/renovate/job && bundle exec rake",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
+
+    def test_entering_a_worktree_outside_a_repository_is_allowed
+      assert_equal [0, ""], call("cd ~/Code/worktrees/backend/feature")
     end
 
     def test_entering_a_worktree_later_in_a_command_chain_is_blocked
-      target = "/Users/agent/Code/worktrees/backend/feature"
-      command = "printf ready && cd ~/Code/worktrees/backend/feature"
-
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call(command)
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "printf ready && cd ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_current_worktree_does_not_hide_a_later_worktree_transition
-      target = "/Users/agent/Code/worktrees/backend/other"
-      command =
-        "cd ~/Code/worktrees/backend/feature && cd ~/Code/worktrees/backend/other"
-
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /Users/agent/Code/worktrees/backend/feature. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call(
-                     command,
-                     cwd: "/Users/agent/Code/worktrees/backend/feature"
-                   )
+      with_backend_worktree do |feature, home|
+        assert_equal enter_worktree(
+                       feature,
+                       "#{home}/Code/worktrees/backend/other"
+                     ),
+                     call(
+                       "cd ~/Code/worktrees/backend/feature && cd ~/Code/worktrees/backend/other",
+                       cwd: feature,
+                       home: home
+                     )
+      end
     end
 
     def test_entering_the_current_worktree_is_allowed
-      assert_equal [0, ""],
-                   call(
-                     "cd $HOME/Code/worktrees/backend/feature && bundle exec rake",
-                     cwd: "/Users/agent/Code/worktrees/backend/feature/app"
-                   )
+      with_backend_worktree do |feature, home|
+        app = "#{feature}/app"
+        FileUtils.mkdir_p(app)
+
+        assert_equal [0, ""],
+                     call(
+                       "cd $HOME/Code/worktrees/backend/feature && bundle exec rake",
+                       cwd: app,
+                       home: home
+                     )
+      end
     end
 
     def test_entering_the_worktree_root_is_allowed
-      assert_equal [0, ""],
-                   call(
-                     "cd ~/Code/worktrees/backend/feature",
-                     cwd: "/Users/agent/Code/worktrees/backend/feature"
-                   )
+      with_backend_worktree do |feature, home|
+        assert_equal [0, ""],
+                     call(
+                       "cd ~/Code/worktrees/backend/feature",
+                       cwd: feature,
+                       home: home
+                     )
+      end
     end
 
     def test_entering_a_regular_directory_is_allowed
@@ -183,41 +295,70 @@ module AgentHooks
     end
 
     def test_cd_without_a_path_does_not_hide_a_later_worktree_transition
-      target = "/Users/agent/Code/worktrees/backend/feature"
-      command = "cd && cd ~/Code/worktrees/backend/feature"
-
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call(command)
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd && cd ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_regular_cd_does_not_hide_a_later_worktree_transition
-      target = "/Users/agent/Code/worktrees/backend/feature"
-      command = "cd /tmp && cd ~/Code/worktrees/backend/feature"
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd /tmp && cd ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
 
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call(command)
+    def test_other_repository_cd_does_not_hide_a_later_worktree_transition
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd ~/Code/worktrees/renovate/job && cd ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_worktree_repository_cd_does_not_hide_a_later_transition
-      target = "/Users/agent/Code/worktrees/backend/feature"
-      command =
-        "cd ~/Code/worktrees/backend && cd ~/Code/worktrees/backend/feature"
-
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call(command)
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd ~/Code/worktrees/backend && cd ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_non_cd_command_with_a_worktree_path_is_allowed
-      assert_equal [0, ""], call("printf ~/Code/worktrees/backend/feature")
+      with_repositories do |backend, home|
+        assert_equal [0, ""],
+                     call(
+                       "printf ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_a_regular_command_with_a_relative_cwd_is_allowed
@@ -234,23 +375,31 @@ module AgentHooks
     end
 
     def test_home_variable_worktree_path_is_blocked
-      target = "/Users/agent/Code/worktrees/backend/feature"
-
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call("cd $HOME/Code/worktrees/backend/feature")
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd $HOME/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_worktree_subdirectory_names_the_worktree_root
-      target = "/Users/agent/Code/worktrees/backend/feature"
-
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp/repository. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
-                   ],
-                   call("cd ~/Code/worktrees/backend/feature/app")
+      with_repositories do |backend, home|
+        assert_equal enter_worktree(
+                       backend,
+                       "#{home}/Code/worktrees/backend/feature"
+                     ),
+                     call(
+                       "cd ~/Code/worktrees/backend/feature/app",
+                       cwd: backend,
+                       home: home
+                     )
+      end
     end
 
     def test_dotfiles_worktree_from_main_checkout_is_blocked
@@ -1421,25 +1570,28 @@ module AgentHooks
     end
 
     def test_pre_tool_use_passes_home_to_worktree_policy
-      target = "/Users/agent/Code/worktrees/backend/feature"
-      output =
-        Guard.run(
-          {
-            "hook_event_name" => "PreToolUse",
-            "tool_input" => {
-              "command" => "cd ~/Code/worktrees/backend/feature"
+      with_repositories do |backend, home|
+        output =
+          Guard.run(
+            {
+              "hook_event_name" => "PreToolUse",
+              "tool_input" => {
+                "command" => "cd ~/Code/worktrees/backend/feature"
+              },
+              "cwd" => backend
             },
-            "cwd" => "/tmp"
-          },
-          "/Users/agent"
-        )
+            home
+          )
 
-      assert_equal [
-                     2,
-                     "BLOCKED: this session runs in /tmp. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n",
-                     nil
-                   ],
-                   output
+        assert_equal [
+                       *enter_worktree(
+                         backend,
+                         "#{home}/Code/worktrees/backend/feature"
+                       ),
+                       nil
+                     ],
+                     output
+      end
     end
 
     def test_post_tool_use_file_without_command_has_no_push_reminder
@@ -1541,6 +1693,13 @@ module AgentHooks
         ) or raise "git init failed"
         yield root, home
       end
+    end
+
+    def enter_worktree(cwd, target)
+      [
+        2,
+        "BLOCKED: this session runs in #{cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
+      ]
     end
 
     def with_commit_message(message)

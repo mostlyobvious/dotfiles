@@ -6,7 +6,7 @@ module AgentHooks
 
     module Policies
       BLOCKED_MESSAGE =
-        "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree.\n"
+        "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
       CHANGE_WRITING_MESSAGE =
         "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
@@ -445,7 +445,8 @@ module AgentHooks
         def self.call(context)
           if context.program.commands.any? { |command|
                command.git_subcommand == "worktree" &&
-                 command.git_arguments.first == "add"
+                 command.git_arguments.first == "add" &&
+                 !other_repository_worktree?(context, command)
              }
             return Decision.new(status: 2, message: BLOCKED_MESSAGE)
           end
@@ -468,6 +469,8 @@ module AgentHooks
             if context.cwd == target || context.cwd.start_with?("#{target}/")
               next
             end
+            session = GitRepository.main_root(context.cwd)
+            next unless File.basename(session) == repository
 
             return(
               Decision.new(
@@ -479,6 +482,28 @@ module AgentHooks
           end
           nil
         end
+
+        def self.other_repository_worktree?(context, command)
+          directory = command.git_directory
+          return false unless directory
+
+          repository = expand(directory, context.home, context.cwd)
+          main_root = GitRepository.main_root(repository)
+          return false if main_root == GitRepository.main_root(context.cwd)
+
+          root = "#{context.home}/Code/worktrees/#{File.basename(main_root)}/"
+          command.git_arguments.any? do |argument|
+            path = expand(argument, context.home, repository)
+            path.start_with?(root) &&
+              %r{\A[^/]+\z}.match?(path[root.length, path.length])
+          end
+        end
+
+        def self.expand(path, home, cwd)
+          File.expand_path(path.sub(%r{\A(?:~|\$HOME)/}, "#{home}/"), cwd)
+        end
+
+        private_class_method :other_repository_worktree?, :expand
       end
 
       private_constant :BLOCKED_MESSAGE,

@@ -13,7 +13,7 @@ module GuardRunner
       [RbConfig.ruby, "--disable-gems", ROOT.join("bin/agent-guard").to_s]
     end.freeze
 
-  def run_guard(command = nil, cwd: "/tmp/repository", **extra)
+  def run_guard(command = nil, cwd: "/tmp/repository", home: HOME, **extra)
     tool_input = extra.delete(:tool_input) || { command: command }
     event = {
       hook_event_name: "PreToolUse",
@@ -23,7 +23,7 @@ module GuardRunner
 
     stdout, stderr, status =
       Open3.capture3(
-        { "HOME" => HOME, "RUBYOPT" => nil, "RUBYLIB" => nil },
+        { "HOME" => home, "RUBYOPT" => nil, "RUBYLIB" => nil },
         *GUARD,
         stdin_data: JSON.generate(event)
       )
