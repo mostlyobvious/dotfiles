@@ -64,6 +64,7 @@ Add only when present:
 - Keep descriptions concise; skip filler and dramatic framing.
 - For migrations, background jobs, permissions, and data shape changes, state what the diff hides: lock or run time, deploy order, rows left in the old shape, and callers that see different behaviour.
 - Link references inline where the text cites them.
+- Wrap values written as `YYYY-MM` or `YYYY-MM-DD`, such as API version `2026-10-21`, in inline code; GitLab otherwise links the `2026-10` prefix as an external issue. Write calendar dates in prose as 21 October 2026.
 - For upgraded dependencies, state each version change as `name old → new` and link its changelog or release/compare page.
 - Do not list the MR's commits.
 - Do not paste long changelog excerpts when a link and short summary are enough.
