@@ -25,8 +25,6 @@ module AgentHooks
         "BLOCKED: start worktree services with devenv up -d.\n"
       DEVENV_ROOT_MESSAGE =
         "BLOCKED: run devenv up -d from the worktree root.\n"
-      UNSUPPORTED_MESSAGE =
-        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
       SHELL_EDIT_REASON =
         "edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites."
       COAUTHOR_ATTRIBUTION =
@@ -85,9 +83,14 @@ module AgentHooks
 
       module UnsupportedShell
         def self.call(context)
-          return if context.program.supported
+          error = context.program.error
+          return unless error
 
-          Decision.new(status: 2, message: UNSUPPORTED_MESSAGE)
+          Decision.new(
+            status: 2,
+            message:
+              "BLOCKED: agent-guard cannot inspect this command: #{error}. Fix the syntax, or put it in a reviewed .sh file and run that file.\n"
+          )
         end
       end
 
@@ -515,7 +518,6 @@ module AgentHooks
                        :MR_SQUASH_MESSAGE,
                        :DEVENV_DETACH_MESSAGE,
                        :DEVENV_ROOT_MESSAGE,
-                       :UNSUPPORTED_MESSAGE,
                        :SHELL_EDIT_REASON,
                        :COAUTHOR_ATTRIBUTION,
                        :LINEAR_WRITE,

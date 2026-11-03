@@ -230,6 +230,7 @@
                   nativeBuildInputs = [
                     pkgs.git
                     pkgs.nodejs
+                    pkgs.shfmt
                     rubyEnv
                     rubyEnv.wrappedRuby
                   ];
@@ -273,6 +274,7 @@
               deadnix
               rubyEnv
               rubyEnv.wrappedRuby
+              shfmt
               (callPackage ./packages/spinel.nix { })
             ];
           };

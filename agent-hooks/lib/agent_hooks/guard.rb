@@ -14,7 +14,7 @@ module AgentHooks
         return 0, "", reminder(event)
       end
 
-      command = event.fetch("tool_input")["command"] || ""
+      command = event.fetch("tool_input")["command"]
       context =
         Context.new(
           event: event,
@@ -29,12 +29,10 @@ module AgentHooks
 
     def self.reminder(event)
       input = event.fetch("tool_input")
-      command = input["command"]
-      if command &&
-           ShellCommand
-             .parse(command)
-             .commands
-             .any? { |invocation| invocation.git_subcommand == "push" }
+      if ShellCommand
+           .parse(input["command"])
+           .commands
+           .any? { |invocation| invocation.git_subcommand == "push" }
         return reminder_output(MR_REMINDER)
       end
 

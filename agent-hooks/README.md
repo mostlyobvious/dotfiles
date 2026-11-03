@@ -69,20 +69,23 @@ builds and activates the packages through Home Manager.
    agent.
 
 [`guard/shell_command.rb`](lib/agent_hooks/guard/shell_command.rb) turns shell
-source into normalized command invocations. It accounts for quoting, command
-chains, `env`, leading variable assignments, and `git -C`. A single-level
-`$(...)` or backtick substitution is inspected as its own command and accepted
-in assignments and in arguments to commands no policy reads, such as
-`readlink -f $(which pi)`. Nested substitutions, substituted command names, and
-substitutions passed to `git`, `glab`, `gh`, `mr-describe`, `sed`, `perl`,
-`devenv`, `cd`, or a `.sh` script are rejected, because the guard cannot know
-the arguments those policies would check. A reviewed script is the escape
-hatch for syntax outside this inspectable subset.
+source into normalized command invocations. It parses with `shfmt --to-json`
+and walks the tree, so every simple command is found wherever it sits: in
+chains and pipelines, loops and conditionals, subshells, functions, heredocs,
+and inside `$(...)`, backtick and `<(...)` substitutions, which are inspected
+as commands of their own. Words keep quoting resolved, `$var` as a literal
+`$var`, and a substitution as the marker `$(...)`. `env`, leading variable
+assignments, and `git -C` are normalized away for policy checks. A command is
+rejected when shfmt cannot parse it, when its name comes from a substitution,
+or when a substitution feeds `git`, `glab`, `gh`, `mr-describe`, `sed`,
+`perl`, `devenv`, `cd`, or a `.sh` script, because the guard cannot know the
+arguments those policies would check. A reviewed script is the escape hatch.
 
 [`guard/policies.rb`](lib/agent_hooks/guard/policies.rb) keeps each rule
 independent while preserving policy order:
 
-1. reject unsupported shell syntax;
+1. reject commands the guard cannot inspect: unparseable syntax, substituted
+   command names, and substitutions fed to inspected commands;
 2. protect Git and merge-request operations; protected-branch pushes and
    commands that discard local work pass only when the user's latest message
    is exactly `go`;

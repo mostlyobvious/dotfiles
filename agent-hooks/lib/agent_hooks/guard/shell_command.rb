@@ -1,30 +1,21 @@
-require "shellwords"
+require "json"
+require "open3"
 
 module AgentHooks
   module Guard
     module ShellCommand
-      SEGMENT =
-        /
-        (?:
-          '(?:[^']*)'
-          | "(?:\\.|[^"])*"
-          | \\.
-          | [^;&|()\n]
-        )+
-      /x
-      DYNAMIC_COMMAND = /`|\$\(/
-      TOKEN = /('[^']*')|("(?:\\.|[^"\\])*"|\\.|[^'"\\]+|.)/m
-      SUBSTITUTION = /\$\(([^()`]*)\)|`([^`]*)`/
-      PLACEHOLDER = "__agent_guard_substitution__"
+      SHFMT = "shfmt"
       INSPECTED = %w[cd devenv gh git glab mr-describe perl sed].freeze
+      STATIC = %w[Lit SglQuoted DblQuoted ParamExp].freeze
+      MARKER = "$(...)"
 
-      Program = Struct.new(:commands, :supported, keyword_init: true)
+      Program = Struct.new(:commands, :error, keyword_init: true)
       Invocation =
-        Struct.new(:words, keyword_init: true) do
+        Struct.new(:words, :dynamic, keyword_init: true) do
           ASSIGNMENT = /\A[A-Za-z_][A-Za-z0-9_]*=/
 
           def argv
-            command_words
+            command_entries.map(&:first)
           end
 
           def executable
@@ -58,12 +49,27 @@ module AgentHooks
             options.last
           end
 
+          def dynamic?
+            dynamic.any?
+          end
+
+          def dynamic_executable?
+            command_entries.first&.last
+          end
+
+          def inspected?
+            name = executable.to_s
+            name.end_with?(".sh") || INSPECTED.include?(File.basename(name))
+          end
+
           private
 
-          def command_words
-            remaining = words.dup
-            remaining.shift if remaining.first == "env"
-            remaining.shift while ASSIGNMENT.match?(remaining.first)
+          def command_entries
+            remaining = words.zip(dynamic)
+            while (word = remaining.first&.first) &&
+                    (word == "env" || ASSIGNMENT.match?(word))
+              remaining.shift
+            end
             remaining
           end
 
@@ -77,59 +83,110 @@ module AgentHooks
         end
 
       def self.parse(source)
-        supported = true
-        substitutions = []
-        static =
-          source
-            .scan(TOKEN)
-            .map do |quoted, token|
-              next quoted if quoted
-
-              replaced =
-                token.gsub(SUBSTITUTION) do
-                  match = Regexp.last_match
-                  substitutions << (match[1] || match[2])
-                  PLACEHOLDER
-                end
-              supported = false if DYNAMIC_COMMAND.match?(replaced)
-              replaced
-            end
-            .join
-        commands =
-          static
-            .scan(SEGMENT)
-            .map do |segment|
-              words = Shellwords.shellsplit(segment)
-              Invocation.new(words: words)
-            rescue ArgumentError
-              supported = false
-            end
-        if commands.any? { |command|
-             command && substituted_inspection?(command)
-           }
-          supported = false
-        end
-        commands += substitutions.flat_map { |inner| parse(inner).commands }
-        Program.new(commands: commands, supported: supported)
-      end
-
-      def self.substituted_inspection?(command)
-        unless command.words.any? { |word| word.include?(PLACEHOLDER) }
-          return false
+        output, error, status =
+          Open3.capture3(SHFMT, "--to-json", stdin_data: source)
+        unless status.success?
+          return(
+            Program.new(
+              commands: [],
+              error: "the shell parser reports #{error.chomp}"
+            )
+          )
         end
 
-        executable = command.executable.to_s
-        executable.include?(PLACEHOLDER) || executable.end_with?(".sh") ||
-          INSPECTED.include?(File.basename(executable))
+        program(JSON.parse(output))
+      rescue SystemCallError => error
+        Program.new(
+          commands: [],
+          error: "the shell parser is unavailable (#{error})"
+        )
       end
 
-      private_class_method :substituted_inspection?
-      private_constant :SEGMENT,
-                       :DYNAMIC_COMMAND,
-                       :TOKEN,
-                       :SUBSTITUTION,
-                       :PLACEHOLDER,
+      def self.program(tree)
+        commands = []
+        collect(tree, commands)
+        Program.new(
+          commands: commands,
+          error: commands.filter_map { |command| reason(command) }.first
+        )
+      end
+
+      def self.collect(node, commands)
+        case node
+        when Hash
+          commands << invocation(node) if node["Type"] == "CallExpr"
+          node.each_value { |child| collect(child, commands) }
+        when Array
+          node.each { |child| collect(child, commands) }
+        end
+      end
+
+      def self.invocation(node)
+        parts =
+          Array(node["Assigns"]).map { |assign| assignment(assign) } +
+            Array(node["Args"]).map { |word| word.fetch("Parts") }
+        Invocation.new(
+          words: parts.map { |part| text(part) },
+          dynamic: parts.map { |part| dynamic?(part) }
+        )
+      end
+
+      def self.assignment(assign)
+        name = assign.fetch("Name").fetch("Value")
+        value = assign["Value"]
+        [{ "Type" => "Lit", "Value" => "#{name}=" }] +
+          Array(value && value.fetch("Parts"))
+      end
+
+      def self.text(parts)
+        parts
+          .map do |part|
+            case part.fetch("Type")
+            when "Lit"
+              part.fetch("Value").gsub(/\\(.)/, '\1')
+            when "SglQuoted"
+              part["Value"]
+            when "DblQuoted"
+              text(Array(part["Parts"]))
+            when "ParamExp"
+              "$#{part.fetch("Param").fetch("Value")}"
+            else
+              MARKER
+            end
+          end
+          .join
+      end
+
+      def self.dynamic?(node)
+        case node
+        when Hash
+          (node.key?("Type") && !STATIC.include?(node.fetch("Type"))) ||
+            dynamic?(node.values)
+        when Array
+          node.any? { |child| dynamic?(child) }
+        end
+      end
+
+      def self.reason(command)
+        return unless command.dynamic?
+        if command.dynamic_executable?
+          return "the command name comes from a substitution"
+        end
+        return unless command.inspected?
+
+        "#{File.basename(command.executable)} takes a value from a substitution"
+      end
+
+      private_class_method :collect,
+                           :invocation,
+                           :assignment,
+                           :text,
+                           :dynamic?,
+                           :reason
+      private_constant :SHFMT,
                        :INSPECTED,
+                       :STATIC,
+                       :MARKER,
                        :Program,
                        :Invocation
     end

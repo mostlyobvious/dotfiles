@@ -2,6 +2,7 @@
   lib,
   stdenv,
   callPackage,
+  shfmt,
 }:
 
 let
@@ -21,6 +22,11 @@ stdenv.mkDerivation {
   src = source;
 
   nativeBuildInputs = [ spinel ];
+
+  postPatch = ''
+    substituteInPlace lib/agent_hooks/guard/shell_command.rb \
+      --replace-fail 'SHFMT = "shfmt"' 'SHFMT = "${lib.getExe shfmt}"'
+  '';
 
   buildPhase = ''
     runHook preBuild

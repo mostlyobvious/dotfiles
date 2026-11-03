@@ -13,8 +13,6 @@ module AgentHooks
 
     ATTRIBUTION_MESSAGE =
       "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
-    UNSUPPORTED_MESSAGE =
-      "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
     CHANGE_WRITING_MESSAGE =
       "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
     MR_REMINDER =
@@ -1321,6 +1319,40 @@ module AgentHooks
       assert_equal [0, "", reminder(MR_REMINDER)], output
     end
 
+    def test_unparseable_push_returns_no_reminder
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "command" => "git push origin feature 'unfinished"
+            }
+          },
+          "/Users/agent"
+        )
+
+      assert_equal [0, "", nil], output
+    end
+
+    def test_missing_shell_parser_returns_no_reminder
+      path = ENV.fetch("PATH")
+      ENV["PATH"] = ""
+      output =
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "tool_input" => {
+              "command" => "git push origin feature"
+            }
+          },
+          "/Users/agent"
+        )
+
+      assert_equal [0, "", nil], output
+    ensure
+      ENV["PATH"] = path
+    end
+
     def test_review_reminder_is_returned_for_description_write
       output =
         Guard.run(
@@ -1467,7 +1499,13 @@ module AgentHooks
       "piped substitution" => "jq . $(ls -t /tmp | head -1)",
       "two substitutions" => "diff $(ls /a) $(ls /b)",
       "single-quoted backtick" => "rg 'a`b|$(c' lib",
-      "escaped substitution" => 'printf \$\(date\)'
+      "escaped substitution" => 'printf \$\(date\)',
+      "nested substitution" => "printf $(dirname $(pwd))",
+      "quoted inner command" => "printf $(git log --format='%h')",
+      "quotes inside a substitution" => "stree write $(find lib -name '*.rb')",
+      "comment after the command" => "git status # $(reboot)",
+      "loop that only reads" => "for f in a b; do printf $f; done",
+      "variable executable" => "$EDITOR file"
     }.each do |name, command|
       define_method("test_#{name.tr(" -", "__")}_is_allowed") do
         assert_equal [0, ""], call(command)
@@ -1475,18 +1513,76 @@ module AgentHooks
     end
 
     {
-      "git argument" => "git push origin $(git branch --show-current)",
-      "dynamic executable" => "$(which git) status",
-      "git by path" => "/usr/bin/git push origin $(pwd)",
-      "nested substitution" => "printf $(dirname $(pwd))",
-      "script argument" => "./publish.sh $(pwd)",
-      "environment-prefixed git" => "env REF=$(pwd) git status",
-      "unterminated substitution" => "printf $(date",
-      "quoted inner command" => "printf $(git log --format='%h')"
-    }.each do |name, command|
+      "git argument" => [
+        "git push origin $(git branch --show-current)",
+        "git takes a value from a substitution"
+      ],
+      "quoted git argument" => [
+        'git push origin "$(git branch --show-current)"',
+        "git takes a value from a substitution"
+      ],
+      "process substitution into git" => [
+        "git commit -F <(printf Subject)",
+        "git takes a value from a substitution"
+      ],
+      "dynamic executable" => [
+        "$(which git) status",
+        "the command name comes from a substitution"
+      ],
+      "git by path" => [
+        "/usr/bin/git push origin $(pwd)",
+        "git takes a value from a substitution"
+      ],
+      "script argument" => [
+        "./publish.sh $(pwd)",
+        "publish.sh takes a value from a substitution"
+      ],
+      "environment-prefixed git" => [
+        "env REF=$(pwd) git status",
+        "git takes a value from a substitution"
+      ],
+      "unterminated substitution" => [
+        "printf $(date",
+        "the shell parser reports 1:8: reached EOF without matching `$(` with `)`"
+      ],
+      "unclosed quote" => [
+        "printf 'unfinished",
+        "the shell parser reports 1:8: reached EOF without closing quote `'`"
+      ]
+    }.each do |name, (command, reason)|
       define_method("test_#{name.tr(" -", "__")}_cannot_be_inspected") do
-        assert_equal [2, UNSUPPORTED_MESSAGE], call(command)
+        assert_equal [2, cannot_inspect(reason)], call(command)
       end
+    end
+
+    def test_first_uninspectable_command_names_the_reason
+      assert_equal [
+                     2,
+                     cannot_inspect(
+                       "the command name comes from a substitution"
+                     )
+                   ],
+                   call("$(which git) status && git push $(x)")
+    end
+
+    def test_a_later_uninspectable_command_is_still_found
+      assert_equal [2, cannot_inspect("git takes a value from a substitution")],
+                   call("printf ok && git push $(x)")
+    end
+
+    def test_missing_shell_parser_blocks_every_command
+      path = ENV.fetch("PATH")
+      ENV["PATH"] = ""
+
+      assert_equal [
+                     2,
+                     cannot_inspect(
+                       "the shell parser is unavailable (No such file or directory - shfmt)"
+                     )
+                   ],
+                   call("printf ready")
+    ensure
+      ENV["PATH"] = path
     end
 
     def test_substituted_force_push_is_guarded
@@ -1498,8 +1594,18 @@ module AgentHooks
                    ),
                    call(command)
     end
-    def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
-      assert_equal [2, UNSUPPORTED_MESSAGE], call("printf 'unfinished")
+
+    def test_loop_body_is_inspected
+      assert_equal blocked,
+                   call("for r in a b; do git worktree add ../$r; done")
+    end
+
+    def test_heredoc_commit_message_still_needs_a_file
+      assert_equal [2, COMMIT_FILE_MESSAGE],
+                   call(
+                     "git commit -F - <<'EOF'\nSubject\nEOF\n",
+                     change_writing_applied: true
+                   )
     end
 
     def test_merge_request_description_file_requires_change_writing
@@ -1712,6 +1818,10 @@ module AgentHooks
 
     def blocked
       [2, WORKTREE_MESSAGE]
+    end
+
+    def cannot_inspect(reason)
+      "BLOCKED: agent-guard cannot inspect this command: #{reason}. Fix the syntax, or put it in a reviewed .sh file and run that file.\n"
     end
 
     def policy_blocked(command, reason)
