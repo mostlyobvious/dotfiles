@@ -107,6 +107,10 @@
         from = "local";
         path = "review-wewut";
       };
+      statistics-pitfalls = {
+        from = "local";
+        path = "statistics-pitfalls";
+      };
       worktree-cleanup = {
         from = "local";
         path = "worktree-cleanup";
