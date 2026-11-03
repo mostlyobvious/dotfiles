@@ -373,6 +373,39 @@ module AgentHooks
       end
     end
 
+    def test_go_survives_assistant_replies_and_unreadable_lines
+      Dir.mktmpdir do |directory|
+        transcript =
+          conversation(
+            directory,
+            "go",
+            [:assistant, "pushing now"],
+            [:meta, "skill instructions"],
+            :unreadable
+          )
+
+        assert_equal [0, ""],
+                     call("git push origin main", transcript_path: transcript)
+      end
+    end
+
+    def test_transcript_without_a_typed_message_blocks_a_push_to_main
+      Dir.mktmpdir do |directory|
+        transcript = conversation(directory, :tool_result)
+        command = "git push origin main"
+
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, transcript_path: transcript)
+      end
+    end
+
+    def test_go_still_guards_a_force_push_after_a_discard
+      command = "git restore . && git push --force origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."),
+                   call(command, last_user_text: "go")
+    end
+
     def test_go_from_an_earlier_message_does_not_allow_a_push_to_main
       Dir.mktmpdir do |directory|
         transcript = conversation(directory, "go", "now push main")
@@ -1474,35 +1507,50 @@ module AgentHooks
     end
 
     def conversation(directory, *messages)
-      records =
+      lines =
         messages.map do |message|
           case message
           in String
-            { type: "user", message: { role: "user", content: message } }
+            JSON.generate(
+              { type: "user", message: { role: "user", content: message } }
+            )
           in :tool_result
-            {
-              type: "user",
-              message: {
-                role: "user",
-                content: [{ type: "tool_result", content: "ok" }]
+            JSON.generate(
+              {
+                type: "user",
+                message: {
+                  role: "user",
+                  content: [{ type: "tool_result", content: "ok" }]
+                }
               }
-            }
+            )
           in [:meta, text]
-            {
-              type: "user",
-              isMeta: true,
-              message: {
-                role: "user",
-                content: [{ type: "text", text: text }]
+            JSON.generate(
+              {
+                type: "user",
+                isMeta: true,
+                message: {
+                  role: "user",
+                  content: text
+                }
               }
-            }
+            )
+          in [:assistant, text]
+            JSON.generate(
+              {
+                type: "assistant",
+                message: {
+                  role: "assistant",
+                  content: text
+                }
+              }
+            )
+          in :unreadable
+            "{"
           end
         end
       path = "#{directory}/conversation.jsonl"
-      File.write(
-        path,
-        records.map { |record| JSON.generate(record) }.join("\n")
-      )
+      File.write(path, lines.join("\n"))
       path
     end
 
