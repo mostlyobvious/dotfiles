@@ -13,7 +13,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Artifact|mcp__claude_ai_Linear__.*|mcp__claude_ai_Slack__.*",
+        "matcher": "Bash|Artifact|mcp__claude_ai_Linear__.*",
         "hooks": [
           {
             "type": "command",

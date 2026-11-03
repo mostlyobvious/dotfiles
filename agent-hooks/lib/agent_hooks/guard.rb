@@ -1,6 +1,5 @@
 require_relative "guard/shell_command"
 require_relative "guard/git_repository"
-require_relative "guard/approval"
 require_relative "guard/policies"
 
 module AgentHooks

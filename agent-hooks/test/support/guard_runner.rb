@@ -17,7 +17,6 @@ module GuardRunner
     tool_input = extra.delete(:tool_input) || { command: command }
     event = {
       hook_event_name: "PreToolUse",
-      tool_name: "Bash",
       tool_input: tool_input,
       cwd: cwd
     }.merge(extra)

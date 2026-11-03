@@ -9,32 +9,8 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { worktreeEventForToolResult } from "./lib/agent-worktree-events.mjs";
 
 const changeWritingSkillPath = /(^|\/)skills\/change-writing\/SKILL\.md$/;
+const linearToolName = /^mcp__.*linear__/i;
 const mergeRequestDescriptionPath = /(^|\/)[^/]*(?:desc|description)[^/]*\.md$/i;
-const sharedToolName = /^mcp__.*(?:linear|slack)__/i;
-
-function approvalMessages(ctx: any) {
-	return ctx.sessionManager.getBranch().flatMap((entry: any) => {
-		if (entry.type !== "message") return [];
-		const role = entry.message.role;
-		const content = entry.message.content;
-		if (typeof content === "string") return [{ role, text: content }];
-		if (!Array.isArray(content)) return [];
-
-		const messages: Array<Record<string, unknown>> = [];
-		for (const item of content) {
-			if (item.type === "text") messages.push({ role, text: item.text });
-			if (item.type === "toolCall" || item.type === "tool_use") {
-				messages.push({
-					role,
-					tool_name: item.name,
-					tool_input: item.arguments ?? item.input,
-				});
-			}
-			if (item.type === "tool_result") messages.push({ role: "result" });
-		}
-		return messages;
-	});
-}
 
 function run(executable: string, event: Record<string, unknown>) {
 	return spawnSync(executable, [], {
@@ -62,8 +38,8 @@ export default function (pi: ExtensionAPI) {
 		}
 		let toolInput: Record<string, unknown>;
 		if (isToolCallEventType("bash", event)) {
-			toolInput = event.input as Record<string, unknown>;
-		} else if (sharedToolName.test(event.toolName)) {
+			toolInput = { command: event.input.command };
+		} else if (linearToolName.test(event.toolName)) {
 			toolInput = event.input as Record<string, unknown>;
 		} else {
 			return;
@@ -75,7 +51,6 @@ export default function (pi: ExtensionAPI) {
 			tool_input: toolInput,
 			cwd: ctx.cwd,
 			change_writing_applied: changeWritingApplied,
-			approval_messages: approvalMessages(ctx),
 		});
 		if (result.status === 0) return;
 

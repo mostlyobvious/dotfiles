@@ -1,4 +1,5 @@
 require "fileutils"
+require "json"
 require "minitest/autorun"
 require "mutant/minitest/coverage"
 require "tmpdir"
@@ -29,8 +30,6 @@ module AgentHooks
     DEVENV_DETACH_MESSAGE =
       "BLOCKED: start worktree services with devenv up -d.\n"
     DEVENV_ROOT_MESSAGE = "BLOCKED: run devenv up -d from the worktree root.\n"
-    APPROVAL_MESSAGE =
-      "BLOCKED: present exactly one shared-system write in one Approval JSON envelope, then wait for a one-use exact 'go'.\n"
 
     def test_direct_worktree_creation_is_blocked
       assert_equal blocked, call("git worktree add ../feature")
@@ -486,7 +485,7 @@ module AgentHooks
         transcript =
           change_writing_transcript(directory, :applied, %w[Write notes.md])
 
-        assert_equal [2, APPROVAL_MESSAGE],
+        assert_equal [0, ""],
                      call(
                        "mr-describe 42 mr-description.md",
                        transcript_path: transcript
@@ -503,7 +502,7 @@ module AgentHooks
             %w[Read mr-description.md]
           )
 
-        assert_equal [2, APPROVAL_MESSAGE],
+        assert_equal [0, ""],
                      call(
                        "mr-describe 42 mr-description.md",
                        transcript_path: transcript
@@ -517,7 +516,7 @@ module AgentHooks
         transcript =
           change_writing_transcript(directory, ["Edit", description], :applied)
 
-        assert_equal [2, APPROVAL_MESSAGE],
+        assert_equal [0, ""],
                      call(
                        "mr-describe 42 #{description}",
                        transcript_path: transcript
@@ -534,14 +533,6 @@ module AgentHooks
                    artifact(file_path: "/tmp/report.html")
     end
 
-    def test_artifact_default_action_requires_approval_after_change_writing
-      assert_equal [2, APPROVAL_MESSAGE],
-                   artifact(
-                     file_path: "/tmp/report.html",
-                     change_writing_applied: true
-                   )
-    end
-
     def test_artifact_read_is_allowed_without_change_writing
       assert_equal [0, ""], artifact(action: "read")
     end
@@ -550,39 +541,9 @@ module AgentHooks
       assert_equal [0, ""], artifact(tool_name: "Other", action: "publish")
     end
 
-    def test_applied_change_writing_still_requires_artifact_approval
-      assert_equal [2, APPROVAL_MESSAGE],
+    def test_applied_change_writing_allows_artifact_publish
+      assert_equal [0, ""],
                    artifact(action: "publish", change_writing_applied: true)
-    end
-
-    def test_go_allows_the_exact_artifact_publication_once
-      Dir.mktmpdir do |directory|
-        path = "#{directory}/report.html"
-        content = "<h1>Report</h1>\n"
-        File.write(path, content)
-        input = { action: "publish", file_path: path }
-        files = { path => content }
-
-        assert_equal [0, ""],
-                     artifact(
-                       **input,
-                       change_writing_applied: true,
-                       approval_messages:
-                         approval_messages("Artifact", input, files: files)
-                     )
-        assert_equal [2, APPROVAL_MESSAGE],
-                     artifact(
-                       **input,
-                       change_writing_applied: true,
-                       approval_messages:
-                         approval_messages(
-                           "Artifact",
-                           input,
-                           files: files,
-                           used: true
-                         )
-                     )
-      end
     end
 
     def test_transcript_with_change_writing_allows_artifact_publish
@@ -590,99 +551,12 @@ module AgentHooks
         transcript = "#{directory}/transcript"
         File.write(transcript, "# Change Writing\n")
 
-        input = { action: "publish" }
         assert_equal [0, ""],
                      guarded_tool(
                        "Artifact",
-                       input,
-                       transcript_path: transcript,
-                       approval_messages: approval_messages("Artifact", input)
+                       { action: "publish" },
+                       transcript_path: transcript
                      )
-      end
-    end
-
-    def test_pi_transcript_supplies_exact_approval
-      Dir.mktmpdir do |directory|
-        path = "#{directory}/transcript.jsonl"
-        input = { action: "publish" }
-        records = [
-          {
-            type: "message",
-            message: {
-              role: "assistant",
-              content: [{ type: "text", text: "# Change Writing" }]
-            }
-          },
-          {
-            type: "message",
-            message: {
-              role: "assistant",
-              content: [
-                { type: "text", text: approval_text("Artifact", input) }
-              ]
-            }
-          },
-          { type: "message", message: { role: "user", content: "go" } }
-        ]
-        File.write(
-          path,
-          records.map { |record| JSON.generate(record) }.join("\n")
-        )
-
-        assert_equal [0, ""], artifact(**input, transcript_path: path)
-      end
-    end
-
-    def test_claude_transcript_consumes_approval_after_a_tool_result
-      Dir.mktmpdir do |directory|
-        path = "#{directory}/transcript.jsonl"
-        input = { action: "publish" }
-        records = [
-          {
-            type: "assistant",
-            message: {
-              role: "assistant",
-              content: [
-                { type: "text", text: "# Change Writing" },
-                { type: "text", text: approval_text("Artifact", input) }
-              ]
-            }
-          },
-          {
-            type: "user",
-            message: {
-              role: "user",
-              content: [{ type: "text", text: "go" }]
-            }
-          },
-          {
-            type: "assistant",
-            message: {
-              role: "assistant",
-              content: [
-                {
-                  type: "tool_use",
-                  name: "Artifact",
-                  input: input.transform_keys(&:to_s)
-                }
-              ]
-            }
-          },
-          {
-            type: "user",
-            message: {
-              role: "user",
-              content: [{ type: "tool_result" }]
-            }
-          }
-        ]
-        File.write(
-          path,
-          records.map { |record| JSON.generate(record) }.join("\n")
-        )
-
-        assert_equal [2, APPROVAL_MESSAGE],
-                     artifact(**input, transcript_path: path)
       end
     end
 
@@ -726,8 +600,8 @@ module AgentHooks
                    )
     end
 
-    def test_linear_metadata_update_requires_approval
-      assert_equal [2, APPROVAL_MESSAGE],
+    def test_linear_metadata_update_does_not_require_change_writing
+      assert_equal [0, ""],
                    guarded_tool(
                      "mcp__claude_ai_Linear__save_issue",
                      { id: "APP-123", assignee: "me" }
@@ -750,176 +624,13 @@ module AgentHooks
                    )
     end
 
-    def test_applied_change_writing_still_requires_linear_approval
-      assert_equal [2, APPROVAL_MESSAGE],
+    def test_applied_change_writing_allows_linear_publication
+      assert_equal [0, ""],
                    guarded_tool(
                      "mcp__linear__save_document",
                      { content: "Decision" },
                      change_writing_applied: true
                    )
-    end
-
-    def test_go_allows_the_exact_linear_write
-      tool = "mcp__linear__save_document"
-      input = { content: "Decision" }
-      assert_equal [0, ""],
-                   guarded_tool(
-                     tool,
-                     input,
-                     change_writing_applied: true,
-                     approval_messages: approval_messages(tool, input)
-                   )
-    end
-
-    def test_go_does_not_allow_changed_linear_content
-      tool = "mcp__linear__save_document"
-      approved = { content: "Decision" }
-      assert_equal [2, APPROVAL_MESSAGE],
-                   guarded_tool(
-                     tool,
-                     { content: "Changed decision" },
-                     change_writing_applied: true,
-                     approval_messages: approval_messages(tool, approved)
-                   )
-    end
-
-    def test_current_matching_tool_call_can_appear_in_approval_history
-      tool = "mcp__linear__save_document"
-      input = { content: "Decision" }
-      assert_equal [0, ""],
-                   guarded_tool(
-                     tool,
-                     input,
-                     change_writing_applied: true,
-                     approval_messages:
-                       approval_messages(tool, input, current: true)
-                   )
-    end
-
-    def test_approval_requires_lowercase_go
-      tool = "mcp__linear__save_document"
-      input = { content: "Decision" }
-      messages = approval_messages(tool, input)
-      messages.last["text"] = "Go"
-
-      assert_equal [2, APPROVAL_MESSAGE],
-                   guarded_tool(
-                     tool,
-                     input,
-                     change_writing_applied: true,
-                     approval_messages: messages
-                   )
-    end
-
-    def test_approval_requires_the_named_json_envelope
-      tool = "mcp__linear__save_document"
-      input = { content: "Decision" }
-      messages = approval_messages(tool, input)
-      messages.first["text"] = JSON.generate(
-        tool_name: tool,
-        tool_input: input,
-        files: {
-        }
-      )
-
-      assert_equal [2, APPROVAL_MESSAGE],
-                   guarded_tool(
-                     tool,
-                     input,
-                     change_writing_applied: true,
-                     approval_messages: messages
-                   )
-    end
-
-    def test_one_go_does_not_approve_batched_envelopes
-      tool = "mcp__linear__save_document"
-      input = { content: "First decision" }
-      messages = approval_messages(tool, input)
-      messages.first["text"] = [
-        approval_text(tool, input),
-        approval_text(tool, { content: "Second decision" })
-      ].join("\n\n")
-
-      assert_equal [2, APPROVAL_MESSAGE],
-                   guarded_tool(
-                     tool,
-                     input,
-                     change_writing_applied: true,
-                     approval_messages: messages
-                   )
-    end
-
-    def test_assistant_go_does_not_grant_approval
-      tool = "mcp__linear__save_document"
-      input = { content: "Decision" }
-      messages = approval_messages(tool, input)
-      messages.last["role"] = "assistant"
-
-      assert_equal [2, APPROVAL_MESSAGE],
-                   guarded_tool(
-                     tool,
-                     input,
-                     change_writing_applied: true,
-                     approval_messages: messages
-                   )
-    end
-
-    def test_slack_write_requires_approval_but_read_does_not
-      assert_equal [2, APPROVAL_MESSAGE],
-                   guarded_tool("mcp__Slack__send_message", { text: "Ready" })
-      assert_equal [0, ""], guarded_tool("mcp__Slack__list_channels", {})
-    end
-
-    def test_approval_rejects_changed_local_files
-      Dir.mktmpdir do |directory|
-        path = "#{directory}/publish.sh"
-        File.write(path, "glab mr create --squash-before-merge=false\n")
-        command = "./publish.sh"
-        approved =
-          approval_messages(
-            "Bash",
-            { command: command },
-            files: {
-              path => "glab mr create\n"
-            }
-          )
-
-        assert_equal [2, APPROVAL_MESSAGE],
-                     call(
-                       command,
-                       cwd: directory,
-                       change_writing_applied: true,
-                       approval_messages: approved
-                     )
-      end
-    end
-
-    def test_approval_rejects_changed_hash_bound_files
-      Dir.mktmpdir do |directory|
-        path = "#{directory}/publish.sh"
-        original = "glab mr create --squash-before-merge=false\n"
-        File.write(path, original)
-        command = "./publish.sh"
-        approved =
-          approval_messages(
-            "Bash",
-            { command: command },
-            files: {
-              path => {
-                "sha256" => Digest::SHA256.hexdigest(original)
-              }
-            }
-          )
-        File.write(path, "glab mr create\n")
-
-        assert_equal [2, APPROVAL_MESSAGE],
-                     call(
-                       command,
-                       cwd: directory,
-                       change_writing_applied: true,
-                       approval_messages: approved
-                     )
-      end
     end
 
     def test_worktree_devenv_starts_detached
@@ -1005,32 +716,19 @@ module AgentHooks
       end
     end
 
-    def test_gitlab_writes_require_approval
-      [
-        "glab mr create --squash-before-merge=false",
-        "glab mr update 123",
-        "mr-describe 123 description.md"
-      ].each do |command|
-        assert_equal [2, APPROVAL_MESSAGE],
-                     call(command, change_writing_applied: true)
-      end
+    def test_gitlab_merge_request_creation_runs_from_a_script
+      assert_equal [2, MR_SCRIPT_MESSAGE],
+                   call(
+                     "glab mr create --squash-before-merge=false",
+                     change_writing_applied: true
+                   )
     end
 
-    def test_other_glab_actions_do_not_require_approval
-      assert_equal [0, ""], call("glab issue update 123")
-      assert_equal [0, ""], call("glab mr view 123")
-      assert_equal [0, ""], call("tool mr create")
-    end
-
-    def test_gitlab_merge_request_script_requires_approval
+    def test_gitlab_merge_request_script_disables_squash
       Dir.mktmpdir do |directory|
-        path = "#{directory}/publish.sh"
-        File.write(
-          path,
-          "printf ready\nglab mr create --squash-before-merge=false\n"
-        )
+        File.write("#{directory}/publish.sh", "glab mr create\n")
 
-        assert_equal [2, APPROVAL_MESSAGE],
+        assert_equal [2, MR_SQUASH_MESSAGE],
                      call(
                        "./publish.sh",
                        cwd: directory,
@@ -1039,47 +737,17 @@ module AgentHooks
       end
     end
 
-    def test_gitlab_merge_request_creation_runs_from_a_script
-      assert_equal [2, MR_SCRIPT_MESSAGE],
-                   approved_call(
-                     "glab mr create --squash-before-merge=false",
-                     change_writing_applied: true
-                   )
-    end
-
-    def test_gitlab_merge_request_script_disables_squash
-      Dir.mktmpdir do |directory|
-        script = "glab mr create\n"
-        path = "#{directory}/publish.sh"
-        File.write(path, script)
-
-        assert_equal [2, MR_SQUASH_MESSAGE],
-                     approved_call(
-                       "./publish.sh",
-                       cwd: directory,
-                       files: {
-                         path => script
-                       },
-                       change_writing_applied: true
-                     )
-      end
-    end
-
     def test_gitlab_merge_request_script_with_squash_disabled_is_allowed
       Dir.mktmpdir do |directory|
-        script = "glab mr create --squash-before-merge=false\n"
-        path = "#{directory}/publish.sh"
-        File.write(path, script)
+        File.write(
+          "#{directory}/publish.sh",
+          "glab mr create --squash-before-merge=false\n"
+        )
 
         assert_equal [0, ""],
-                     approved_call(
+                     call(
                        "./publish.sh",
                        cwd: directory,
-                       files: {
-                         path => {
-                           "sha256" => Digest::SHA256.hexdigest(script)
-                         }
-                       },
                        change_writing_applied: true
                      )
       end
@@ -1087,17 +755,12 @@ module AgentHooks
 
     def test_gitlab_merge_request_script_after_another_command_is_guarded
       Dir.mktmpdir do |directory|
-        script = "glab mr create\n"
-        path = "#{directory}/publish.sh"
-        File.write(path, script)
+        File.write("#{directory}/publish.sh", "glab mr create\n")
 
         assert_equal [2, MR_SQUASH_MESSAGE],
-                     approved_call(
+                     call(
                        "printf ready && ./publish.sh",
                        cwd: directory,
-                       files: {
-                         path => script
-                       },
                        change_writing_applied: true
                      )
       end
@@ -1105,17 +768,12 @@ module AgentHooks
 
     def test_missing_script_does_not_hide_a_later_merge_request_script
       Dir.mktmpdir do |directory|
-        script = "glab mr create\n"
-        path = "#{directory}/publish.sh"
-        File.write(path, script)
+        File.write("#{directory}/publish.sh", "glab mr create\n")
 
         assert_equal [2, MR_SQUASH_MESSAGE],
-                     approved_call(
+                     call(
                        "./missing.sh && ./publish.sh",
                        cwd: directory,
-                       files: {
-                         path => script
-                       },
                        change_writing_applied: true
                      )
       end
@@ -1617,7 +1275,6 @@ module AgentHooks
         Guard.run(
           {
             "hook_event_name" => "PreToolUse",
-            "tool_name" => "Bash",
             "tool_input" => {
               "command" => "cd ~/Code/worktrees/backend/feature"
             },
@@ -1670,15 +1327,13 @@ module AgentHooks
       tool_name: "Artifact",
       change_writing_applied: false,
       transcript_path: nil,
-      approval_messages: nil,
       **tool_input
     )
       guarded_tool(
         tool_name,
         tool_input,
         change_writing_applied: change_writing_applied,
-        transcript_path: transcript_path,
-        approval_messages: approval_messages
+        transcript_path: transcript_path
       )
     end
 
@@ -1686,8 +1341,7 @@ module AgentHooks
       tool_name,
       tool_input,
       change_writing_applied: false,
-      transcript_path: nil,
-      approval_messages: nil
+      transcript_path: nil
     )
       status, message, =
         Guard.run(
@@ -1697,70 +1351,11 @@ module AgentHooks
             "tool_input" => tool_input.transform_keys(&:to_s),
             "cwd" => "/tmp",
             "change_writing_applied" => change_writing_applied,
-            "transcript_path" => transcript_path,
-            "approval_messages" => approval_messages
+            "transcript_path" => transcript_path
           },
           "/Users/agent"
         )
       [status, message]
-    end
-
-    def change_writing_transcript(directory, *events)
-      records =
-        events.map do |event|
-          if event == :applied
-            { message: { content: "# Change Writing" } }
-          else
-            name, path = event
-            {
-              message: {
-                content: [
-                  { type: "tool_use", name: name, input: { file_path: path } }
-                ]
-              }
-            }
-          end
-        end
-      path = "#{directory}/transcript.jsonl"
-      File.write(
-        path,
-        records.map { |record| JSON.generate(record) }.join("\n")
-      )
-      path
-    end
-
-    def approval_messages(
-      tool_name,
-      tool_input,
-      files: {},
-      current: false,
-      used: false
-    )
-      messages = [
-        {
-          "role" => "assistant",
-          "text" => approval_text(tool_name, tool_input, files: files)
-        },
-        { "role" => "user", "text" => "go" }
-      ]
-      if current || used
-        messages << {
-          "role" => "assistant",
-          "tool_name" => tool_name,
-          "tool_input" => tool_input.transform_keys(&:to_s)
-        }
-      end
-      messages << { "role" => "result" } if used
-      messages
-    end
-
-    def approval_text(tool_name, tool_input, files: {})
-      envelope = {
-        tool_name: tool_name,
-        tool_input: tool_input.transform_keys(&:to_s),
-        files: files
-      }
-      "Approval:\n```json\n#{JSON.generate(envelope)}\n```"
     end
 
     def with_repository(name, branch:)
@@ -1832,17 +1427,11 @@ module AgentHooks
       ]
     end
 
-    def approved_call(command, files: {}, **event)
-      approved = approval_messages("Bash", { command: command }, files: files)
-      call(command, approval_messages: approved, **event)
-    end
-
     def call(command, cwd: "/tmp/repository", home: "/Users/agent", **event)
       status, message, =
         Guard.run(
           {
             "hook_event_name" => "PreToolUse",
-            "tool_name" => "Bash",
             "tool_input" => {
               "command" => command
             },
@@ -1851,6 +1440,30 @@ module AgentHooks
           home
         )
       [status, message]
+    end
+
+    def change_writing_transcript(directory, *events)
+      records =
+        events.map do |event|
+          if event == :applied
+            { message: { content: "# Change Writing" } }
+          else
+            name, path = event
+            {
+              message: {
+                content: [
+                  { type: "tool_use", name: name, input: { file_path: path } }
+                ]
+              }
+            }
+          end
+        end
+      path = "#{directory}/transcript.jsonl"
+      File.write(
+        path,
+        records.map { |record| JSON.generate(record) }.join("\n")
+      )
+      path
     end
   end
 end
