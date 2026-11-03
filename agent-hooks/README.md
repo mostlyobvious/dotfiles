@@ -172,9 +172,11 @@ test environment.
 Before a shared-system write, the agent presents an `Approval:` JSON envelope
 containing the exact tool name and tool input. Local files use compact
 `{ "sha256": "<digest>" }` values, so the envelope binds their exact contents
-without repeating long descriptions. The guard accepts only an exact lowercase
-`go`, compares the next call and file digests with that envelope, and rejects
-reuse after a tool result. Claude Code supplies its transcript path; pi passes
+without repeating long descriptions. Each assistant message may contain only
+one envelope, so one `go` cannot ambiguously cover a batch. The guard accepts
+only an exact lowercase `go`, compares the next call and file digests with that
+envelope, and rejects reuse after a tool result. Claude Code supplies its
+transcript path; pi passes
 the active session branch in the same normalized shape.
 
 ### Decisions stay separate from effects

@@ -87,7 +87,11 @@ module AgentHooks
     end
 
     def self.envelope(text)
-      _, marker, payload = text.to_s.partition("Approval:\n```json\n")
+      source = text.to_s
+      marker_text = "Approval:\n```json\n"
+      return unless source.scan(marker_text).one?
+
+      _, marker, payload = source.partition(marker_text)
       return if marker.empty?
 
       json, closing, = payload.partition("\n```")

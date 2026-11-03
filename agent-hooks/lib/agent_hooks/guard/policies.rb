@@ -26,7 +26,7 @@ module AgentHooks
       DEVENV_ROOT_MESSAGE =
         "BLOCKED: run devenv up -d from the worktree root.\n"
       APPROVAL_MESSAGE =
-        "BLOCKED: present the exact shared-system write in an Approval JSON envelope, then wait for a one-use exact 'go'.\n"
+        "BLOCKED: present exactly one shared-system write in one Approval JSON envelope, then wait for a one-use exact 'go'.\n"
       UNSUPPORTED_MESSAGE =
         "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
       SHELL_EDIT_REASON =

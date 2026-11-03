@@ -30,7 +30,7 @@ module AgentHooks
       "BLOCKED: start worktree services with devenv up -d.\n"
     DEVENV_ROOT_MESSAGE = "BLOCKED: run devenv up -d from the worktree root.\n"
     APPROVAL_MESSAGE =
-      "BLOCKED: present the exact shared-system write in an Approval JSON envelope, then wait for a one-use exact 'go'.\n"
+      "BLOCKED: present exactly one shared-system write in one Approval JSON envelope, then wait for a one-use exact 'go'.\n"
 
     def test_direct_worktree_creation_is_blocked
       assert_equal blocked, call("git worktree add ../feature")
@@ -821,6 +821,24 @@ module AgentHooks
         files: {
         }
       )
+
+      assert_equal [2, APPROVAL_MESSAGE],
+                   guarded_tool(
+                     tool,
+                     input,
+                     change_writing_applied: true,
+                     approval_messages: messages
+                   )
+    end
+
+    def test_one_go_does_not_approve_batched_envelopes
+      tool = "mcp__linear__save_document"
+      input = { content: "First decision" }
+      messages = approval_messages(tool, input)
+      messages.first["text"] = [
+        approval_text(tool, input),
+        approval_text(tool, { content: "Second decision" })
+      ].join("\n\n")
 
       assert_equal [2, APPROVAL_MESSAGE],
                    guarded_tool(

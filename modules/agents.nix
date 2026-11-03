@@ -52,7 +52,7 @@ let
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
     - Draft only the posts I asked for; do not offer drafts for other systems on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
-    - Before a GitLab, Linear, Slack, or Artifact write, present the exact destination and content. If the content was already presented and remains unchanged, do not repeat it. Then include an `Approval:` fenced JSON object with the exact `tool_name`, `tool_input`, and a `files` object mapping every local file that affects the write to `{ "sha256": "<digest>" }`. Wait for exact `go`; it authorizes only the next matching tool call.
+    - Before a GitLab, Linear, Slack, or Artifact write, present the exact destination and content. If the content was already presented and remains unchanged, do not repeat it. Then include one `Approval:` fenced JSON object with the exact `tool_name`, `tool_input`, and a `files` object mapping every local file that affects the write to `{ "sha256": "<digest>" }`. Present only one approval at a time. Wait for exact `go`, run the matching write, and only then present another approval.
     - Run each write to a shared system as its own tool call, after the call that builds its input has succeeded and shown the input.
 
     ## Writing to me
