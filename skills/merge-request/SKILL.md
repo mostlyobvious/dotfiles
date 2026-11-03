@@ -35,16 +35,16 @@ Linear: BE-123. Stacked on !6943; review that first.
 - Choices the diff doesn't explain and effects outside the repository.
 ```
 
-Write the opening line only for a stack, or for a ticket the user named for this MR. Headings are statements a reviewer could disagree with, not topics.
+Write the opening line only for a stack, or for a ticket the user named for this MR. When the description has four or more sections, put one or two sentences before the first heading, after any routing line: the outcome, then the decision or risk the reviewer should weigh first. Skip them when the first heading already states both. Headings are statements a reviewer could disagree with, not topics.
 
 Add only when present:
 
 ```markdown
-## Verification
+## <What the checks showed, e.g. "Replaying last week's webhooks charges each order once">
 
 - Manual verification or checks CI does not run, without test counts.
 
-## Benchmarks
+## <The measured result, e.g. "Request time drops from 350 ms to 40 ms">
 
 | Metric | Before | After | Method |
 | --- | ---: | ---: | --- |
@@ -59,6 +59,7 @@ Add only when present:
 - Spend the most words on decisions that are expensive to undo after merge: data shape, protocols, dependencies, permissions, security controls. Skip choices a follow-up of a few hours could change.
 - State a hard-to-undo consequence, a deploy dependency, or expected work left out in one sentence where it applies.
 - The headings plus the first bullet of each section should tell the whole change to someone skimming.
+- Treat a heading as a context reset: name the subject in the first sentence or bullet instead of starting with `it`, `this`, or `they`.
 - For UI changes, add a screenshot where the change is obvious without zooming, or a GIF under 15 seconds.
 - Keep descriptions concise; skip filler and dramatic framing.
 - For migrations, background jobs, permissions, and data shape changes, state what the diff hides: lock or run time, deploy order, rows left in the old shape, and callers that see different behaviour.
@@ -67,3 +68,4 @@ Add only when present:
 - Do not list the MR's commits.
 - Do not paste long changelog excerpts when a link and short summary are enough.
 - Do not include names or sensitive details from private threads unless the user asks.
+- Put each sentence's subject and verb within its first few words, and rewrite noun stacks such as `retry handling configuration` as a verb phrase.
