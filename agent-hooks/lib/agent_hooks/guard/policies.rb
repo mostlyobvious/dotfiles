@@ -64,21 +64,22 @@ module AgentHooks
       end
 
       def self.go?(event)
-        return event["last_user_text"] == "go" if event.key?("last_user_text")
+        if event.key?("last_user_text")
+          return event.fetch("last_user_text") == "go"
+        end
 
         path = event["transcript_path"].to_s
         return false unless File.file?(path)
 
         File
-          .readlines(path, chomp: true)
+          .readlines(path)
           .reverse_each do |line|
             record = JSON.parse(line)
-            next unless record["type"] == "user" && !record["isMeta"]
+            next unless record.fetch("type") == "user" && !record.key?("isMeta")
 
-            content = record.dig("message", "content")
-            return content == "go" if content.is_a?(String)
+            content = record.fetch("message").fetch("content")
+            return content == "go" if content.instance_of?(String)
           rescue JSON::ParserError
-            next
           end
         false
       end
