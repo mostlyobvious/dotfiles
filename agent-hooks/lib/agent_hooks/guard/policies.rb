@@ -8,7 +8,7 @@ module AgentHooks
       BLOCKED_MESSAGE =
         "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree.\n"
       CHANGE_WRITING_MESSAGE =
-        "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n"
+        "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
       LINEAR_PROSE_KEYS = %w[body content description summary title].freeze
       ATTRIBUTION_MESSAGE =
@@ -243,6 +243,8 @@ module AgentHooks
                 true
               in ["gh", "pr", "create" | "edit", *]
                 true
+              in ["mr-describe", _, _, *]
+                true
               else
                 false
               end
@@ -283,9 +285,20 @@ module AgentHooks
           return if context.event["change_writing_applied"]
 
           transcript = context.event["transcript_path"]
-          if transcript && File.file?(transcript) &&
-               File.read(transcript).include?("# Change Writing")
-            return
+          if transcript && File.file?(transcript)
+            lines = File.readlines(transcript)
+            applied = lines.rindex { |line| line.include?("# Change Writing") }
+            command =
+              context.program.commands.find do |candidate|
+                candidate.executable == "mr-describe"
+              end
+            file = (command ? command.arguments.fetch(1) : "mr-description.md")
+            edited =
+              lines.rindex do |line|
+                line.match?(/"name":"(?:Edit|Write)"/) &&
+                  line.include?(%Q{"file_path":#{JSON.generate(file)}})
+              end
+            return if applied && (!edited || applied > edited)
           end
 
           Decision.new(status: 2, message: CHANGE_WRITING_MESSAGE)

@@ -1,3 +1,4 @@
+require "digest"
 require "json"
 
 module AgentHooks
@@ -98,7 +99,15 @@ module AgentHooks
     end
 
     def self.files_match?(files)
-      files.all? { |path, content| File.read(path) == content }
+      files.all? do |path, expected|
+        if expected.is_a?(Hash) && expected.keys == ["sha256"]
+          Digest::SHA256.file(path).hexdigest == expected.fetch("sha256")
+        elsif expected.is_a?(String)
+          File.read(path) == expected
+        else
+          false
+        end
+      end
     rescue SystemCallError
       false
     end

@@ -9,6 +9,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { worktreeEventForToolResult } from "./lib/agent-worktree-events.mjs";
 
 const changeWritingSkillPath = /(^|\/)skills\/change-writing\/SKILL\.md$/;
+const mergeRequestDescriptionPath = /(^|\/)[^/]*(?:desc|description)[^/]*\.md$/i;
 const sharedToolName = /^mcp__.*(?:linear|slack)__/i;
 
 function approvalMessages(ctx: any) {
@@ -99,6 +100,9 @@ export default function (pi: ExtensionAPI) {
 			run("agent-worktree", worktreeEventForToolResult({ tool: "other", sessionId }));
 			if (isWriteToolResult(event) || isEditToolResult(event)) {
 				toolInput = { path: event.input.path };
+				if (mergeRequestDescriptionPath.test(event.input.path)) {
+					changeWritingApplied = false;
+				}
 			} else {
 				return;
 			}

@@ -4,6 +4,9 @@ require_relative "support/guard_runner"
 class AgentGuardPolicyTest < Minitest::Test
   include GuardRunner
 
+  CHANGE_WRITING_MESSAGE =
+    "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
+
   def test_sed_in_place_edit_is_blocked
     command = "sed -i '' 's/old/new/' file"
 
@@ -32,10 +35,7 @@ class AgentGuardPolicyTest < Minitest::Test
   end
 
   def test_commit_requires_change_writing
-    assert_message(
-      "git commit -F /tmp/message",
-      "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n"
-    )
+    assert_message("git commit -F /tmp/message", CHANGE_WRITING_MESSAGE)
   end
 
   def test_artifact_publish_requires_change_writing
@@ -51,8 +51,7 @@ class AgentGuardPolicyTest < Minitest::Test
 
     assert_equal 2, result[:status]
     assert_equal "", result[:stdout]
-    assert_equal "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n",
-                 result[:stderr]
+    assert_equal CHANGE_WRITING_MESSAGE, result[:stderr]
   end
 
   def test_linear_description_requires_change_writing
@@ -68,8 +67,7 @@ class AgentGuardPolicyTest < Minitest::Test
 
     assert_equal 2, result[:status]
     assert_equal "", result[:stdout]
-    assert_equal "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n",
-                 result[:stderr]
+    assert_equal CHANGE_WRITING_MESSAGE, result[:stderr]
   end
 
   def test_claude_coauthor_is_blocked

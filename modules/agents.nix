@@ -40,7 +40,7 @@ let
     - For non-trivial design or implementation, compare removal, simplification or reuse, and addition. Reject options that miss the requirement, then choose the smallest remaining interface.
     - Keep config files free of keys whose value equals the tool's built-in default, unless the key pins a value against an upstream change; record that intent in the commit message, not an inline comment unless the file would be misleading without it.
     - Look in git history and commit messages for past rationale, and record current rationale there rather than in comments.
-    - Use the commit skill for commits, the merge-request skill for opening or updating MRs/PRs, and the change-writing skill for technical docs, changelogs, release notes, commit bodies, MR descriptions, or reviewer-facing summaries.
+    - Use the commit skill for commits and the merge-request skill for opening or updating MRs/PRs. Run every MR description through the change-writing skill after its final edit. Use change-writing for technical docs, changelogs, release notes, commit bodies, and reviewer-facing summaries too.
     - Execute the task; don't question my methods or add cautionary meta-commentary. Warn only when you can name what breaks and under what condition — once, then stop.
     - Avoid jargon when explaining how things work; prefer plain language, and specifically avoid the words "load-bearing" and "genuinely".
     - Do what I asked and no more. Answer the question I asked, not a neighbouring one; when I ask to propose, explain, or review, change nothing; leave settings, versions, and files I did not name as they are.
@@ -52,7 +52,7 @@ let
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
     - Draft only the posts I asked for; do not offer drafts for other systems on your own.
     - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
-    - Before a GitLab, Linear, Slack, or Artifact write, present the exact destination and content, then include an `Approval:` fenced JSON object with the exact `tool_name`, `tool_input`, and a `files` object containing every local file whose contents affect the write. Wait for exact `go`; it authorizes only the next matching tool call.
+    - Before a GitLab, Linear, Slack, or Artifact write, present the exact destination and content. If the content was already presented and remains unchanged, do not repeat it. Then include an `Approval:` fenced JSON object with the exact `tool_name`, `tool_input`, and a `files` object mapping every local file that affects the write to `{ "sha256": "<digest>" }`. Wait for exact `go`; it authorizes only the next matching tool call.
     - Run each write to a shared system as its own tool call, after the call that builds its input has succeeded and shown the input.
 
     ## Writing to me

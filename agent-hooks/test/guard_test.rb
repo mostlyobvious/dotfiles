@@ -11,7 +11,7 @@ module AgentHooks
     ATTRIBUTION_MESSAGE =
       "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
     CHANGE_WRITING_MESSAGE =
-      "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first.\n"
+      "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
     REVIEW_REMINDER =
@@ -428,6 +428,103 @@ module AgentHooks
                    call("gh pr create --title ready")
     end
 
+    def test_merge_request_description_update_requires_change_writing
+      assert_equal [2, CHANGE_WRITING_MESSAGE],
+                   call("mr-describe 42 /tmp/mr-description.md")
+    end
+
+    def test_change_writing_before_the_latest_description_write_is_stale
+      Dir.mktmpdir do |directory|
+        description = "#{directory}/mr-description.md"
+        transcript =
+          change_writing_transcript(directory, :applied, ["Write", description])
+
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call(
+                       "printf ready && mr-describe 42 #{description} && printf done",
+                       transcript_path: transcript
+                     )
+      end
+    end
+
+    def test_change_writing_before_a_standard_description_write_is_stale
+      Dir.mktmpdir do |directory|
+        transcript =
+          change_writing_transcript(
+            directory,
+            :applied,
+            %w[Write mr-description.md]
+          )
+
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call(
+                       "gh pr create --title Ready",
+                       transcript_path: transcript
+                     )
+      end
+    end
+
+    def test_change_writing_before_the_latest_description_edit_is_stale
+      Dir.mktmpdir do |directory|
+        transcript =
+          change_writing_transcript(
+            directory,
+            :applied,
+            %w[Edit mr-description.md]
+          )
+
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call(
+                       "mr-describe 42 mr-description.md",
+                       transcript_path: transcript
+                     )
+      end
+    end
+
+    def test_other_file_edits_do_not_stale_change_writing
+      Dir.mktmpdir do |directory|
+        transcript =
+          change_writing_transcript(directory, :applied, %w[Write notes.md])
+
+        assert_equal [2, APPROVAL_MESSAGE],
+                     call(
+                       "mr-describe 42 mr-description.md",
+                       transcript_path: transcript
+                     )
+      end
+    end
+
+    def test_description_reads_do_not_stale_change_writing
+      Dir.mktmpdir do |directory|
+        transcript =
+          change_writing_transcript(
+            directory,
+            :applied,
+            %w[Read mr-description.md]
+          )
+
+        assert_equal [2, APPROVAL_MESSAGE],
+                     call(
+                       "mr-describe 42 mr-description.md",
+                       transcript_path: transcript
+                     )
+      end
+    end
+
+    def test_change_writing_after_the_latest_description_edit_is_current
+      Dir.mktmpdir do |directory|
+        description = "#{directory}/mr-description.md"
+        transcript =
+          change_writing_transcript(directory, ["Edit", description], :applied)
+
+        assert_equal [2, APPROVAL_MESSAGE],
+                     call(
+                       "mr-describe 42 #{description}",
+                       transcript_path: transcript
+                     )
+      end
+    end
+
     def test_artifact_publish_requires_change_writing
       assert_equal [2, CHANGE_WRITING_MESSAGE], artifact(action: "publish")
     end
@@ -779,6 +876,34 @@ module AgentHooks
       end
     end
 
+    def test_approval_rejects_changed_hash_bound_files
+      Dir.mktmpdir do |directory|
+        path = "#{directory}/publish.sh"
+        original = "glab mr create --squash-before-merge=false\n"
+        File.write(path, original)
+        command = "./publish.sh"
+        approved =
+          approval_messages(
+            "Bash",
+            { command: command },
+            files: {
+              path => {
+                "sha256" => Digest::SHA256.hexdigest(original)
+              }
+            }
+          )
+        File.write(path, "glab mr create\n")
+
+        assert_equal [2, APPROVAL_MESSAGE],
+                     call(
+                       command,
+                       cwd: directory,
+                       change_writing_applied: true,
+                       approval_messages: approved
+                     )
+      end
+    end
+
     def test_worktree_devenv_starts_detached
       with_worktree do |root, home|
         assert_equal [2, DEVENV_DETACH_MESSAGE],
@@ -933,7 +1058,9 @@ module AgentHooks
                        "./publish.sh",
                        cwd: directory,
                        files: {
-                         path => script
+                         path => {
+                           "sha256" => Digest::SHA256.hexdigest(script)
+                         }
                        },
                        change_writing_applied: true
                      )
@@ -1558,6 +1685,30 @@ module AgentHooks
           "/Users/agent"
         )
       [status, message]
+    end
+
+    def change_writing_transcript(directory, *events)
+      records =
+        events.map do |event|
+          if event == :applied
+            { message: { content: "# Change Writing" } }
+          else
+            name, path = event
+            {
+              message: {
+                content: [
+                  { type: "tool_use", name: name, input: { file_path: path } }
+                ]
+              }
+            }
+          end
+        end
+      path = "#{directory}/transcript.jsonl"
+      File.write(
+        path,
+        records.map { |record| JSON.generate(record) }.join("\n")
+      )
+      path
     end
 
     def approval_messages(
