@@ -4,7 +4,7 @@ require_relative "../lib/agent_hooks/guard"
 
 module AgentHooks
   class ShellCommandTest < Minitest::Test
-    cover "AgentHooks::Guard*"
+    cover "AgentHooks::Guard::ShellCommand*"
 
     ShellCommand = Guard.const_get(:ShellCommand)
 
@@ -81,6 +81,26 @@ module AgentHooks
 
       assert_equal [%w[git status], %w[true], %w[sed -n 1p x]],
                    program.commands.map(&:words)
+    end
+
+    def test_parse_error_yields_no_commands
+      program = parse("printf 'x")
+
+      assert_equal [], program.commands
+      assert_equal "the shell parser reports 1:8: reached EOF without closing quote `'`",
+                   program.error
+    end
+
+    def test_missing_parser_yields_no_commands
+      path = ENV.fetch("PATH")
+      ENV["PATH"] = ""
+      program = parse("printf x")
+
+      assert_equal [], program.commands
+      assert_equal "the shell parser is unavailable (No such file or directory - shfmt)",
+                   program.error
+    ensure
+      ENV["PATH"] = path
     end
 
     private
