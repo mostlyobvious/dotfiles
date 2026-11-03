@@ -70,10 +70,14 @@ builds and activates the packages through Home Manager.
 
 [`guard/shell_command.rb`](lib/agent_hooks/guard/shell_command.rb) turns shell
 source into normalized command invocations. It accounts for quoting, command
-chains, `env`, leading variable assignments, and `git -C`. Dynamic command
-construction with backticks or `$(...)` is rejected because the guard cannot
-reliably know which command the shell will execute. A reviewed script is the escape hatch for syntax outside
-this inspectable subset.
+chains, `env`, leading variable assignments, and `git -C`. A single-level
+`$(...)` or backtick substitution is inspected as its own command and accepted
+in assignments and in arguments to commands no policy reads, such as
+`readlink -f $(which pi)`. Nested substitutions, substituted command names, and
+substitutions passed to `git`, `glab`, `gh`, `mr-describe`, `sed`, `perl`,
+`devenv`, `cd`, or a `.sh` script are rejected, because the guard cannot know
+the arguments those policies would check. A reviewed script is the escape
+hatch for syntax outside this inspectable subset.
 
 [`guard/policies.rb`](lib/agent_hooks/guard/policies.rb) keeps each rule
 independent while preserving policy order:

@@ -11,6 +11,8 @@ module AgentHooks
 
     ATTRIBUTION_MESSAGE =
       "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
+    UNSUPPORTED_MESSAGE =
+      "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
     CHANGE_WRITING_MESSAGE =
       "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
     MR_REMINDER =
@@ -1274,20 +1276,43 @@ module AgentHooks
       assert_equal [0, ""], call("printf 'git reset --hard'")
     end
 
-    def test_dynamic_shell_command_is_blocked_when_it_cannot_be_inspected
-      command = 'printf "$(date)"'
-      message =
-        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
-
-      assert_equal [2, message], call(command)
+    {
+      "quoted substitution" => 'printf "$(date)"',
+      "substitution argument" => "readlink -f $(which pi)",
+      "backtick argument" => "ls `pwd`",
+      "assigned substitution" => "latest=$(ls -t /tmp)",
+      "piped substitution" => "jq . $(ls -t /tmp | head -1)",
+      "two substitutions" => "diff $(ls /a) $(ls /b)",
+      "single-quoted backtick" => "rg 'a`b|$(c' lib",
+      "escaped substitution" => 'printf \$\(date\)'
+    }.each do |name, command|
+      define_method("test_#{name.tr(" -", "__")}_is_allowed") do
+        assert_equal [0, ""], call(command)
+      end
     end
 
-    def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
-      command = "printf 'unfinished"
-      message =
-        "BLOCKED: agent-guard cannot inspect this shell syntax safely. Split it into static commands, or put it in a reviewed .sh file and run that file.\n"
+    {
+      "git argument" => "git push origin $(git branch --show-current)",
+      "dynamic executable" => "$(which git) status",
+      "git by path" => "/usr/bin/git push origin $(pwd)",
+      "nested substitution" => "printf $(dirname $(pwd))",
+      "script argument" => "./publish.sh $(pwd)",
+      "environment-prefixed git" => "env REF=$(pwd) git status",
+      "unterminated substitution" => "printf $(date",
+      "quoted inner command" => "printf $(git log --format='%h')"
+    }.each do |name, command|
+      define_method("test_#{name.tr(" -", "__")}_cannot_be_inspected") do
+        assert_equal [2, UNSUPPORTED_MESSAGE], call(command)
+      end
+    end
 
-      assert_equal [2, message], call(command)
+    def test_substituted_force_push_is_guarded
+      command = "printf $(git push --force origin feature)"
+
+      assert_equal policy_blocked(command, "is a force push."), call(command)
+    end
+    def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
+      assert_equal [2, UNSUPPORTED_MESSAGE], call("printf 'unfinished")
     end
 
     def test_merge_request_description_file_requires_change_writing

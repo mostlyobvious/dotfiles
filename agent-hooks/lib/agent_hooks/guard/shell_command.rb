@@ -13,6 +13,10 @@ module AgentHooks
         )+
       /x
       DYNAMIC_COMMAND = /`|\$\(/
+      TOKEN = /('[^']*')|("(?:\\.|[^"\\])*"|\\.|[^'"\\]+|.)/m
+      SUBSTITUTION = /\$\(([^()`]*)\)|`([^`]*)`/
+      PLACEHOLDER = "__agent_guard_substitution__"
+      INSPECTED = %w[cd devenv gh git glab mr-describe perl sed].freeze
 
       Program = Struct.new(:commands, :supported, keyword_init: true)
       Invocation =
@@ -66,9 +70,26 @@ module AgentHooks
         end
 
       def self.parse(source)
-        supported = !DYNAMIC_COMMAND.match?(source)
-        commands =
+        supported = true
+        substitutions = []
+        static =
           source
+            .scan(TOKEN)
+            .map do |quoted, token|
+              next quoted if quoted
+
+              replaced =
+                token.gsub(SUBSTITUTION) do
+                  match = Regexp.last_match
+                  substitutions << (match[1] || match[2])
+                  PLACEHOLDER
+                end
+              supported = false if DYNAMIC_COMMAND.match?(replaced)
+              replaced
+            end
+            .join
+        commands =
+          static
             .scan(SEGMENT)
             .map do |segment|
               words = Shellwords.shellsplit(segment)
@@ -76,10 +97,34 @@ module AgentHooks
             rescue ArgumentError
               supported = false
             end
+        if commands.any? { |command|
+             command && substituted_inspection?(command)
+           }
+          supported = false
+        end
+        commands += substitutions.flat_map { |inner| parse(inner).commands }
         Program.new(commands: commands, supported: supported)
       end
 
-      private_constant :SEGMENT, :DYNAMIC_COMMAND, :Program, :Invocation
+      def self.substituted_inspection?(command)
+        unless command.words.any? { |word| word.include?(PLACEHOLDER) }
+          return false
+        end
+
+        executable = command.executable.to_s
+        executable.include?(PLACEHOLDER) || executable.end_with?(".sh") ||
+          INSPECTED.include?(File.basename(executable))
+      end
+
+      private_class_method :substituted_inspection?
+      private_constant :SEGMENT,
+                       :DYNAMIC_COMMAND,
+                       :TOKEN,
+                       :SUBSTITUTION,
+                       :PLACEHOLDER,
+                       :INSPECTED,
+                       :Program,
+                       :Invocation
     end
     private_constant :ShellCommand
   end
