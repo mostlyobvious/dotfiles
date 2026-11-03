@@ -48,8 +48,7 @@ module AgentHooks
       def self.blocked(context, reason)
         Decision.new(
           status: 2,
-          message:
-            "BLOCKED: '#{context.command}' #{reason} The user has prevented you from doing this.\n"
+          message: "BLOCKED: '#{context.command}' #{reason}\n"
         )
       end
 
@@ -106,7 +105,7 @@ module AgentHooks
                 return(
                   Policies.blocked(
                     context,
-                    "adds a worktree to dotfiles, which is edited in its main checkout."
+                    "adds a worktree to dotfiles. Edit dotfiles in its main checkout instead."
                   )
                 )
               end
@@ -133,7 +132,7 @@ module AgentHooks
               return(
                 Policies.blocked(
                   context,
-                  "skips commit hooks with --no-verify."
+                  "skips commit hooks with --no-verify. Fix what the hooks report, then commit again."
                 )
               )
             end
@@ -142,7 +141,12 @@ module AgentHooks
               if command.git_arguments.any? { |argument|
                    argument == "--force" || argument.match?(/\A-[^-]*f/)
                  }
-                return Policies.blocked(context, "is a force push.")
+                return(
+                  Policies.blocked(
+                    context,
+                    "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                  )
+                )
               end
               target =
                 command

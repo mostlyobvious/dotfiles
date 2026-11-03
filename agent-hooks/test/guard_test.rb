@@ -256,7 +256,7 @@ module AgentHooks
     def test_dotfiles_worktree_from_main_checkout_is_blocked
       command = "git worktree add ../feature"
       reason =
-        "adds a worktree to dotfiles, which is edited in its main checkout."
+        "adds a worktree to dotfiles. Edit dotfiles in its main checkout instead."
 
       assert_equal policy_blocked(command, reason),
                    call(command, cwd: "/Users/agent/Code/dotfiles")
@@ -266,7 +266,7 @@ module AgentHooks
       command =
         "git -C ~/Code/backend/backend worktree add ~/Code/dotfiles/feature"
       reason =
-        "adds a worktree to dotfiles, which is edited in its main checkout."
+        "adds a worktree to dotfiles. Edit dotfiles in its main checkout instead."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
@@ -306,37 +306,61 @@ module AgentHooks
     def test_plain_force_push_is_blocked
       command = "git push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
 
     def test_force_push_after_an_unspaced_pipe_is_blocked
       command = "printf ready|git push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
 
     def test_environment_prefixed_force_push_is_blocked
       command = "env GIT_TRACE=1 git push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
 
     def test_force_push_with_a_quoted_repository_path_is_blocked
       command = "git -C '/tmp/repository path' push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
 
     def test_short_force_push_is_blocked
       command = "git push -f origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
 
     def test_combined_short_force_push_is_blocked
       command = "git push -vf origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
 
     def test_force_with_lease_is_allowed
@@ -404,7 +428,10 @@ module AgentHooks
     def test_go_still_guards_a_force_push_after_a_discard
       command = "git restore . && git push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."),
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
                    call(command, last_user_text: "go")
     end
 
@@ -434,14 +461,20 @@ module AgentHooks
     def test_go_does_not_allow_a_force_push
       command = "git push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."),
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
                    call(command, last_user_text: "go")
     end
 
     def test_go_still_guards_later_commands_in_a_chain
       command = "git push origin main && git push --force origin feature"
 
-      assert_equal policy_blocked(command, "is a force push."),
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
                    call(command, last_user_text: "go")
     end
 
@@ -876,7 +909,8 @@ module AgentHooks
 
     def test_commit_cannot_skip_hooks
       command = "git commit --no-verify -F /tmp/message"
-      reason = "skips commit hooks with --no-verify."
+      reason =
+        "skips commit hooks with --no-verify. Fix what the hooks report, then commit again."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
@@ -1186,7 +1220,7 @@ module AgentHooks
     def test_dotfiles_worktree_under_worktrees_directory_is_blocked
       command = "git worktree add ~/worktrees/dotfiles/feature"
       reason =
-        "adds a worktree to dotfiles, which is edited in its main checkout."
+        "adds a worktree to dotfiles. Edit dotfiles in its main checkout instead."
 
       assert_equal policy_blocked(command, reason), call(command)
     end
@@ -1194,7 +1228,7 @@ module AgentHooks
     def test_dotfiles_worktree_from_subdirectory_is_blocked
       command = "git worktree add ../feature"
       reason =
-        "adds a worktree to dotfiles, which is edited in its main checkout."
+        "adds a worktree to dotfiles. Edit dotfiles in its main checkout instead."
 
       assert_equal policy_blocked(command, reason),
                    call(command, cwd: "/Users/agent/Code/dotfiles/modules")
@@ -1309,7 +1343,11 @@ module AgentHooks
     def test_substituted_force_push_is_guarded
       command = "printf $(git push --force origin feature)"
 
-      assert_equal policy_blocked(command, "is a force push."), call(command)
+      assert_equal policy_blocked(
+                     command,
+                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
+                   ),
+                   call(command)
     end
     def test_unclosed_quote_is_blocked_when_it_cannot_be_inspected
       assert_equal [2, UNSUPPORTED_MESSAGE], call("printf 'unfinished")
@@ -1518,10 +1556,7 @@ module AgentHooks
     end
 
     def policy_blocked(command, reason)
-      [
-        2,
-        "BLOCKED: '#{command}' #{reason} The user has prevented you from doing this.\n"
-      ]
+      [2, "BLOCKED: '#{command}' #{reason}\n"]
     end
 
     def needs_go(command, reason)

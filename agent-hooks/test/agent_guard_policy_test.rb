@@ -30,7 +30,7 @@ class AgentGuardPolicyTest < Minitest::Test
   def test_plain_force_push_is_blocked
     assert_message(
       "git push --force origin feature",
-      "BLOCKED: 'git push --force origin feature' is a force push. The user has prevented you from doing this.\n"
+      "BLOCKED: 'git push --force origin feature' is a force push. Use --force-with-lease after an amend or rebase on a feature branch.\n"
     )
   end
 
