@@ -57,6 +57,8 @@ let
 
     ## Writing to me
 
+    Apply these to answers, reports, summaries, and explanations; keep progress notes to one plain sentence.
+
     - Answer first. The opening sentence states the result, decision, or answer; supporting detail follows in falling order of importance.
     - For status updates: state, then blockers, then next step. No chronological narration of what you did.
     - Introduce one new concept at a time. Define a term before its first use; never use it first and explain after.
@@ -104,7 +106,7 @@ let
 
     ## Working method
 
-    - Commit local changes without asking when the staged scope is clean and the message follows the commit skill. Push the current feature branch without asking when the push is non-force and does not target `main` or `master`.
+    - Commit local changes without asking when the staged scope is clean and the message follows the commit skill. Push the current feature branch without asking when the push is non-force and does not target `main` or `master`. Ask for exact `go` before pushing `main` or `master` or discarding uncommitted changes, then run the command right after it.
     - Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
     - Before proposing a split or merge order across repositories, check the other repository for an existing draft first.
     - When starting work in a repository without `devenv.nix`, create the smallest `devenv.nix` that supports the current problem before changing application code. Add tools and services only when the current problem requires them.
