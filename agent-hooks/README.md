@@ -79,7 +79,9 @@ this inspectable subset.
 independent while preserving policy order:
 
 1. reject unsupported shell syntax;
-2. protect Git and merge-request operations, including protected-branch pushes;
+2. protect Git and merge-request operations; protected-branch pushes and
+   commands that discard local work pass only when the user's latest message
+   is exactly `go`;
 3. require GitLab MR creation through a script with squash disabled;
 4. reject in-place shell edits;
 5. require the change-writing skill before commits, MR/PR publication,

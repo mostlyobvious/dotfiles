@@ -53,6 +53,36 @@ module AgentHooks
         )
       end
 
+      def self.unless_go(context, reason)
+        return if go?(context.event)
+
+        Decision.new(
+          status: 2,
+          message:
+            "BLOCKED: '#{context.command}' #{reason} Ask the user for exact 'go', then retry unchanged.\n"
+        )
+      end
+
+      def self.go?(event)
+        return event["last_user_text"] == "go" if event.key?("last_user_text")
+
+        path = event["transcript_path"].to_s
+        return false unless File.file?(path)
+
+        File
+          .readlines(path, chomp: true)
+          .reverse_each do |line|
+            record = JSON.parse(line)
+            next unless record["type"] == "user" && !record["isMeta"]
+
+            content = record.dig("message", "content")
+            return content == "go" if content.is_a?(String)
+          rescue JSON::ParserError
+            next
+          end
+        false
+      end
+
       module UnsupportedShell
         def self.call(context)
           return if context.program.supported
@@ -119,17 +149,19 @@ module AgentHooks
                   .filter_map { |argument| protected_branch(argument) }
                   .first
               repository = GitRepository.current(context.cwd)
-              if target && !chattermill_main?(repository, target)
-                return Policies.blocked(context, "pushes a protected branch.")
-              end
               ref =
                 command
                   .git_arguments
                   .reject { |argument| argument.start_with?("-") }
                   .at(1)
-              if !ref && protected_branch(repository.branch) &&
-                   !chattermill_main?(repository, repository.branch)
-                return Policies.blocked(context, "pushes a protected branch.")
+              if (target && !chattermill_main?(repository, target)) ||
+                   (
+                     !ref && protected_branch(repository.branch) &&
+                       !chattermill_main?(repository, repository.branch)
+                   )
+                decision =
+                  Policies.unless_go(context, "pushes a protected branch.")
+                return decision if decision
               end
             end
 
@@ -157,13 +189,12 @@ module AgentHooks
               .each_cons(2)
               .any? { |left, right| left == "reset" && right == "--hard" }
             if label
-              return(
-                Decision.new(
-                  status: 2,
-                  message:
-                    "BLOCKED: '#{context.command}' matches dangerous pattern '#{label}'. The user has prevented you from doing this.\n"
+              decision =
+                Policies.unless_go(
+                  context,
+                  "matches dangerous pattern '#{label}'."
                 )
-              )
+              return decision if decision
             end
           end
           nil

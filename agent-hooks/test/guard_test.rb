@@ -344,15 +344,70 @@ module AgentHooks
     def test_push_to_main_is_blocked
       command = "git push origin HEAD:main"
 
-      assert_equal policy_blocked(command, "pushes a protected branch."),
+      assert_equal needs_go(command, "pushes a protected branch."),
                    call(command)
     end
 
     def test_push_of_local_main_is_blocked
       command = "git push origin main"
 
-      assert_equal policy_blocked(command, "pushes a protected branch."),
+      assert_equal needs_go(command, "pushes a protected branch."),
                    call(command)
+    end
+
+    def test_push_to_main_after_go_is_allowed
+      Dir.mktmpdir do |directory|
+        transcript = conversation(directory, "push it", "go", :tool_result)
+
+        assert_equal [0, ""],
+                     call("git push origin main", transcript_path: transcript)
+      end
+    end
+
+    def test_restore_all_after_go_is_allowed
+      Dir.mktmpdir do |directory|
+        transcript =
+          conversation(directory, "go", [:meta, "skill instructions"])
+
+        assert_equal [0, ""], call("git restore .", transcript_path: transcript)
+      end
+    end
+
+    def test_go_from_an_earlier_message_does_not_allow_a_push_to_main
+      Dir.mktmpdir do |directory|
+        transcript = conversation(directory, "go", "now push main")
+        command = "git push origin main"
+
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, transcript_path: transcript)
+      end
+    end
+
+    def test_go_from_pi_allows_a_hard_reset
+      assert_equal [0, ""],
+                   call("git reset --hard origin/main", last_user_text: "go")
+    end
+
+    def test_other_pi_message_does_not_allow_a_hard_reset
+      command = "git reset --hard origin/main"
+      expected =
+        "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. Ask the user for exact 'go', then retry unchanged.\n"
+
+      assert_equal [2, expected], call(command, last_user_text: "go ahead")
+    end
+
+    def test_go_does_not_allow_a_force_push
+      command = "git push --force origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."),
+                   call(command, last_user_text: "go")
+    end
+
+    def test_go_still_guards_later_commands_in_a_chain
+      command = "git push origin main && git push --force origin feature"
+
+      assert_equal policy_blocked(command, "is a force push."),
+                   call(command, last_user_text: "go")
     end
 
     def test_branch_ending_in_main_is_allowed
@@ -397,7 +452,7 @@ module AgentHooks
     }.each do |name, (command, pattern)|
       define_method("test_#{name.tr(" ", "_")}_is_blocked") do
         expected =
-          "BLOCKED: '#{command}' matches dangerous pattern '#{pattern}'. The user has prevented you from doing this.\n"
+          "BLOCKED: '#{command}' matches dangerous pattern '#{pattern}'. Ask the user for exact 'go', then retry unchanged.\n"
 
         assert_equal [2, expected], call(command)
       end
@@ -406,7 +461,7 @@ module AgentHooks
     def test_clean_with_other_arguments_is_blocked
       command = "git clean -fd ignored"
       expected =
-        "BLOCKED: '#{command}' matches dangerous pattern 'git clean -fd'. The user has prevented you from doing this.\n"
+        "BLOCKED: '#{command}' matches dangerous pattern 'git clean -fd'. Ask the user for exact 'go', then retry unchanged.\n"
 
       assert_equal [2, expected], call(command)
     end
@@ -1112,7 +1167,7 @@ module AgentHooks
 
     def test_plain_push_from_main_is_blocked
       with_repository("backend", branch: "main") do |root, home|
-        assert_equal policy_blocked("git push", "pushes a protected branch."),
+        assert_equal needs_go("git push", "pushes a protected branch."),
                      call("git push", cwd: root, home: home)
       end
     end
@@ -1139,11 +1194,11 @@ module AgentHooks
     def test_main_branch_cannot_push_implicitly_to_an_explicit_remote
       with_repository("backend", branch: "main") do |root, home|
         command = "git push origin"
-        assert_equal policy_blocked(command, "pushes a protected branch."),
+        assert_equal needs_go(command, "pushes a protected branch."),
                      call(command, cwd: root, home: home)
 
         command = "git push --porcelain origin"
-        assert_equal policy_blocked(command, "pushes a protected branch."),
+        assert_equal needs_go(command, "pushes a protected branch."),
                      call(command, cwd: root, home: home)
       end
     end
@@ -1158,7 +1213,7 @@ module AgentHooks
 
     def test_chattermill_does_not_push_master
       with_repository("chattermill", branch: "master") do |root, home|
-        assert_equal policy_blocked(
+        assert_equal needs_go(
                        "git push origin master",
                        "pushes a protected branch."
                      ),
@@ -1169,7 +1224,7 @@ module AgentHooks
     def test_push_to_master_ref_is_blocked
       command = "git push origin HEAD:refs/heads/master"
 
-      assert_equal policy_blocked(command, "pushes a protected branch."),
+      assert_equal needs_go(command, "pushes a protected branch."),
                    call(command)
     end
 
@@ -1177,7 +1232,7 @@ module AgentHooks
       command = "git push origin feature && git reset --hard"
 
       expected =
-        "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. The user has prevented you from doing this.\n"
+        "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. Ask the user for exact 'go', then retry unchanged.\n"
 
       assert_equal [2, expected], call(command)
     end
@@ -1409,6 +1464,46 @@ module AgentHooks
         2,
         "BLOCKED: '#{command}' #{reason} The user has prevented you from doing this.\n"
       ]
+    end
+
+    def needs_go(command, reason)
+      [
+        2,
+        "BLOCKED: '#{command}' #{reason} Ask the user for exact 'go', then retry unchanged.\n"
+      ]
+    end
+
+    def conversation(directory, *messages)
+      records =
+        messages.map do |message|
+          case message
+          in String
+            { type: "user", message: { role: "user", content: message } }
+          in :tool_result
+            {
+              type: "user",
+              message: {
+                role: "user",
+                content: [{ type: "tool_result", content: "ok" }]
+              }
+            }
+          in [:meta, text]
+            {
+              type: "user",
+              isMeta: true,
+              message: {
+                role: "user",
+                content: [{ type: "text", text: text }]
+              }
+            }
+          end
+        end
+      path = "#{directory}/conversation.jsonl"
+      File.write(
+        path,
+        records.map { |record| JSON.generate(record) }.join("\n")
+      )
+      path
     end
 
     def reminder(message)

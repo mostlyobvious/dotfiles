@@ -21,10 +21,12 @@ function run(executable: string, event: Record<string, unknown>) {
 
 export default function (pi: ExtensionAPI) {
 	let changeWritingApplied = false;
+	let lastUserText = "";
 	const sessionId = `pi-${process.pid}`;
 
-	pi.on("before_agent_start", () => {
+	pi.on("before_agent_start", (event) => {
 		changeWritingApplied = false;
+		lastUserText = event.prompt;
 		run("agent-worktree", {
 			hook_event_name: "Heartbeat",
 			session_id: sessionId,
@@ -51,6 +53,7 @@ export default function (pi: ExtensionAPI) {
 			tool_input: toolInput,
 			cwd: ctx.cwd,
 			change_writing_applied: changeWritingApplied,
+			last_user_text: lastUserText,
 		});
 		if (result.status === 0) return;
 
