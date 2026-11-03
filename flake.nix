@@ -247,8 +247,8 @@
                   ruby -Itest -Ilib -e 'Dir["test/**/*_test.rb"].sort.each { |file| require File.expand_path(file) }'
                   AGENT_GUARD=${lib.getExe agentGuard} ruby -Itest -e 'Dir["test/agent_guard*_test.rb"].sort.each { |file| require File.expand_path(file) }'
                   AGENT_WORKTREE=${lib.getExe agentWorktree} ruby -Itest test/agent_worktree_test.rb
-                  mutant run --usage opensource --integration minitest --include lib --require agent_hooks/guard 'AgentHooks::Guard*'
-                  mutant run --usage opensource --integration minitest --include lib --require agent_hooks/worktree 'AgentHooks::Worktree*'
+                  mutant run 'AgentHooks::Guard*'
+                  mutant run 'AgentHooks::Worktree*'
                   touch $out
                 '';
           }

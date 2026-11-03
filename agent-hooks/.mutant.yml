@@ -1,0 +1,9 @@
+usage: opensource
+integration:
+  name: minitest
+includes:
+  - lib
+requires:
+  - agent_hooks/guard
+  - agent_hooks/worktree
+jobs: 8
