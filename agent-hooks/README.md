@@ -40,8 +40,8 @@ hooks.
 
 For Claude Code, [`modules/claude.nix`](../modules/claude.nix) builds both Nix
 packages and links their executables to stable paths under `~/.claude/hooks/`.
-The managed settings file written by
-[`modules/claude-managed.nix`](../modules/claude-managed.nix) registers those
+The out-of-store
+[`config/claude/settings.json`](../config/claude/settings.json) registers those
 paths for shell, Artifact, and Linear pre-tool checks, for prompt, post-tool
 (Bash, Write, Edit, Skill), worktree creation, activity, and session-end
 events, and blocks the tool call when the guard itself fails.

@@ -28,15 +28,6 @@ let
   mcpConfig = (pkgs.formats.json { }).generate "managed-claude-mcp.json" {
     inherit mcpServers;
   };
-  # Claude Code writes /model and /config choices into this file, so it
-  # stays the account's own; policy lives in modules/claude-managed.nix.
-  seedSettings = (pkgs.formats.json { }).generate "claude-seed-settings.json" {
-    permissions.defaultMode = "auto";
-    model = "fable";
-    modelSettings."claude-fable-5-1".effortLevel = "xhigh";
-    theme = "auto";
-    skipWorkflowUsageWarning = true;
-  };
 in
 {
   imports = [ ./agents.nix ];
@@ -53,20 +44,17 @@ in
       package = pkgs.llm-agents.claude-code;
     };
 
-    # Static scripts referenced by the managed settings under stable ~/.claude paths.
+    # Out-of-store: Claude Code rewrites settings.json at runtime, so edits land
+    # straight in the working copy. The rest of ~/.claude is runtime state, unmanaged.
+    home.file.".claude/settings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.my.dotfilesDir}/config/claude/settings.json";
+
+    # Static scripts referenced by settings.json under stable ~/.claude paths.
     home.file.".claude/statusline-command.sh".source = lib.getExe statusline;
     home.file.".claude/hooks/agent-guard".source = lib.getExe agentGuard;
     home.file.".claude/hooks/agent-worktree".source = lib.getExe agentWorktree;
 
     home.packages = [ mrDescribe ];
-
-    home.activation.seedClaudeSettings = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      settings="$HOME/.claude/settings.json"
-      if [ ! -e "$settings" ]; then
-        run mkdir -p "$HOME/.claude"
-        run install -m 0644 ${seedSettings} "$settings"
-      fi
-    '';
 
     home.activation.managedClaudeMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       state_dir=${lib.escapeShellArg config.xdg.stateHome}/claude-code
