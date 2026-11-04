@@ -240,6 +240,7 @@
                   chmod -R u+w agent-hooks
                   cd agent-hooks
                   export HOME=$TMPDIR/home
+                  export LC_ALL=C.UTF-8
                   export RUBYOPT=-W0
 
                   node --test ${./config/pi}/test/agent-worktree-events.test.mjs
