@@ -28,7 +28,6 @@
       modules = [
         ../modules/profiles/darwin-home.nix
         inputs.chattermill.homeModules.default
-        ../modules/chrome.nix
       ];
     };
   };
