@@ -112,7 +112,10 @@ independent while preserving policy order:
    written or edited after the skill's last use blocks until the skill is
    used again;
 6. require commit message files and validate their format;
-7. reject agent co-author attribution;
+7. reject Claude or Anthropic credit (co-author trailers, "Generated with
+   Claude Code") in a commit command, in a file passed with `-F`, in the
+   file given to `mr-describe` or `--description-file`, and in such files
+   named by an MR script;
 8. require detached devenv startup from the worktree root;
 9. enforce worktree creation and entry through the session host for the
    session's own repository; another repository's worktree is created with

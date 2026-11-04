@@ -76,7 +76,7 @@ class AgentGuardPolicyTest < Minitest::Test
 
     assert_message(
       command,
-      "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
+      "BLOCKED: commit messages and MR/PR descriptions must not credit Claude or Anthropic as co-author or generator.\n"
     )
   end
 

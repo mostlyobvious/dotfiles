@@ -11,7 +11,7 @@ module AgentHooks
     include Repositories
 
     ATTRIBUTION_MESSAGE =
-      "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
+      "BLOCKED: commit messages and MR/PR descriptions must not credit Claude or Anthropic as co-author or generator.\n"
     CHANGE_WRITING_MESSAGE =
       "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
     MR_REMINDER =

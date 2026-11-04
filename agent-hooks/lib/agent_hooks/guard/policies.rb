@@ -20,7 +20,7 @@ module AgentHooks
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
       LINEAR_PROSE_KEYS = %w[body content description summary title].freeze
       ATTRIBUTION_MESSAGE =
-        "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
+        "BLOCKED: commit messages and MR/PR descriptions must not credit Claude or Anthropic as co-author or generator.\n"
       COMMIT_FILE_MESSAGE =
         "BLOCKED: write commit messages to a file and pass it with git commit -F.\n"
       COMMIT_FORMAT_MESSAGE =
@@ -35,8 +35,8 @@ module AgentHooks
         "BLOCKED: run devenv up -d from the worktree root.\n"
       SHELL_EDIT_REASON =
         "edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites."
-      COAUTHOR_ATTRIBUTION =
-        /co-authored-by:.*(?:anthropic|claude)|(?:(?:anthropic|claude).*)co-authored-by:/i
+      ATTRIBUTION =
+        /co-authored-by:.*(?:anthropic|claude)|(?:(?:anthropic|claude).*)co-authored-by:|generated with.*claude code/i
 
       def self.evaluate(context)
         decision = UnsupportedShell.call(context)
@@ -428,14 +428,58 @@ module AgentHooks
 
       module Attribution
         def self.call(context)
-          commit =
-            context.program.commands.any? do |command|
-              command.git_subcommand == "commit"
+          texts =
+            context.program.commands.flat_map do |command|
+              texts(command, context)
             end
-          if commit && COAUTHOR_ATTRIBUTION.match?(context.command)
+          if texts.any? { |text| ATTRIBUTION.match?(text) }
             Decision.new(status: 2, message: ATTRIBUTION_MESSAGE)
           end
         end
+
+        def self.texts(command, context)
+          commit = command.git_subcommand == "commit"
+          files = description_files(command)
+          case command.argv
+          in ["mr-describe", _, description, *]
+            files << description
+          else
+            nil
+          end
+          index = command.arguments.index("-F")
+          message = command.arguments.at(index + 1) if index
+          files << message if message
+          script = command.executable
+          if script&.end_with?(".sh")
+            path = File.expand_path(script, context.cwd)
+            if File.file?(path)
+              ShellCommand
+                .parse(File.read(path))
+                .commands
+                .each { |inner| files.concat(description_files(inner)) }
+            end
+          end
+          paths = files.map { |file| File.expand_path(file, context.cwd) }
+          contents =
+            paths
+              .select { |path| File.file?(path) }
+              .map { |path| File.read(path) }
+          contents << context.command if commit
+          contents
+        end
+
+        def self.description_files(command)
+          arguments = command.arguments
+          arguments.each_with_index.filter_map do |argument, index|
+            if argument == "--description-file"
+              arguments.at(index + 1)
+            elsif argument.start_with?("--description-file=")
+              argument.delete_prefix("--description-file=")
+            end
+          end
+        end
+
+        private_class_method :texts, :description_files
       end
 
       module Worktree
@@ -513,7 +557,7 @@ module AgentHooks
                        :DEVENV_DETACH_MESSAGE,
                        :DEVENV_ROOT_MESSAGE,
                        :SHELL_EDIT_REASON,
-                       :COAUTHOR_ATTRIBUTION,
+                       :ATTRIBUTION,
                        :LINEAR_WRITE,
                        :LINEAR_PROSE_KEYS,
                        :UnsupportedShell,
