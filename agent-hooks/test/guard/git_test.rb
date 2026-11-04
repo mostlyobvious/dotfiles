@@ -4,9 +4,11 @@ module AgentHooks
   class GitPolicyTest < Minitest::Test
     include GuardHelpers
     cover "AgentHooks::Guard::Policies::Git*"
-    cover "AgentHooks::Guard::Policies"
+    cover "AgentHooks::Guard::Policies.evaluate"
+    cover "AgentHooks::Guard::Policies.blocked"
+    cover "AgentHooks::Guard::Policies.unless_go"
     cover "AgentHooks::Guard::GitRepository*"
-    cover "AgentHooks::Guard::Facts*"
+    cover "AgentHooks::Guard::Facts.approve"
 
     def test_unrelated_git_command_is_allowed
       assert_equal [0, ""], call("git -C ~/Code/backend/backend status --short")

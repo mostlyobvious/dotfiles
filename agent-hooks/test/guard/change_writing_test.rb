@@ -5,7 +5,9 @@ module AgentHooks
     include GuardHelpers
     cover "AgentHooks::Guard::Policies::ChangeWriting*"
     cover "AgentHooks::Guard::Policies.evaluate"
-    cover "AgentHooks::Guard::Facts*"
+    cover "AgentHooks::Guard::Facts.observe"
+    cover "AgentHooks::Guard::Facts.change_writing?"
+    cover "AgentHooks::Guard::Facts.description_edited?"
 
     def test_commit_requires_change_writing
       assert_equal [2, CHANGE_WRITING_MESSAGE],
@@ -40,6 +42,28 @@ module AgentHooks
                          session_id: session
                        )
         end
+      end
+    end
+
+    def test_tool_result_without_a_tool_name_keeps_the_skill_recorded
+      with_session do |home, session|
+        change_writing(home, session)
+        Guard.run(
+          {
+            "hook_event_name" => "PostToolUse",
+            "session_id" => session,
+            "tool_input" => {
+            }
+          },
+          home
+        )
+
+        assert_equal [0, ""],
+                     call(
+                       "mr-describe 42 /tmp/mr-description.md",
+                       home: home,
+                       session_id: session
+                     )
       end
     end
 

@@ -3,8 +3,13 @@ require_relative "support/guard_helpers"
 module AgentHooks
   class GuardTest < Minitest::Test
     include GuardHelpers
-    cover "AgentHooks::Guard"
-    cover "AgentHooks::Guard::Facts*"
+    cover "AgentHooks::Guard.run"
+    cover "AgentHooks::Guard.reminder"
+    cover "AgentHooks::Guard.reminder_output"
+    cover "AgentHooks::Guard::Facts.update"
+    cover "AgentHooks::Guard::Facts.forget"
+    cover "AgentHooks::Guard::Facts.prompt"
+    cover "AgentHooks::Guard::Facts.approve"
 
     def test_push_reminder_is_returned_after_tool_use
       output =
@@ -114,6 +119,10 @@ module AgentHooks
         )
 
       assert_equal [2, CHANGE_WRITING_MESSAGE, nil], output
+    end
+
+    def test_pre_tool_use_without_a_command_runs_tool_policies
+      assert_equal [2, CHANGE_WRITING_MESSAGE], artifact(title: "Release notes")
     end
 
     def test_pre_tool_use_passes_home_to_worktree_policy
