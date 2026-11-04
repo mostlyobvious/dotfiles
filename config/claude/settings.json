@@ -17,7 +17,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/agent-guard"
+            "command": "~/.claude/hooks/agent-guard",
+            "onFailure": "block"
           }
         ]
       }
