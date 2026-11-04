@@ -6,6 +6,7 @@ module AgentHooks
     cover "AgentHooks::Guard::Policies::Git*"
     cover "AgentHooks::Guard::Policies"
     cover "AgentHooks::Guard::GitRepository*"
+    cover "AgentHooks::Guard::Facts*"
 
     def test_unrelated_git_command_is_allowed
       assert_equal [0, ""], call("git -C ~/Code/backend/backend status --short")
@@ -140,100 +141,128 @@ module AgentHooks
     end
 
     def test_push_to_main_after_go_is_allowed
-      Dir.mktmpdir do |directory|
-        transcript = conversation(directory, "push it", "go", :tool_result)
+      with_session do |home, session|
+        command = "git push origin main"
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, home: home, session_id: session)
 
-        assert_equal [0, ""],
-                     call("git push origin main", transcript_path: transcript)
+        prompt(home, session, "go")
+
+        assert_equal [0, ""], call(command, home: home, session_id: session)
       end
     end
 
     def test_restore_all_after_go_is_allowed
-      Dir.mktmpdir do |directory|
-        transcript =
-          conversation(directory, "go", [:meta, "skill instructions"])
-
-        assert_equal [0, ""], call("git restore .", transcript_path: transcript)
-      end
-    end
-
-    def test_go_survives_assistant_replies_and_unreadable_lines
-      Dir.mktmpdir do |directory|
-        transcript =
-          conversation(
-            directory,
-            "go",
-            [:assistant, "pushing now"],
-            [:meta, "skill instructions"],
-            :unreadable
-          )
+      with_session do |home, session|
+        call("git restore .", home: home, session_id: session)
+        prompt(home, session, "go")
 
         assert_equal [0, ""],
-                     call("git push origin main", transcript_path: transcript)
+                     call("git restore .", home: home, session_id: session)
       end
     end
 
-    def test_transcript_without_a_typed_message_blocks_a_push_to_main
-      Dir.mktmpdir do |directory|
-        transcript = conversation(directory, :tool_result)
+    def test_hard_reset_after_go_is_allowed
+      with_session do |home, session|
+        command = "git reset --hard origin/main"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go")
+
+        assert_equal [0, ""], call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_go_typed_before_the_block_does_not_allow_a_push_to_main
+      with_session do |home, session|
         command = "git push origin main"
+        prompt(home, session, "go")
 
         assert_equal needs_go(command, "pushes a protected branch."),
-                     call(command, transcript_path: transcript)
+                     call(command, home: home, session_id: session)
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_go_allows_only_the_blocked_command
+      with_session do |home, session|
+        call("git push origin main", home: home, session_id: session)
+        prompt(home, session, "go")
+        command = "git reset --hard HEAD~1"
+        expected =
+          "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. Ask the user for exact 'go', then retry unchanged.\n"
+
+        assert_equal [2, expected],
+                     call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_go_is_spent_by_the_retried_command
+      with_session do |home, session|
+        command = "git push origin main"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go")
+        call(command, home: home, session_id: session)
+
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_other_prompt_does_not_allow_a_hard_reset
+      with_session do |home, session|
+        command = "git reset --hard origin/main"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go ahead")
+        expected =
+          "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. Ask the user for exact 'go', then retry unchanged.\n"
+
+        assert_equal [2, expected],
+                     call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_go_without_a_session_is_not_remembered
+      Dir.mktmpdir do |home|
+        command = "git push origin main"
+        call(command, home: home)
+        prompt(home, nil, "go")
+
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, home: home)
       end
     end
 
     def test_go_still_guards_a_force_push_after_a_discard
-      command = "git restore . && git push --force origin feature"
+      with_session do |home, session|
+        command = "git restore . && git push --force origin feature"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go")
 
-      assert_equal policy_blocked(
-                     command,
-                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
-                   ),
-                   call(command, last_user_text: "go")
-    end
-
-    def test_go_from_an_earlier_message_does_not_allow_a_push_to_main
-      Dir.mktmpdir do |directory|
-        transcript = conversation(directory, "go", "now push main")
-        command = "git push origin main"
-
-        assert_equal needs_go(command, "pushes a protected branch."),
-                     call(command, transcript_path: transcript)
+        assert_equal policy_blocked(command, FORCE_PUSH_REASON),
+                     call(command, home: home, session_id: session)
       end
     end
 
-    def test_go_from_pi_allows_a_hard_reset
-      assert_equal [0, ""],
-                   call("git reset --hard origin/main", last_user_text: "go")
-    end
-
-    def test_other_pi_message_does_not_allow_a_hard_reset
-      command = "git reset --hard origin/main"
-      expected =
-        "BLOCKED: '#{command}' matches dangerous pattern 'git reset --hard'. Ask the user for exact 'go', then retry unchanged.\n"
-
-      assert_equal [2, expected], call(command, last_user_text: "go ahead")
-    end
-
     def test_go_does_not_allow_a_force_push
-      command = "git push --force origin feature"
+      with_session do |home, session|
+        command = "git push --force origin feature"
+        prompt(home, session, "go")
 
-      assert_equal policy_blocked(
-                     command,
-                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
-                   ),
-                   call(command, last_user_text: "go")
+        assert_equal policy_blocked(command, FORCE_PUSH_REASON),
+                     call(command, home: home, session_id: session)
+      end
     end
 
     def test_go_still_guards_later_commands_in_a_chain
-      command = "git push origin main && git push --force origin feature"
+      with_session do |home, session|
+        command = "git push origin main && git push --force origin feature"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go")
 
-      assert_equal policy_blocked(
-                     command,
-                     "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
-                   ),
-                   call(command, last_user_text: "go")
+        assert_equal policy_blocked(command, FORCE_PUSH_REASON),
+                     call(command, home: home, session_id: session)
+      end
     end
 
     def test_branch_ending_in_main_is_allowed
@@ -410,17 +439,29 @@ module AgentHooks
     end
 
     def test_description_file_is_not_an_inline_description
-      assert_equal [0, ""],
-                   call(
-                     "glab mr update 42 --description-file /tmp/description",
-                     change_writing_applied: true
-                   )
+      with_session do |home, session|
+        change_writing(home, session)
+
+        assert_equal [0, ""],
+                     call(
+                       "glab mr update 42 --description-file /tmp/description",
+                       home: home,
+                       session_id: session
+                     )
+      end
     end
 
     def test_commit_without_no_verify_is_allowed
-      with_commit_message("Document hook policy\n\nExplain why.\n") do |path|
-        assert_equal [0, ""],
-                     call("git commit -F #{path}", change_writing_applied: true)
+      with_session do |home, session|
+        change_writing(home, session)
+        with_commit_message("Document hook policy\n\nExplain why.\n") do |path|
+          assert_equal [0, ""],
+                       call(
+                         "git commit -F #{path}",
+                         home: home,
+                         session_id: session
+                       )
+        end
       end
     end
   end

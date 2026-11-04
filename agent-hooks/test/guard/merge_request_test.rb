@@ -10,7 +10,7 @@ module AgentHooks
       assert_equal [2, MR_SCRIPT_MESSAGE],
                    call(
                      "glab mr create --squash-before-merge=false",
-                     change_writing_applied: true
+                     change_writing: true
                    )
     end
 
@@ -19,11 +19,7 @@ module AgentHooks
         File.write("#{directory}/publish.sh", "glab mr create\n")
 
         assert_equal [2, MR_SQUASH_MESSAGE],
-                     call(
-                       "./publish.sh",
-                       cwd: directory,
-                       change_writing_applied: true
-                     )
+                     call("./publish.sh", cwd: directory, change_writing: true)
       end
     end
 
@@ -35,11 +31,7 @@ module AgentHooks
         )
 
         assert_equal [0, ""],
-                     call(
-                       "./publish.sh",
-                       cwd: directory,
-                       change_writing_applied: true
-                     )
+                     call("./publish.sh", cwd: directory, change_writing: true)
       end
     end
 
@@ -51,7 +43,7 @@ module AgentHooks
                      call(
                        "printf ready && ./publish.sh",
                        cwd: directory,
-                       change_writing_applied: true
+                       change_writing: true
                      )
       end
     end
@@ -64,7 +56,7 @@ module AgentHooks
                      call(
                        "./missing.sh && ./publish.sh",
                        cwd: directory,
-                       change_writing_applied: true
+                       change_writing: true
                      )
       end
     end
@@ -73,7 +65,7 @@ module AgentHooks
       assert_equal [2, MR_SCRIPT_MESSAGE],
                    call(
                      "printf ready && glab mr create --squash-before-merge=false",
-                     change_writing_applied: true
+                     change_writing: true
                    )
     end
 
@@ -82,16 +74,12 @@ module AgentHooks
         File.write("#{directory}/publish", "glab mr create\n")
 
         assert_equal [0, ""],
-                     call(
-                       "./publish",
-                       cwd: directory,
-                       change_writing_applied: true
-                     )
+                     call("./publish", cwd: directory, change_writing: true)
       end
     end
 
     def test_assignment_only_command_is_not_a_script
-      assert_equal [0, ""], call("FOO=bar", change_writing_applied: true)
+      assert_equal [0, ""], call("FOO=bar", change_writing: true)
     end
 
     def test_only_create_commands_in_a_script_need_the_flag
@@ -102,11 +90,7 @@ module AgentHooks
         )
 
         assert_equal [0, ""],
-                     call(
-                       "./publish.sh",
-                       cwd: directory,
-                       change_writing_applied: true
-                     )
+                     call("./publish.sh", cwd: directory, change_writing: true)
       end
     end
 
@@ -118,11 +102,7 @@ module AgentHooks
         )
 
         assert_equal [2, MR_SQUASH_MESSAGE],
-                     call(
-                       "./publish.sh",
-                       cwd: directory,
-                       change_writing_applied: true
-                     )
+                     call("./publish.sh", cwd: directory, change_writing: true)
       end
     end
   end

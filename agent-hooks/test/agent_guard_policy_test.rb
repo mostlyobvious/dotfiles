@@ -5,7 +5,7 @@ class AgentGuardPolicyTest < Minitest::Test
   include GuardRunner
 
   CHANGE_WRITING_MESSAGE =
-    "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
+    "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
 
   def test_sed_in_place_edit_is_blocked
     command = "sed -i '' 's/old/new/' file"

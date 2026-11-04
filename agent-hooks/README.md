@@ -21,7 +21,7 @@ Claude Code hooks                         pi extension
                  ┌────────────┴────────────┐
                  ▼                         ▼
            agent-guard               agent-worktree
-        stateless decisions       stateful coordination
+     decisions + session facts    stateful coordination
                  │                         │
        exit status / reminder       Git, devenv, state file
 ```
@@ -42,16 +42,18 @@ For Claude Code, [`modules/claude.nix`](../modules/claude.nix) builds both Nix
 packages and links their executables to stable paths under `~/.claude/hooks/`.
 The managed settings file written by
 [`modules/claude-managed.nix`](../modules/claude-managed.nix) registers those
-paths for shell, Artifact, and Linear pre-tool checks, post-tool reminders,
-worktree creation, activity, and session-end events, and blocks the tool
-call when the guard itself fails.
+paths for shell, Artifact, and Linear pre-tool checks, for prompt, post-tool
+(Bash, Write, Edit, Skill), worktree creation, activity, and session-end
+events, and blocks the tool call when the guard itself fails.
 
 For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 `PATH` and links [`config/pi/extensions/`](../config/pi/extensions/) to
 `~/.pi/agent/extensions`. Pi loads
 [`agent-guard.ts`](../config/pi/extensions/agent-guard.ts), which translates pi
-events, routes Bash and Linear MCP calls through the guard, invokes the
-appropriate executable by name, and injects guard reminders into tool results.
+events into the same JSON the Claude Code hooks send: the prompt, Bash and
+Linear MCP calls, Bash, Write and Edit results, a read of the change-writing
+skill as a Skill result, and session end. It invokes the appropriate
+executable by name and injects guard reminders into tool results.
 
 [`packages/agent-guard.nix`](../packages/agent-guard.nix) and
 [`packages/agent-worktree.nix`](../packages/agent-worktree.nix) compile the Ruby
@@ -60,7 +62,7 @@ builds and activates the packages through Home Manager.
 
 ## Guard flow
 
-[`AgentHooks::Guard`](lib/agent_hooks/guard.rb) has two paths:
+[`AgentHooks::Guard`](lib/agent_hooks/guard.rb) has three paths:
 
 1. A pre-tool event parses the shell source once and evaluates an ordered list
    of policies. The first blocking decision supplies exit status `2` and the
@@ -68,6 +70,17 @@ builds and activates the packages through Home Manager.
 2. A post-tool event recognizes actions that require a follow-up, such as a Git
    push or an edit to `mr-description.md`, and returns additional context to the
    agent.
+3. Prompt, post-tool and session-end events update the session's facts.
+
+[`guard/facts.rb`](lib/agent_hooks/guard/facts.rb) keeps what the policies
+need to know about the session, recorded at the moment it happens rather than
+reconstructed from a transcript: the latest prompt, the last command blocked
+pending `go`, whether the change-writing skill has been used, and the files
+written or edited since. Facts live at
+`~/.local/state/agent-guard/<session>.json`, updated under an exclusive lock
+and replaced atomically, and are deleted when the session ends. An event
+without a session id runs against empty facts, so it blocks whatever needs an
+approval or the skill.
 
 [`guard/shell_command.rb`](lib/agent_hooks/guard/shell_command.rb) turns shell
 source into normalized command invocations. It parses with `shfmt --to-json`
@@ -87,13 +100,17 @@ independent while preserving policy order:
 
 1. reject commands the guard cannot inspect: unparseable syntax, substituted
    command names, and substitutions fed to inspected commands;
-2. protect Git and merge-request operations; protected-branch pushes and
-   commands that discard local work pass only when the user's latest message
-   is exactly `go`;
+2. protect Git and merge-request operations; a protected-branch push or a
+   command that discards local work is blocked and remembered, and passes
+   only when the user's next message is exactly `go` and the command is
+   retried unchanged; each `go` unlocks one retry;
 3. require GitLab MR creation through a script with squash disabled;
 4. reject in-place shell edits;
 5. require the change-writing skill before commits, MR/PR publication,
-   Artifact publication, and Linear prose publication;
+   Artifact publication, and Linear prose publication; an MR description
+   file (`mr-describe`'s argument, or any `*desc*.md` for other MR commands)
+   written or edited after the skill's last use blocks until the skill is
+   used again;
 6. require commit message files and validate their format;
 7. reject agent co-author attribution;
 8. require detached devenv startup from the worktree root;
@@ -174,10 +191,18 @@ lifecycle rules drifting apart.
 
 ### Guarding and lifecycle remain separate executables
 
-Command policy is stateless and latency-sensitive. Worktree management owns
-persistent state and subprocess cleanup. Separate entry points keep those
-failure modes and interfaces independent while sharing the same packaging and
-test environment.
+Command policy is latency-sensitive and keeps only per-session facts. Worktree
+management owns cross-session state and subprocess cleanup. Separate entry
+points keep those failure modes and interfaces independent while sharing the
+same packaging and test environment.
+
+### Facts are recorded when they happen
+
+Approval and skill use used to be reconstructed from Claude Code's transcript
+file, whose record shapes are not a documented contract, while pi's adapter
+tracked the same facts in memory, so the two hosts enforced different
+semantics. Both hosts now send the guard the events that carry those facts,
+and the guard stores them itself. The transcript is never read.
 
 ### Decisions stay separate from effects
 

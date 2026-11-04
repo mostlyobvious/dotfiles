@@ -98,4 +98,32 @@ class AgentGuardTest < Minitest::Test
     assert_equal "", result[:stdout]
     assert_equal "", result[:stderr]
   end
+
+  def test_go_unlocks_the_blocked_push_across_processes
+    Dir.mktmpdir do |home|
+      command = "git push origin main"
+      blocked = run_guard(command, home: home, session_id: "one")
+      run_guard(
+        nil,
+        home: home,
+        hook_event_name: "UserPromptSubmit",
+        session_id: "one",
+        prompt: "go"
+      )
+      retried = run_guard(command, home: home, session_id: "one")
+      run_guard(
+        nil,
+        home: home,
+        hook_event_name: "SessionEnd",
+        session_id: "one"
+      )
+
+      assert_equal 2, blocked[:status]
+      assert_equal "BLOCKED: '#{command}' pushes a protected branch. Ask the user for exact 'go', then retry unchanged.\n",
+                   blocked[:stderr]
+      assert_equal 0, retried[:status]
+      assert_equal "", retried[:stderr]
+      refute File.exist?("#{home}/.local/state/agent-guard/one.json")
+    end
+  end
 end

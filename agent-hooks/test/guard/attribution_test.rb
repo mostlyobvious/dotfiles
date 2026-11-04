@@ -36,7 +36,7 @@ module AgentHooks
     def test_commit_without_attribution_is_allowed
       with_commit_message("Document hook policy\n\nExplain why.\n") do |path|
         assert_equal [0, ""],
-                     call("git commit -F #{path}", change_writing_applied: true)
+                     call("git commit -F #{path}", change_writing: true)
       end
     end
   end

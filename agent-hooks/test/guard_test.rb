@@ -4,6 +4,7 @@ module AgentHooks
   class GuardTest < Minitest::Test
     include GuardHelpers
     cover "AgentHooks::Guard"
+    cover "AgentHooks::Guard::Facts*"
 
     def test_push_reminder_is_returned_after_tool_use
       output =
@@ -155,19 +156,84 @@ module AgentHooks
       assert_equal [0, "", nil], output
     end
 
-    def test_path_field_also_returns_review_reminder
-      output =
-        Guard.run(
-          {
-            "hook_event_name" => "PostToolUse",
-            "tool_input" => {
-              "path" => "mr-description.md"
-            }
-          },
-          "/Users/agent"
-        )
+    def test_prompt_is_recorded_without_output
+      with_session do |home, session|
+        assert_equal [0, "", nil], prompt(home, session, "go")
+      end
+    end
 
-      assert_equal [0, "", reminder(REVIEW_REMINDER)], output
+    def test_go_after_a_block_unlocks_the_retry
+      with_session do |home, session|
+        command = "git push origin main"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go")
+
+        assert_equal [0, ""], call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_skill_result_is_recorded_without_output
+      with_session do |home, session|
+        assert_equal [0, "", nil], change_writing(home, session)
+      end
+    end
+
+    def test_change_writing_skill_unlocks_commits
+      with_session do |home, session|
+        change_writing(home, session)
+
+        with_commit_message("Document hook policy\n") do |path|
+          assert_equal [0, ""],
+                       call(
+                         "git commit -F #{path}",
+                         home: home,
+                         session_id: session
+                       )
+        end
+      end
+    end
+
+    def test_facts_live_in_the_state_directory_of_the_home
+      with_session do |home, session|
+        prompt(home, session, "go")
+        directory = "#{home}/.local/state/agent-guard"
+
+        assert File.file?("#{directory}/#{session}.json")
+        assert_equal 0o600, File.stat("#{directory}/lock").mode & 0o777
+      end
+    end
+
+    def test_a_hook_waits_for_another_hook_holding_the_session_lock
+      with_session do |home, session|
+        prompt(home, session, "go")
+        lock = File.open("#{home}/.local/state/agent-guard/lock")
+        lock.flock(File::LOCK_EX)
+        waiting = Thread.new { prompt(home, session, "go") }
+
+        assert_nil waiting.join(0.2)
+
+        lock.flock(File::LOCK_UN)
+        assert_equal [0, "", nil], waiting.value
+      ensure
+        lock&.close
+      end
+    end
+
+    def test_session_end_forgets_the_session
+      with_session do |home, session|
+        command = "git push origin main"
+        call(command, home: home, session_id: session)
+        prompt(home, session, "go")
+
+        assert_equal [0, "", nil], finish(home, session)
+        refute File.exist?(facts_file(home, session))
+        assert_equal needs_go(command, "pushes a protected branch."),
+                     call(command, home: home, session_id: session)
+      end
+    end
+
+    def test_session_end_without_a_session_is_harmless
+      assert_equal [0, "", nil], finish("/Users/agent", nil)
     end
   end
 end

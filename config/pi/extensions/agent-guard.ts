@@ -1,7 +1,9 @@
 import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
 import {
 	isBashToolResult,
 	isEditToolResult,
+	isReadToolResult,
 	isToolCallEventType,
 	isWriteToolResult,
 } from "@earendil-works/pi-coding-agent";
@@ -10,7 +12,6 @@ import { worktreeEventForToolResult } from "./lib/agent-worktree-events.mjs";
 
 const changeWritingSkillPath = /(^|\/)skills\/change-writing\/SKILL\.md$/;
 const linearToolName = /^mcp__.*linear__/i;
-const mergeRequestDescriptionPath = /(^|\/)[^/]*(?:desc|description)[^/]*\.md$/i;
 
 function run(executable: string, event: Record<string, unknown>) {
 	return spawnSync(executable, [], {
@@ -20,24 +21,21 @@ function run(executable: string, event: Record<string, unknown>) {
 }
 
 export default function (pi: ExtensionAPI) {
-	let changeWritingApplied = false;
-	let lastUserText = "";
 	const sessionId = `pi-${process.pid}`;
 
 	pi.on("before_agent_start", (event) => {
-		changeWritingApplied = false;
-		lastUserText = event.prompt;
 		run("agent-worktree", {
 			hook_event_name: "Heartbeat",
 			session_id: sessionId,
 		});
+		run("agent-guard", {
+			hook_event_name: "UserPromptSubmit",
+			session_id: sessionId,
+			prompt: event.prompt,
+		});
 	});
 
 	pi.on("tool_call", (event, ctx) => {
-		if (isToolCallEventType("read", event)) {
-			if (changeWritingSkillPath.test(event.input.path)) changeWritingApplied = true;
-			return;
-		}
 		let toolInput: Record<string, unknown>;
 		if (isToolCallEventType("bash", event)) {
 			toolInput = { command: event.input.command };
@@ -49,11 +47,10 @@ export default function (pi: ExtensionAPI) {
 
 		const result = run("agent-guard", {
 			hook_event_name: "PreToolUse",
+			session_id: sessionId,
 			tool_name: event.toolName,
 			tool_input: toolInput,
 			cwd: ctx.cwd,
-			change_writing_applied: changeWritingApplied,
-			last_user_text: lastUserText,
 		});
 		if (result.status === 0) return;
 
@@ -64,8 +61,10 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("tool_result", (event, ctx) => {
+		let toolName: string;
 		let toolInput: Record<string, unknown>;
 		if (isBashToolResult(event)) {
+			toolName = "Bash";
 			toolInput = { command: event.input.command };
 			run("agent-worktree", worktreeEventForToolResult({
 				tool: "bash",
@@ -76,11 +75,15 @@ export default function (pi: ExtensionAPI) {
 			}));
 		} else {
 			run("agent-worktree", worktreeEventForToolResult({ tool: "other", sessionId }));
-			if (isWriteToolResult(event) || isEditToolResult(event)) {
-				toolInput = { path: event.input.path };
-				if (mergeRequestDescriptionPath.test(event.input.path)) {
-					changeWritingApplied = false;
-				}
+			if (isWriteToolResult(event)) {
+				toolName = "Write";
+				toolInput = { file_path: resolve(ctx.cwd, event.input.path) };
+			} else if (isEditToolResult(event)) {
+				toolName = "Edit";
+				toolInput = { file_path: resolve(ctx.cwd, event.input.path) };
+			} else if (isReadToolResult(event) && changeWritingSkillPath.test(event.input.path)) {
+				toolName = "Skill";
+				toolInput = { skill: "change-writing" };
 			} else {
 				return;
 			}
@@ -88,6 +91,8 @@ export default function (pi: ExtensionAPI) {
 
 		const result = run("agent-guard", {
 			hook_event_name: "PostToolUse",
+			session_id: sessionId,
+			tool_name: toolName,
 			tool_input: toolInput,
 			cwd: ctx.cwd,
 		});
@@ -101,6 +106,10 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("session_shutdown", () => {
+		run("agent-guard", {
+			hook_event_name: "SessionEnd",
+			session_id: sessionId,
+		});
 		run("agent-worktree", {
 			hook_event_name: "SessionEnd",
 			session_id: sessionId,

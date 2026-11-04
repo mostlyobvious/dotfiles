@@ -141,7 +141,7 @@ module AgentHooks
       assert_equal [2, COMMIT_FILE_MESSAGE],
                    call(
                      "git commit -F - <<'EOF'\nSubject\nEOF\n",
-                     change_writing_applied: true
+                     change_writing: true
                    )
     end
   end

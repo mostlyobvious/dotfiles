@@ -2,13 +2,21 @@ module AgentHooks
   module Guard
     Decision = Struct.new(:status, :message, keyword_init: true)
     Context =
-      Struct.new(:event, :home, :command, :cwd, :program, keyword_init: true)
+      Struct.new(
+        :event,
+        :home,
+        :command,
+        :cwd,
+        :program,
+        :facts,
+        keyword_init: true
+      )
 
     module Policies
       BLOCKED_MESSAGE =
         "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
       CHANGE_WRITING_MESSAGE =
-        "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
+        "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
       LINEAR_PROSE_KEYS = %w[body content description summary title].freeze
       ATTRIBUTION_MESSAGE =
@@ -51,34 +59,13 @@ module AgentHooks
       end
 
       def self.unless_go(context, reason)
-        return if go?(context.event)
+        return if Facts.approve(context.facts, context.command)
 
         Decision.new(
           status: 2,
           message:
             "BLOCKED: '#{context.command}' #{reason} Ask the user for exact 'go', then retry unchanged.\n"
         )
-      end
-
-      def self.go?(event)
-        if event.key?("last_user_text")
-          return event.fetch("last_user_text") == "go"
-        end
-
-        path = event["transcript_path"].to_s
-        return false unless File.file?(path)
-
-        File
-          .readlines(path)
-          .reverse_each do |line|
-            record = JSON.parse(line)
-            next unless record.fetch("type") == "user" && !record.key?("isMeta")
-
-            content = record.fetch("message").fetch("content")
-            return content == "go" if content.instance_of?(String)
-          rescue JSON::ParserError
-          end
-        false
       end
 
       module UnsupportedShell
@@ -290,54 +277,59 @@ module AgentHooks
             context.event["tool_name"] == "Artifact" &&
               context.event.fetch("tool_input").fetch("action", "publish") ==
                 "publish"
-          writes_prose =
-            artifact || linear_publication?(context.event) ||
-              context.program.commands.any? do |command|
-                commit =
-                  command.git_subcommand == "commit" &&
-                    !command.git_arguments.any? do |argument|
-                      argument == "--no-edit" || argument == "--fixup"
-                    end
-                script = command.executable
-                publishes =
-                  if script&.end_with?(".sh")
-                    path =
-                      if script.start_with?("/")
-                        script
-                      elsif script.start_with?("~/")
-                        script.sub("~/", "#{context.home}/")
-                      else
-                        "#{context.cwd}/#{script}"
-                      end
-                    File.file?(path) &&
-                      ShellCommand
-                        .parse(File.read(path))
-                        .commands
-                        .any?(&merge_request)
-                  end
-                merge_request.call(command) || commit || publishes
-              end
-          return unless writes_prose
-          return if context.event["change_writing_applied"]
-
-          transcript = context.event["transcript_path"]
-          if transcript && File.file?(transcript)
-            lines = File.readlines(transcript)
-            applied = lines.rindex { |line| line.include?("# Change Writing") }
-            command =
-              context.program.commands.find do |candidate|
-                candidate.executable == "mr-describe"
-              end
-            file = (command ? command.arguments.fetch(1) : "mr-description.md")
-            edited =
-              lines.rindex do |line|
-                line.match?(/"name":"(?:Edit|Write)"/) &&
-                  line.include?(%Q{"file_path":#{JSON.generate(file)}})
-              end
-            return if applied && (!edited || applied > edited)
+          publishes =
+            context.program.commands.any? do |command|
+              merge_request.call(command) ||
+                script_publishes?(command, context, merge_request)
+            end
+          commit =
+            context.program.commands.any? do |command|
+              command.git_subcommand == "commit" &&
+                !command.git_arguments.any? do |argument|
+                  argument == "--no-edit" || argument == "--fixup"
+                end
+            end
+          unless artifact || linear_publication?(context.event) || publishes ||
+                   commit
+            return
+          end
+          if Facts.change_writing?(context.facts) &&
+               !(
+                 publishes &&
+                   Facts.description_edited?(
+                     context.facts,
+                     description(context)
+                   )
+               )
+            return
           end
 
           Decision.new(status: 2, message: CHANGE_WRITING_MESSAGE)
+        end
+
+        def self.script_publishes?(command, context, merge_request)
+          script = command.executable
+          return false unless script&.end_with?(".sh")
+
+          path =
+            if script.start_with?("/")
+              script
+            elsif script.start_with?("~/")
+              script.sub("~/", "#{context.home}/")
+            else
+              "#{context.cwd}/#{script}"
+            end
+          File.file?(path) &&
+            ShellCommand.parse(File.read(path)).commands.any?(&merge_request)
+        end
+
+        def self.description(context)
+          command =
+            context.program.commands.find do |candidate|
+              candidate.executable == "mr-describe"
+            end
+          path = command&.arguments&.at(1)
+          File.expand_path(path, context.cwd) if path
         end
 
         def self.linear_publication?(event)
@@ -348,7 +340,9 @@ module AgentHooks
               .any? { |key| LINEAR_PROSE_KEYS.include?(key) }
         end
 
-        private_class_method :linear_publication?
+        private_class_method :script_publishes?,
+                             :description,
+                             :linear_publication?
       end
 
       module MergeRequest

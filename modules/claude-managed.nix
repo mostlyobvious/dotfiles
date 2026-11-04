@@ -25,18 +25,28 @@ let
       WorktreeCreate = [ { hooks = [ worktree ]; } ];
       PostToolUse = [
         {
-          matcher = "Bash";
-          hooks = [ guard ];
-        }
-        {
-          matcher = "Write|Edit";
+          matcher = "Bash|Write|Edit|Skill";
           hooks = [ guard ];
         }
         { hooks = [ worktree ]; }
       ];
       SessionStart = [ { hooks = [ worktree ]; } ];
-      UserPromptSubmit = [ { hooks = [ worktree ]; } ];
-      SessionEnd = [ { hooks = [ (worktree // { timeout = 10; }) ]; } ];
+      UserPromptSubmit = [
+        {
+          hooks = [
+            guard
+            worktree
+          ];
+        }
+      ];
+      SessionEnd = [
+        {
+          hooks = [
+            guard
+            (worktree // { timeout = 10; })
+          ];
+        }
+      ];
     };
     statusLine = {
       type = "command";

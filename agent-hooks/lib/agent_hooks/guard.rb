@@ -1,3 +1,4 @@
+require_relative "guard/facts"
 require_relative "guard/shell_command"
 require_relative "guard/git_repository"
 require_relative "guard/policies"
@@ -10,21 +11,36 @@ module AgentHooks
       "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
 
     def self.run(event, home)
-      if event.fetch("hook_event_name") == "PostToolUse"
-        return 0, "", reminder(event)
+      session = event["session_id"]
+      case event.fetch("hook_event_name")
+      when "SessionEnd"
+        Facts.forget(home, session)
+        [0, "", nil]
+      when "UserPromptSubmit"
+        Facts.update(home, session) do |facts|
+          Facts.prompt(facts, event.fetch("prompt"))
+        end
+        [0, "", nil]
+      when "PostToolUse"
+        Facts.update(home, session) { |facts| Facts.observe(facts, event) }
+        [0, "", reminder(event)]
+      else
+        command = event.fetch("tool_input")["command"]
+        context =
+          Context.new(
+            event: event,
+            home: home,
+            command: command,
+            cwd: event.fetch("cwd"),
+            program: ShellCommand.parse(command)
+          )
+        decision =
+          Facts.update(home, session) do |facts|
+            context.facts = facts
+            Policies.evaluate(context)
+          end
+        [decision.status, decision.message, nil]
       end
-
-      command = event.fetch("tool_input")["command"]
-      context =
-        Context.new(
-          event: event,
-          home: home,
-          command: command,
-          cwd: event.fetch("cwd"),
-          program: ShellCommand.parse(command)
-        )
-      decision = Policies.evaluate(context)
-      [decision.status, decision.message, nil]
     end
 
     def self.reminder(event)
@@ -36,7 +52,7 @@ module AgentHooks
         return reminder_output(MR_REMINDER)
       end
 
-      path = input["file_path"] || input["path"]
+      path = input["file_path"]
       if path && File.basename(path) == "mr-description.md"
         reminder_output(REVIEW_REMINDER)
       end

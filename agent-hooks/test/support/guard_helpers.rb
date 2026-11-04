@@ -13,7 +13,7 @@ module AgentHooks
     ATTRIBUTION_MESSAGE =
       "BLOCKED: commit messages must not include Anthropic or Claude co-author attribution.\n"
     CHANGE_WRITING_MESSAGE =
-      "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require reading and applying change-writing/SKILL.md first. For an MR/PR description, apply it after the latest description edit.\n"
+      "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
     REVIEW_REMINDER =
@@ -31,40 +31,73 @@ module AgentHooks
     DEVENV_DETACH_MESSAGE =
       "BLOCKED: start worktree services with devenv up -d.\n"
     DEVENV_ROOT_MESSAGE = "BLOCKED: run devenv up -d from the worktree root.\n"
+    FORCE_PUSH_REASON =
+      "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
 
     def artifact(
       tool_name: "Artifact",
-      change_writing_applied: false,
-      transcript_path: nil,
+      home: "/Users/agent",
+      session: nil,
       **tool_input
     )
-      guarded_tool(
-        tool_name,
-        tool_input,
-        change_writing_applied: change_writing_applied,
-        transcript_path: transcript_path
-      )
+      guarded_tool(tool_name, tool_input, home: home, session: session)
     end
 
-    def guarded_tool(
-      tool_name,
-      tool_input,
-      change_writing_applied: false,
-      transcript_path: nil
-    )
+    def guarded_tool(tool_name, tool_input, home: "/Users/agent", session: nil)
       status, message, =
         Guard.run(
           {
             "hook_event_name" => "PreToolUse",
+            "session_id" => session,
             "tool_name" => tool_name,
             "tool_input" => tool_input.transform_keys(&:to_s),
-            "cwd" => "/tmp",
-            "change_writing_applied" => change_writing_applied,
-            "transcript_path" => transcript_path
+            "cwd" => "/tmp"
           },
-          "/Users/agent"
+          home
         )
       [status, message]
+    end
+
+    def with_session
+      Dir.mktmpdir { |home| yield home, "session" }
+    end
+
+    def prompt(home, session, text)
+      Guard.run(
+        {
+          "hook_event_name" => "UserPromptSubmit",
+          "session_id" => session,
+          "prompt" => text
+        },
+        home
+      )
+    end
+
+    def observe(home, session, tool_name, **tool_input)
+      Guard.run(
+        {
+          "hook_event_name" => "PostToolUse",
+          "session_id" => session,
+          "tool_name" => tool_name,
+          "tool_input" => tool_input.transform_keys(&:to_s)
+        },
+        home
+      )
+    end
+
+    def change_writing(home, session)
+      observe(home, session, "Skill", skill: "change-writing")
+    end
+
+    def finish(home, session)
+      Guard.run(
+        { "hook_event_name" => "SessionEnd", "session_id" => session },
+        home
+      )
+    end
+
+    def facts_file(home, session)
+      "#{home}/.local/state/agent-guard/#{session}.json"
     end
 
     def with_repository(name, branch:)
@@ -135,54 +168,6 @@ module AgentHooks
       ]
     end
 
-    def conversation(directory, *messages)
-      lines =
-        messages.map do |message|
-          case message
-          in String
-            JSON.generate(
-              { type: "user", message: { role: "user", content: message } }
-            )
-          in :tool_result
-            JSON.generate(
-              {
-                type: "user",
-                message: {
-                  role: "user",
-                  content: [{ type: "tool_result", content: "ok" }]
-                }
-              }
-            )
-          in [:meta, text]
-            JSON.generate(
-              {
-                type: "user",
-                isMeta: true,
-                message: {
-                  role: "user",
-                  content: text
-                }
-              }
-            )
-          in [:assistant, text]
-            JSON.generate(
-              {
-                type: "assistant",
-                message: {
-                  role: "assistant",
-                  content: text
-                }
-              }
-            )
-          in :unreadable
-            "{"
-          end
-        end
-      path = "#{directory}/conversation.jsonl"
-      File.write(path, lines.join("\n"))
-      path
-    end
-
     def reminder(message)
       {
         "hookSpecificOutput" => {
@@ -199,7 +184,28 @@ module AgentHooks
       ]
     end
 
-    def call(command, cwd: "/tmp/repository", home: "/Users/agent", **event)
+    def call(
+      command,
+      cwd: "/tmp/repository",
+      home: "/Users/agent",
+      change_writing: false,
+      **event
+    )
+      if change_writing
+        return(
+          with_session do |session_home, session|
+            change_writing(session_home, session)
+            call(
+              command,
+              cwd: cwd,
+              home: session_home,
+              session_id: session,
+              **event
+            )
+          end
+        )
+      end
+
       status, message, =
         Guard.run(
           {
@@ -212,30 +218,6 @@ module AgentHooks
           home
         )
       [status, message]
-    end
-
-    def change_writing_transcript(directory, *events)
-      records =
-        events.map do |event|
-          if event == :applied
-            { message: { content: "# Change Writing" } }
-          else
-            name, path = event
-            {
-              message: {
-                content: [
-                  { type: "tool_use", name: name, input: { file_path: path } }
-                ]
-              }
-            }
-          end
-        end
-      path = "#{directory}/transcript.jsonl"
-      File.write(
-        path,
-        records.map { |record| JSON.generate(record) }.join("\n")
-      )
-      path
     end
   end
 end
