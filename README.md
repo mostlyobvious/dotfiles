@@ -75,7 +75,15 @@ Config lives inline in `modules/` as program options or Nix strings. The
 Nix store delivers read-only files that match the flake revision and can
 be rolled back. `config/` holds only exceptions where an application owns
 the file, rewrites it through its UI, or needs a live edit loop, such as
-Neovim, Zed, and agent settings.
+Neovim, Zed, and pi extensions.
+
+Claude Code settings are split by who writes them. Policy that every
+session must apply (hooks, permission rules, attribution, status line,
+plugins) is written by nix-darwin to
+`/Library/Application Support/ClaudeCode/managed-settings.json`, which
+outranks every other settings file. Preferences that Claude Code itself
+rewrites (`/model`, `/config`) live in `~/.claude/settings.json`, which
+Home Manager seeds once when absent and never touches again.
 
 ### Neovim plugins stay in vim.pack
 

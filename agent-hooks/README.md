@@ -40,10 +40,11 @@ hooks.
 
 For Claude Code, [`modules/claude.nix`](../modules/claude.nix) builds both Nix
 packages and links their executables to stable paths under `~/.claude/hooks/`.
-The out-of-store
-[`config/claude/settings.json`](../config/claude/settings.json) registers those
+The managed settings file written by
+[`modules/claude-managed.nix`](../modules/claude-managed.nix) registers those
 paths for shell, Artifact, and Linear pre-tool checks, post-tool reminders,
-worktree creation, activity, and session-end events.
+worktree creation, activity, and session-end events, and blocks the tool
+call when the guard itself fails.
 
 For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 `PATH` and links [`config/pi/extensions/`](../config/pi/extensions/) to
