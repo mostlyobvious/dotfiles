@@ -6,15 +6,16 @@ require "stringio"
 require "tmpdir"
 
 module WorktreeHarness
+  BIN = File.realpath(Dir.mktmpdir("agent-worktree-bin"))
+  Minitest.after_run { FileUtils.rm_rf(BIN) }
+
   def setup_worktree_harness
     @tmp = File.realpath(Dir.mktmpdir)
     @home = "#{@tmp}/user-home"
     @state = "#{@tmp}/state"
-    @bin = "#{@tmp}/bin"
     @git_log = "#{@tmp}/git.log"
     @devenv_log = "#{@tmp}/devenv.log"
-    FileUtils.mkdir_p([@home, @state, @bin])
-    write_fake_commands
+    FileUtils.mkdir_p([@home, @state])
   end
 
   def teardown_worktree_harness
@@ -31,7 +32,7 @@ module WorktreeHarness
     {
       "HOME" => @home,
       "XDG_STATE_HOME" => @state,
-      "PATH" => "#{@bin}:#{ENV.fetch("PATH")}",
+      "PATH" => "#{BIN}:#{ENV.fetch("PATH")}",
       "GIT_LOG" => @git_log,
       "DEVENV_LOG" => @devenv_log,
       "GIT_ORIGIN_MARKER" => "#{@tmp}/origin-recovered"
@@ -150,7 +151,7 @@ module WorktreeHarness
     previous.each { |key, value| value ? ENV[key] = value : ENV.delete(key) }
   end
 
-  def write_fake_commands
+  def self.write_fake_commands
     write_executable("git", <<~SH)
       #!/bin/sh
       printf '%s\n' "$*" >> "$GIT_LOG"
@@ -214,9 +215,12 @@ module WorktreeHarness
     SH
   end
 
-  def write_executable(name, content)
-    path = "#{@bin}/#{name}"
+  def self.write_executable(name, content)
+    path = "#{BIN}/#{name}"
     File.write(path, content)
     FileUtils.chmod(0o755, path)
+    system(path, out: File::NULL, err: File::NULL)
   end
+
+  write_fake_commands
 end
