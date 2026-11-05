@@ -139,14 +139,7 @@ module AgentHooks
             home
           )
 
-        assert_equal [
-                       *enter_worktree(
-                         backend,
-                         "#{home}/Code/worktrees/backend/feature"
-                       ),
-                       nil
-                     ],
-                     output
+        assert_equal [*create_worktree(backend, "feature"), nil], output
       end
     end
 

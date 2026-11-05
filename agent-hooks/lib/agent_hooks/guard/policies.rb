@@ -513,11 +513,17 @@ module AgentHooks
             session = GitRepository.main_root(context.cwd)
             next unless File.basename(session) == repository
 
+            instruction =
+              if File.directory?(target)
+                "with path #{target}"
+              else
+                "with name #{worktree} to create the worktree"
+              end
             return(
               Decision.new(
                 status: 2,
                 message:
-                  "BLOCKED: this session runs in #{context.cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with path #{target}, then rerun the command without cd.\n"
+                  "BLOCKED: this session runs in #{context.cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) #{instruction}, then rerun the command without cd.\n"
               )
             )
           end

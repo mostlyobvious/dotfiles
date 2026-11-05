@@ -110,12 +110,23 @@ module AgentHooks
       end
     end
 
-    def test_entering_a_worktree_from_another_directory_is_blocked
+    def test_entering_a_missing_worktree_asks_the_host_to_create_it
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
+                     call(
+                       "cd ~/Code/worktrees/backend/feature && bundle exec rake",
+                       cwd: backend,
+                       home: home
+                     )
+      end
+    end
+
+    def test_entering_an_existing_worktree_asks_the_host_to_use_its_path
+      with_repositories do |backend, home|
+        target = "#{home}/Code/worktrees/backend/feature"
+        FileUtils.mkdir_p(target)
+
+        assert_equal enter_worktree(backend, target),
                      call(
                        "cd ~/Code/worktrees/backend/feature && bundle exec rake",
                        cwd: backend,
@@ -141,10 +152,7 @@ module AgentHooks
 
     def test_entering_a_worktree_later_in_a_command_chain_is_blocked
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "printf ready && cd ~/Code/worktrees/backend/feature",
                        cwd: backend,
@@ -155,10 +163,7 @@ module AgentHooks
 
     def test_current_worktree_does_not_hide_a_later_worktree_transition
       with_backend_worktree do |feature, home|
-        assert_equal enter_worktree(
-                       feature,
-                       "#{home}/Code/worktrees/backend/other"
-                     ),
+        assert_equal create_worktree(feature, "other"),
                      call(
                        "cd ~/Code/worktrees/backend/feature && cd ~/Code/worktrees/backend/other",
                        cwd: feature,
@@ -203,10 +208,7 @@ module AgentHooks
 
     def test_cd_without_a_path_does_not_hide_a_later_worktree_transition
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd && cd ~/Code/worktrees/backend/feature",
                        cwd: backend,
@@ -217,10 +219,7 @@ module AgentHooks
 
     def test_regular_cd_does_not_hide_a_later_worktree_transition
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd /tmp && cd ~/Code/worktrees/backend/feature",
                        cwd: backend,
@@ -231,10 +230,7 @@ module AgentHooks
 
     def test_other_repository_cd_does_not_hide_a_later_worktree_transition
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd ~/Code/worktrees/renovate/job && cd ~/Code/worktrees/backend/feature",
                        cwd: backend,
@@ -245,10 +241,7 @@ module AgentHooks
 
     def test_worktree_repository_cd_does_not_hide_a_later_transition
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd ~/Code/worktrees/backend && cd ~/Code/worktrees/backend/feature",
                        cwd: backend,
@@ -283,10 +276,7 @@ module AgentHooks
 
     def test_home_variable_worktree_path_is_blocked
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd $HOME/Code/worktrees/backend/feature",
                        cwd: backend,
@@ -297,10 +287,7 @@ module AgentHooks
 
     def test_worktree_subdirectory_names_the_worktree_root
       with_repositories do |backend, home|
-        assert_equal enter_worktree(
-                       backend,
-                       "#{home}/Code/worktrees/backend/feature"
-                     ),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd ~/Code/worktrees/backend/feature/app",
                        cwd: backend,

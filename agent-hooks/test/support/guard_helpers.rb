@@ -134,6 +134,13 @@ module AgentHooks
       end
     end
 
+    def create_worktree(cwd, name)
+      [
+        2,
+        "BLOCKED: this session runs in #{cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with name #{name} to create the worktree, then rerun the command without cd.\n"
+      ]
+    end
+
     def enter_worktree(cwd, target)
       [
         2,
