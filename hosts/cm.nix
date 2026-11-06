@@ -11,6 +11,7 @@
 
     homebrew.casks = [
       "ghostty"
+      "display-pilot"
       "logseq"
       "zed"
       "google-chrome"
