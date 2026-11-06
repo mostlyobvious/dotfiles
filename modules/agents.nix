@@ -51,7 +51,9 @@ let
 
     - Post only the text I approved, word for word. Do not add context paragraphs, links, or summaries I have not seen. This covers published pages too: keep approved text and its layout as approved, without added styling or sections.
     - Draft only the posts I asked for; do not offer drafts for other systems on your own.
-    - Do not change issue state (status, assignee, labels) unless asked. Attaching an MR to an issue counts as content too.
+    - Keep issue status, assignee, and labels unchanged unless I explicitly ask for that exact change.
+    - Treat a connected Linear issue's status as invariant across MR state changes. Before opening, marking ready, merging, closing, or reopening an MR, confirm the transition preserves the Linear status; stop if it cannot.
+    - Attaching an MR to an issue counts as content too.
     - Before opening an MR or publishing approved text, present the exact content and destination, then wait for `go`. `go` authorizes only the action and content presented.
     - Run each write to a shared system as its own tool call, after the call that builds its input has succeeded and shown the input.
 
