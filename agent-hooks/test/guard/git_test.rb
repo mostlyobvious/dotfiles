@@ -14,6 +14,48 @@ module AgentHooks
       assert_equal [0, ""], call("git -C ~/Code/backend/backend status --short")
     end
 
+    def test_switching_branches_inside_a_linked_worktree_is_blocked
+      with_backend_worktree do |feature, home|
+        command = "git switch -q --detach origin/other"
+        reason =
+          "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+
+        assert_equal policy_blocked(command, reason),
+                     call(command, cwd: feature, home: home)
+      end
+    end
+
+    def test_checking_out_a_branch_inside_a_linked_worktree_is_blocked
+      with_backend_worktree do |feature, home|
+        command = "git checkout other"
+        reason =
+          "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+
+        assert_equal policy_blocked(command, reason),
+                     call(command, cwd: feature, home: home)
+      end
+    end
+
+    def test_other_git_commands_inside_a_linked_worktree_are_allowed
+      with_backend_worktree do |feature, home|
+        assert_equal [0, ""],
+                     call("git status --short", cwd: feature, home: home)
+      end
+    end
+
+    def test_switching_branches_inside_a_main_checkout_is_allowed
+      with_repositories do |backend, home|
+        assert_equal [0, ""], call("git switch other", cwd: backend, home: home)
+      end
+    end
+
+    def test_checking_out_a_branch_inside_a_main_checkout_is_allowed
+      with_repositories do |backend, home|
+        assert_equal [0, ""],
+                     call("git checkout other", cwd: backend, home: home)
+      end
+    end
+
     def test_dotfiles_worktree_from_main_checkout_is_blocked
       command = "git worktree add ../feature"
       reason =

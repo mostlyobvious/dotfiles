@@ -117,6 +117,16 @@ module AgentHooks
             else
             end
 
+            if %w[switch checkout].include?(command.git_subcommand) &&
+                 linked_worktree?(context.cwd)
+              return(
+                Policies.blocked(
+                  context,
+                  "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+                )
+              )
+            end
+
             if command.git_subcommand == "commit" &&
                  command.git_arguments.include?("--no-verify")
               return(
@@ -207,7 +217,16 @@ module AgentHooks
           File.basename(repository.root) == "chattermill" && branch == "main"
         end
 
-        private_class_method :protected_branch, :chattermill_main?
+        def self.linked_worktree?(cwd)
+          root = GitRepository.current(cwd).root
+          return false if root.empty?
+
+          !root.eql?(GitRepository.main_root(cwd))
+        end
+
+        private_class_method :protected_branch,
+                             :chattermill_main?,
+                             :linked_worktree?
       end
 
       module ShellEdit
@@ -513,17 +532,11 @@ module AgentHooks
             session = GitRepository.main_root(context.cwd)
             next unless File.basename(session) == repository
 
-            instruction =
-              if File.directory?(target)
-                "with path #{target}"
-              else
-                "with name #{worktree} to create the worktree"
-              end
             return(
               Decision.new(
                 status: 2,
                 message:
-                  "BLOCKED: this session runs in #{context.cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) #{instruction}, then rerun the command without cd.\n"
+                  "BLOCKED: this session runs in #{context.cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with name #{worktree} to create or reuse the worktree, then rerun the command without cd.\n"
               )
             )
           end

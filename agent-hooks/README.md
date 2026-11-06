@@ -118,7 +118,8 @@ independent while preserving policy order:
    named by an MR script;
 8. require detached devenv startup from the worktree root;
 9. enforce worktree creation and entry through the session host for the
-   session's own repository; another repository's worktree is created with
+   session's own repository, and reject branch switching inside linked
+   worktrees; another repository's worktree is created with
    `git -C <repository> worktree add ~/Code/worktrees/<repository>/<name>` and
    entered with `cd`.
 
@@ -178,6 +179,8 @@ Worktree creation follows these rules:
 - Keep the `dotfiles` repository in its main checkout.
 - Start new branches from `origin/HEAD` when available, falling back to `HEAD`.
 - Attach an existing local branch instead of trying to recreate it.
+- Reuse an existing named worktree when Git registers it with the same main
+  checkout; reject a colliding path from another repository.
 - Run `devenv allow` when the new worktree contains `devenv.nix`; authorization
   failure reports an error but keeps the successfully created worktree.
 - Print the destination and let the session host move the whole session there.

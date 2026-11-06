@@ -149,7 +149,7 @@ module AgentHooks
       )
     end
 
-    def test_existing_destination_is_reported
+    def test_existing_worktree_is_reused
       main = "#{@home}/Code/backend"
       destination = "#{@home}/Code/worktrees/backend/feature"
       FileUtils.mkdir_p(["#{main}/.git", destination])
@@ -161,14 +161,42 @@ module AgentHooks
         )
 
       assert_equal(
-        {
-          status: 1,
-          stdout: "",
-          stderr:
-            "Worktree path already exists: #{destination}. Use EnterWorktree with that path, or choose a different name.\n"
-        },
+        { status: 0, stdout: "#{destination}\n", stderr: "" },
         result
       )
+      refute git_log.any? { |command| command.include?("worktree add") }
+    end
+
+    def test_existing_path_from_another_repository_is_reported
+      main = "#{@home}/Code/backend"
+      destination = "#{@home}/Code/worktrees/backend/feature"
+      FileUtils.mkdir_p(["#{main}/.git", destination])
+
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "GIT_EXISTING_DESTINATION" => destination,
+          "GIT_EXISTING_COMMON_DIR" => "#{@home}/Code/other/.git"
+        )
+
+      assert_equal existing_path_error(main, destination), result
+    end
+
+    def test_existing_non_worktree_path_is_reported
+      main = "#{@home}/Code/backend"
+      destination = "#{@home}/Code/worktrees/backend/feature"
+      FileUtils.mkdir_p(["#{main}/.git", destination])
+
+      result =
+        run_worktree_source(
+          { hook_event_name: "WorktreeCreate", name: "feature", cwd: main },
+          "GIT_COMMON_DIR" => "#{main}/.git",
+          "GIT_EXISTING_DESTINATION" => destination,
+          "GIT_EXISTING_COMMON_STATUS" => "1"
+        )
+
+      assert_equal existing_path_error(main, destination), result
     end
 
     def test_git_creation_failure_is_returned
@@ -574,6 +602,15 @@ module AgentHooks
     end
 
     private
+
+    def existing_path_error(main, destination)
+      {
+        status: 1,
+        stdout: "",
+        stderr:
+          "Worktree path exists but is not registered with #{main}: #{destination}. Choose a different name.\n"
+      }
+    end
 
     def observe(session, root, at: Time.now.to_i)
       run_worktree_source(

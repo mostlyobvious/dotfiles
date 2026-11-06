@@ -155,6 +155,12 @@ module WorktreeHarness
     write_executable("git", <<~SH)
       #!/bin/sh
       printf '%s\n' "$*" >> "$GIT_LOG"
+      if [ -n "${GIT_EXISTING_DESTINATION:-}" ] &&
+         [ "$*" = "-C $GIT_EXISTING_DESTINATION rev-parse --path-format=absolute --git-common-dir" ]; then
+        [ "${GIT_EXISTING_COMMON_STATUS:-0}" -eq 0 ] || exit "$GIT_EXISTING_COMMON_STATUS"
+        printf '%s\n' "$GIT_EXISTING_COMMON_DIR"
+        exit 0
+      fi
       case "$*" in
         *"rev-parse --path-format=absolute --git-common-dir"*)
           if [ "${GIT_COMMON_STATUS:-0}" -ne 0 ]; then

@@ -41,9 +41,25 @@ module AgentHooks
         destination =
           "#{home}/Code/worktrees/#{File.basename(main_root)}/#{slug}"
         if File.exist?(destination)
+          existing_common_dir =
+            capture(
+              [
+                "git",
+                "-C",
+                destination,
+                "rev-parse",
+                "--path-format=absolute",
+                "--git-common-dir"
+              ]
+            )
+          if existing_common_dir&.chomp == common_dir.chomp
+            out.puts(destination)
+            return 0
+          end
+
           return(
             fail_with(
-              "Worktree path already exists: #{destination}. Use EnterWorktree with that path, or choose a different name.",
+              "Worktree path exists but is not registered with #{main_root}: #{destination}. Choose a different name.",
               err
             )
           )

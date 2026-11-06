@@ -121,12 +121,12 @@ module AgentHooks
       end
     end
 
-    def test_entering_an_existing_worktree_asks_the_host_to_use_its_path
+    def test_entering_an_existing_worktree_asks_the_host_to_reuse_its_name
       with_repositories do |backend, home|
         target = "#{home}/Code/worktrees/backend/feature"
         FileUtils.mkdir_p(target)
 
-        assert_equal enter_worktree(backend, target),
+        assert_equal create_worktree(backend, "feature"),
                      call(
                        "cd ~/Code/worktrees/backend/feature && bundle exec rake",
                        cwd: backend,
