@@ -220,6 +220,22 @@
             deadnix --fail ${nixSource}
             touch $out
           '';
+
+          change-writing =
+            pkgs.runCommand "change-writing-check"
+              {
+                nativeBuildInputs = [ pkgs.vale ];
+              }
+              ''
+                cd ${./skills/change-writing}
+                vale --no-global --config=.vale.ini test --coverage styles
+                printf '%s\n' 'The guide now names the required command.' | scripts/lint >/dev/null
+                if printf '%s\n' 'Let me know if you want more detail.' | scripts/lint >/dev/null; then
+                  echo 'expected the change-writing linter to reject a chat wrapper' >&2
+                  exit 1
+                fi
+                touch $out
+              '';
         }
         // lib.optionalAttrs (system == "aarch64-darwin") (
           darwinChecks

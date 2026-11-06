@@ -1,0 +1,21 @@
+extends: existence
+message: "Name the concrete change instead of '%s'."
+level: error
+ignorecase: true
+tokens:
+  - '\bvarious improvements\b'
+  - '\bmiscellaneous improvements\b'
+  - '\bvarious bug ?fixes\b'
+tests:
+  - name: flags unspecified improvements
+    input: "This release includes various improvements.\n"
+    contains: ChangeWriting.VagueChanges
+  - name: flags miscellaneous improvements
+    input: "This release includes miscellaneous improvements.\n"
+    contains: ChangeWriting.VagueChanges
+  - name: flags unspecified fixes
+    input: "The update contains various bug fixes.\n"
+    contains: ChangeWriting.VagueChanges
+  - name: accepts a concrete outcome
+    input: "Retried imports no longer create duplicate records.\n"
+    want: ""

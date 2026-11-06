@@ -11,6 +11,7 @@
     glab
     python315
     tuicr
+    vale
     yq
   ];
 

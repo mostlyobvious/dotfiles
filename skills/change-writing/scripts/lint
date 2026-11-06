@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+skill_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+
+if [ "$#" -eq 0 ]; then
+  exec vale --no-global --config="$skill_dir/.vale.ini" --output=JSON \
+    --ext=.md --path=draft.md
+fi
+
+exec vale --no-global --config="$skill_dir/.vale.ini" --output=JSON "$@"

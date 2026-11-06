@@ -1,0 +1,23 @@
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: error
+ignorecase: false
+swap:
+  Github: GitHub
+  Gitlab: GitLab
+  Javascript: JavaScript
+  Typescript: TypeScript
+tests:
+  - name: fixes product capitalization
+    input: "The Github workflow runs Typescript checks.\n"
+    contains:
+      - "ChangeWriting.Terminology:Use 'GitHub' instead of 'Github'."
+      - "ChangeWriting.Terminology:Use 'TypeScript' instead of 'Typescript'."
+  - name: fixes platform and language capitalization
+    input: "Gitlab runs Javascript checks.\n"
+    contains:
+      - "ChangeWriting.Terminology:Use 'GitLab' instead of 'Gitlab'."
+      - "ChangeWriting.Terminology:Use 'JavaScript' instead of 'Javascript'."
+  - name: accepts canonical product names
+    input: "The GitLab workflow runs JavaScript checks.\n"
+    want: ""

@@ -1,0 +1,21 @@
+extends: existence
+message: "Address the reader directly; remove '%s'."
+level: error
+ignorecase: true
+tokens:
+  - '\blet me know if\b'
+  - '\bi(?:’|\x27)d be happy to\b'
+  - '\bi(?:’|\x27)ve gone ahead and\b'
+tests:
+  - name: flags an offer to continue
+    input: "Let me know if you want a longer version.\n"
+    contains: ChangeWriting.ChatWrappers
+  - name: flags an offer to do more
+    input: "I’d be happy to draft another version.\n"
+    contains: ChangeWriting.ChatWrappers
+  - name: flags a status wrapper
+    input: "I've gone ahead and updated the guide.\n"
+    contains: ChangeWriting.ChatWrappers
+  - name: accepts a direct result
+    input: "The guide now names the required command.\n"
+    want: ""

@@ -11,6 +11,7 @@ in
   packages = [
     pkgs.git
     pkgs.shfmt
+    pkgs.vale
     rubyEnv
     rubyEnv.wrappedRuby
   ];

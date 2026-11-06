@@ -1,6 +1,7 @@
 ---
 name: change-writing
 description: Write or improve technical prose about code changes. Use for commit bodies, MR/PR descriptions, changelogs, release notes, technical docs, API docs, user guides, or reviewer-facing summaries.
+compatibility: Requires Vale 3.25 or newer.
 ---
 
 # Change Writing
@@ -128,8 +129,9 @@ When writing user-facing or admin-facing docs, include the relevant subset:
 
 Run this on the finished draft before presenting it, and revise every hit:
 
-1. Search the whole text, headings, titles, and list items included, for not-X-but-Y contrasts, groups of three, bold labels that restate their text, one-line closers, and chat wrappers.
-2. Check that the text is:
+1. Run `scripts/lint` on the finished artifact. Pass Markdown file paths as arguments; pipe extensionless files or chat-only text through standard input. Fix every alert in authored prose, preserve required quoted text exactly, then rerun Vale until no authored-prose alerts remain.
+2. Search the whole text, headings, titles, and list items included, for not-X-but-Y contrasts, groups of three, bold labels that restate their text, and one-line closers.
+3. Check that the text is:
    - Accurate against the code, diff, tests, and linked sources.
    - Complete for the audience's next action, but no broader.
    - Structured with headings or bullets that make scanning easy.
