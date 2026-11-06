@@ -20,7 +20,8 @@ account. This flake owns machine orchestration and pins every input in
 
 Outputs mirror the tree: `darwinConfigurations.<host>` and
 `homeConfigurations."<host>-<user>"`. `make check` builds each of them and
-also runs nixfmt, deadnix, and the agent-hooks tests.
+also runs nixfmt, deadnix, the agent-hooks tests, and the `change-writing`
+Vale checks.
 
 ## Apply
 
