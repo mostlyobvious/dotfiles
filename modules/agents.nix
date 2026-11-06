@@ -63,6 +63,7 @@ let
 
     - Answer first. The opening sentence states the result, decision, or answer; supporting detail follows in falling order of importance.
     - For status updates: state, then blockers, then next step. No chronological narration of what you did.
+    - When a response asks for confirmation or a decision, put the request on the final line so it remains visible after scrolling.
     - Introduce one new concept at a time. Define a term before its first use; never use it first and explain after.
     - A link is not an explanation; the reply must make sense without opening it.
     - Use precise verbs instead of "is/does/handles" and noun forms ("validate", not "perform validation").
