@@ -43,6 +43,41 @@ module AgentHooks
       end
     end
 
+    def test_switching_a_main_checkout_from_a_linked_worktree_is_allowed
+      with_backend_worktree do |feature, home|
+        assert_equal [0, ""],
+                     call(
+                       "git -C ~/Code/backend switch other",
+                       cwd: feature,
+                       home: home
+                     )
+      end
+    end
+
+    def test_switching_another_linked_worktree_is_blocked
+      with_two_backend_worktrees do |feature, _other, home|
+        command = "git -C ~/Code/worktrees/backend/other switch feature"
+
+        assert_branch_switch_blocked(command, cwd: feature, home: home)
+      end
+    end
+
+    def test_home_variable_resolves_the_branch_switch_target
+      with_two_backend_worktrees do |feature, _other, home|
+        command = "git -C $HOME/Code/worktrees/backend/other switch feature"
+
+        assert_branch_switch_blocked(command, cwd: feature, home: home)
+      end
+    end
+
+    def test_relative_path_resolves_the_branch_switch_target
+      with_two_backend_worktrees do |feature, _other, home|
+        command = "git -C ../other switch feature"
+
+        assert_branch_switch_blocked(command, cwd: feature, home: home)
+      end
+    end
+
     def test_switching_branches_inside_a_main_checkout_is_allowed
       with_repositories do |backend, home|
         assert_equal [0, ""], call("git switch other", cwd: backend, home: home)
@@ -507,6 +542,32 @@ module AgentHooks
                        )
         end
       end
+    end
+
+    private
+
+    def with_two_backend_worktrees
+      with_backend_worktree do |feature, home|
+        other = "#{home}/Code/worktrees/backend/other"
+        git(
+          "-C",
+          "#{home}/Code/backend",
+          "worktree",
+          "add",
+          "--quiet",
+          "-b",
+          "other",
+          other
+        )
+        yield feature, other, home
+      end
+    end
+
+    def assert_branch_switch_blocked(command, cwd:, home:)
+      reason =
+        "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+      assert_equal policy_blocked(command, reason),
+                   call(command, cwd: cwd, home: home)
     end
   end
 end

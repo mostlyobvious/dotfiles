@@ -128,7 +128,7 @@ module AgentHooks
             end
 
             if %w[switch checkout].include?(command.git_subcommand) &&
-                 linked_worktree?(context.cwd)
+                 linked_worktree?(git_directory(context, command))
               return(
                 Policies.blocked(
                   context,
@@ -227,6 +227,14 @@ module AgentHooks
           File.basename(repository.root) == "chattermill" && branch == "main"
         end
 
+        def self.git_directory(context, command)
+          directory = command.git_directory
+          return context.cwd unless directory
+
+          expanded = directory.sub(%r{\A(?:~|\$HOME)/}, "#{context.home}/")
+          File.expand_path(expanded, context.cwd)
+        end
+
         def self.linked_worktree?(cwd)
           root = GitRepository.current(cwd).root
           return false if root.empty?
@@ -236,6 +244,7 @@ module AgentHooks
 
         private_class_method :protected_branch,
                              :chattermill_main?,
+                             :git_directory,
                              :linked_worktree?
       end
 
