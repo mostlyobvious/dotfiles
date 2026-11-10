@@ -31,6 +31,8 @@ module AgentHooks
     DEVENV_DETACH_MESSAGE =
       "BLOCKED: start worktree services with devenv up -d.\n"
     DEVENV_ROOT_MESSAGE = "BLOCKED: run devenv up -d from the worktree root.\n"
+    PYTHON_DEVENV_MESSAGE =
+      "BLOCKED: run Python project commands through devenv shell -- so they use this worktree's environment.\n"
     FORCE_PUSH_REASON =
       "is a force push. Use --force-with-lease after an amend or rebase on a feature branch."
 

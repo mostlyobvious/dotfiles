@@ -89,5 +89,158 @@ module AgentHooks
         assert_equal [0, ""], call("tool up", cwd: root, home: home)
       end
     end
+
+    def test_bare_uv_is_blocked_in_a_python_worktree
+      with_python_worktree do |root, home|
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("uv run pytest", cwd: root, home: home)
+      end
+    end
+
+    def test_bare_python_tool_is_blocked_in_a_python_worktree
+      with_python_worktree do |root, home|
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("pytest", cwd: root, home: home)
+      end
+    end
+
+    def test_environment_prefix_does_not_hide_a_python_tool
+      with_python_worktree do |root, home|
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("env FOO=bar python -m pytest", cwd: root, home: home)
+      end
+    end
+
+    def test_python_tool_path_is_blocked
+      with_python_worktree do |root, home|
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("/usr/bin/pytest", cwd: root, home: home)
+      end
+    end
+
+    def test_python3_is_blocked
+      with_python_worktree do |root, home|
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("python3 script.py", cwd: root, home: home)
+      end
+    end
+
+    def test_environment_assignment_is_allowed
+      with_python_worktree do |root, home|
+        assert_equal [0, ""], call("FOO=bar", cwd: root, home: home)
+      end
+    end
+
+    def test_earlier_command_does_not_hide_a_python_tool
+      with_python_worktree do |root, home|
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("printf ready && ruff check", cwd: root, home: home)
+      end
+    end
+
+    def test_wrapped_python_tool_is_allowed
+      with_python_worktree do |root, home|
+        assert_equal [0, ""],
+                     call(
+                       "devenv shell -- uv run pytest",
+                       cwd: root,
+                       home: home
+                     )
+      end
+    end
+
+    def test_uv_tool_environment_is_allowed
+      with_python_worktree do |root, home|
+        assert_equal [0, ""],
+                     call("uv tool run ruff check", cwd: root, home: home)
+      end
+    end
+
+    def test_uvx_is_allowed
+      with_python_worktree do |root, home|
+        assert_equal [0, ""], call("uvx ruff check", cwd: root, home: home)
+      end
+    end
+
+    def test_global_python_is_allowed_outside_a_python_project
+      with_worktree do |root, home|
+        File.write("#{root}/devenv.nix", "{ }\n")
+
+        assert_equal [0, ""], call("python script.py", cwd: root, home: home)
+      end
+    end
+
+    def test_python_project_without_devenv_is_not_guarded
+      with_worktree do |root, home|
+        File.write("#{root}/pyproject.toml", "[project]\nname = 'example'\n")
+
+        assert_equal [0, ""], call("python script.py", cwd: root, home: home)
+      end
+    end
+
+    def test_nested_global_python_is_allowed_outside_a_python_project
+      with_worktree do |root, home|
+        nested = "#{root}/scripts/tools"
+        FileUtils.mkdir_p(nested)
+        File.write("#{root}/devenv.nix", "{ }\n")
+
+        assert_equal [0, ""], call("python task.py", cwd: nested, home: home)
+      end
+    end
+
+    def test_global_python_is_allowed_from_a_symlinked_worktree
+      Dir.mktmpdir do |home|
+        actual = "#{home}/actual"
+        root = "#{home}/Code/worktrees/project/task"
+        FileUtils.mkdir_p(File.dirname(root))
+        system(
+          "git",
+          "init",
+          "--quiet",
+          "--initial-branch=feature",
+          actual,
+          out: File::NULL,
+          err: File::NULL
+        ) or raise "git init failed"
+        File.write("#{actual}/devenv.nix", "{ }\n")
+        File.symlink(actual, root)
+
+        assert_equal [0, ""], call("python task.py", cwd: root, home: home)
+      end
+    end
+
+    def test_nested_python_project_is_guarded
+      with_python_worktree do |root, home|
+        nested = "#{root}/packages/app"
+        FileUtils.mkdir_p(nested)
+        FileUtils.mv(
+          "#{root}/pyproject.toml",
+          "#{root}/packages/pyproject.toml"
+        )
+
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("pyright", cwd: nested, home: home)
+      end
+    end
+
+    def test_uv_lock_identifies_a_python_project
+      with_worktree do |root, home|
+        File.write("#{root}/devenv.nix", "{ }\n")
+        File.write("#{root}/uv.lock", "version = 1\n")
+
+        assert_equal [2, PYTHON_DEVENV_MESSAGE],
+                     call("mutmut run", cwd: root, home: home)
+      end
+    end
+
+    private
+
+    def with_python_worktree
+      with_worktree do |root, home|
+        File.write("#{root}/devenv.nix", "{ }\n")
+        File.write("#{root}/pyproject.toml", "[project]\nname = 'example'\n")
+        yield root, home
+      end
+    end
   end
 end

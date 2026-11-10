@@ -117,11 +117,18 @@ independent while preserving policy order:
    file given to `mr-describe` or `--description-file`, and in such files
    named by an MR script;
 8. require detached devenv startup from the worktree root;
-9. enforce worktree creation and entry through the session host for the
+9. require Python project commands in managed worktrees to run through
+   `devenv shell --` when the repository has `devenv.nix` and the current path
+   belongs to a `pyproject.toml` or `uv.lock` project;
+10. enforce worktree creation and entry through the session host for the
    session's own repository, and reject branch switching inside linked
    worktrees; another repository's worktree is created with
    `git -C <repository> worktree add ~/Code/worktrees/<repository>/<name>` and
    entered with `cd`.
+
+The Python environment policy covers `uv`, Python interpreters, pytest, Ruff,
+Pyright, and mutmut. It leaves `uv tool`, `uvx`, and Python commands outside a
+detected Python project unchanged.
 
 The explicit dispatch in `Policies.evaluate` is intentional. Spinel must see
 calls to the nested policy modules when it compiles the native executable.

@@ -33,6 +33,16 @@ module AgentHooks
         "BLOCKED: start worktree services with devenv up -d.\n"
       DEVENV_ROOT_MESSAGE =
         "BLOCKED: run devenv up -d from the worktree root.\n"
+      PYTHON_DEVENV_MESSAGE =
+        "BLOCKED: run Python project commands through devenv shell -- so they use this worktree's environment.\n"
+      PYTHON_PROJECT_EXECUTABLES = %w[
+        mutmut
+        pyright
+        pytest
+        python
+        python3
+        ruff
+      ].freeze
       SHELL_EDIT_REASON =
         "edits files through an in-place shell command. Use Edit for existing files or Write for new files and complete rewrites."
       ATTRIBUTION =
@@ -260,6 +270,13 @@ module AgentHooks
           worktrees = "#{context.home}/Code/worktrees/"
           return unless context.cwd.start_with?(worktrees)
 
+          if python_project?(context.cwd) &&
+               context.program.commands.any? { |command|
+                 python_project_command?(command)
+               }
+            return Decision.new(status: 2, message: PYTHON_DEVENV_MESSAGE)
+          end
+
           context.program.commands.each do |command|
             next unless command.executable == "devenv"
             next unless command.arguments.first == "up"
@@ -274,6 +291,32 @@ module AgentHooks
           end
           nil
         end
+
+        def self.python_project?(cwd)
+          root = GitRepository.current(cwd).root
+          return false unless File.file?("#{root}/devenv.nix")
+
+          directory = File.realpath(cwd)
+          loop do
+            if %w[pyproject.toml uv.lock].any? { |marker|
+                 File.file?("#{directory}/#{marker}")
+               }
+              return true
+            end
+            return false if directory == root
+
+            directory = File.dirname(directory)
+          end
+        end
+
+        def self.python_project_command?(command)
+          executable = File.basename(command.executable.to_s)
+          return !command.arguments.first.eql?("tool") if executable == "uv"
+
+          PYTHON_PROJECT_EXECUTABLES.include?(executable)
+        end
+
+        private_class_method :python_project?, :python_project_command?
       end
 
       module ChangeWriting
@@ -575,6 +618,8 @@ module AgentHooks
                        :MR_SQUASH_MESSAGE,
                        :DEVENV_DETACH_MESSAGE,
                        :DEVENV_ROOT_MESSAGE,
+                       :PYTHON_DEVENV_MESSAGE,
+                       :PYTHON_PROJECT_EXECUTABLES,
                        :SHELL_EDIT_REASON,
                        :ATTRIBUTION,
                        :LINEAR_WRITE,
