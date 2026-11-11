@@ -18,7 +18,7 @@ module AgentHooks
       with_backend_worktree do |feature, home|
         command = "git switch -q --detach origin/other"
         reason =
-          "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+          "uses git switch or checkout inside a linked worktree. Call EnterWorktree with {\"path\":\"<worktree name>\"} for another branch, or use git restore for files."
 
         assert_equal policy_blocked(command, reason),
                      call(command, cwd: feature, home: home)
@@ -29,7 +29,7 @@ module AgentHooks
       with_backend_worktree do |feature, home|
         command = "git checkout other"
         reason =
-          "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+          "uses git switch or checkout inside a linked worktree. Call EnterWorktree with {\"path\":\"<worktree name>\"} for another branch, or use git restore for files."
 
         assert_equal policy_blocked(command, reason),
                      call(command, cwd: feature, home: home)
@@ -576,7 +576,7 @@ module AgentHooks
 
     def assert_branch_switch_blocked(command, cwd:, home:)
       reason =
-        "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+        "uses git switch or checkout inside a linked worktree. Call EnterWorktree with {\"path\":\"<worktree name>\"} for another branch, or use git restore for files."
       assert_equal policy_blocked(command, reason),
                    call(command, cwd: cwd, home: home)
     end

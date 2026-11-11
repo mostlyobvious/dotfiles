@@ -7,7 +7,14 @@ module AgentHooks
         home = env.fetch("HOME")
         name = event.fetch("name")
         cwd = event.fetch("cwd")
-        tool = event.key?("host") ? "enter_worktree" : "EnterWorktree"
+        pi = event.key?("host")
+        tool = pi ? "enter_worktree" : "EnterWorktree"
+        retry_instruction =
+          if pi
+            "run enter_worktree again"
+          else
+            "call EnterWorktree with {\"path\":\"#{name}\"} again"
+          end
         common_dir =
           capture(
             [
@@ -22,7 +29,7 @@ module AgentHooks
         unless common_dir
           return(
             fail_with(
-              "Could not find the repository for #{cwd}. Start the session from a repository checkout, then run #{tool} again.",
+              "Could not find the repository for #{cwd}. Start the session from a repository checkout, then #{retry_instruction}.",
               err
             )
           )

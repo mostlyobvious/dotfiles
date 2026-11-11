@@ -14,7 +14,7 @@ module AgentHooks
 
     module Policies
       CLAUDE_WORKTREE_MESSAGE =
-        "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
+        "BLOCKED: call EnterWorktree with {\"path\":\"<worktree name>\"} instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
       PI_WORKTREE_MESSAGE =
         "BLOCKED: use the enter_worktree tool instead of git worktree add so the session moves to the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
       CHANGE_WRITING_MESSAGE =
@@ -79,19 +79,19 @@ module AgentHooks
       end
 
       def self.worktree_switch_reason(context)
-        tool =
-          context.event["host"] == "pi" ? "enter_worktree" : "EnterWorktree"
-        "uses git switch or checkout inside a linked worktree. Use #{tool} for another branch or git restore for files."
+        if context.event["host"] == "pi"
+          "uses git switch or checkout inside a linked worktree. Use enter_worktree for another branch or git restore for files."
+        else
+          "uses git switch or checkout inside a linked worktree. Call EnterWorktree with {\"path\":\"<worktree name>\"} for another branch, or use git restore for files."
+        end
       end
 
       def self.worktree_entry_message(context, worktree)
-        tool =
-          if context.event["host"] == "pi"
-            "the enter_worktree tool"
-          else
-            "the session host's worktree tool (Claude Code: EnterWorktree)"
-          end
-        "BLOCKED: this session runs in #{context.cwd}. Use #{tool} with name #{worktree} to create or reuse the worktree, then rerun the command without cd.\n"
+        if context.event["host"] == "pi"
+          "BLOCKED: this session runs in #{context.cwd}. Use the enter_worktree tool with name #{worktree} to create or reuse the worktree, then rerun the command without cd.\n"
+        else
+          "BLOCKED: this session runs in #{context.cwd}. Call EnterWorktree with {\"path\":\"#{worktree}\"} to create or reuse the worktree; pass the bare name, not a filesystem path. Then rerun the command without cd.\n"
+        end
       end
 
       def self.unless_go(context, reason)

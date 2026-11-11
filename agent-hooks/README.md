@@ -44,7 +44,9 @@ The out-of-store
 [`config/claude/settings.json`](../config/claude/settings.json) registers those
 paths for shell, Artifact, and Linear pre-tool checks, for prompt, post-tool
 (Bash, Write, Edit, Skill), worktree creation, activity, and session-end
-events, and blocks the tool call when the guard itself fails.
+events, and blocks the tool call when the guard itself fails. Claude passes a
+bare worktree name in `EnterWorktree`'s `path` parameter, allowing the
+`WorktreeCreate` hook to return the managed path under `~/Code/worktrees`.
 
 For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 `PATH` and links [`config/pi/extensions/`](../config/pi/extensions/) to

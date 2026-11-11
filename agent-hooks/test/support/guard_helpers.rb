@@ -19,7 +19,7 @@ module AgentHooks
     REVIEW_REMINDER =
       "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
     WORKTREE_MESSAGE =
-      "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
+      "BLOCKED: call EnterWorktree with {\"path\":\"<worktree name>\"} instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
     COMMIT_FILE_MESSAGE =
       "BLOCKED: write commit messages to a file and pass it with git commit -F.\n"
     COMMIT_FORMAT_MESSAGE =
@@ -139,7 +139,7 @@ module AgentHooks
     def create_worktree(cwd, name)
       [
         2,
-        "BLOCKED: this session runs in #{cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with name #{name} to create or reuse the worktree, then rerun the command without cd.\n"
+        "BLOCKED: this session runs in #{cwd}. Call EnterWorktree with {\"path\":\"#{name}\"} to create or reuse the worktree; pass the bare name, not a filesystem path. Then rerun the command without cd.\n"
       ]
     end
 
