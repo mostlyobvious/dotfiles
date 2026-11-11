@@ -1,6 +1,6 @@
 ---
 name: change-writing
-description: Write or improve technical prose about code changes. Use for commit bodies, MR/PR descriptions, changelogs, release notes, technical docs, API docs, user guides, or reviewer-facing summaries.
+description: Write or improve technical prose about code changes. Use for artifacts, commit bodies, MR/PR descriptions, changelogs, release notes, technical docs, API docs, user guides, or reviewer-facing summaries.
 compatibility: Requires Vale 3.25 or newer.
 ---
 
@@ -8,7 +8,7 @@ compatibility: Requires Vale 3.25 or newer.
 
 ## When Invoked
 
-1. Identify the writing job: commit message, MR/PR description, technical doc, API reference, guide, changelog, release note, or reviewer summary.
+1. Identify the writing job: artifact, commit message, MR/PR description, technical doc, API reference, guide, changelog, release note, or reviewer summary.
 2. Identify the audience: future maintainer, reviewer, operator, API consumer, end user, administrator, or SDK user.
 3. Review the source material: diff, commits, code, tests, existing docs, issue/MR links, changelogs, incidents, user feedback, and project templates.
 4. Find gaps: missing context, unclear problem statement, unverified claims, absent examples, undocumented risks, inconsistent terminology, or stale docs.
@@ -29,6 +29,7 @@ Before writing, answer the useful subset of:
 
 Choose the shape that matches the task:
 
+- Artifact: concise decision aid built around concrete evidence and examples.
 - Commit message: decision record for future maintainers.
 - MR/PR description: reviewer guide to scope, intent, risk, and verification.
 - Developer docs: concepts, setup, integration paths, examples, and troubleshooting.
@@ -36,13 +37,19 @@ Choose the shape that matches the task:
 - User/admin guides: task-based steps, expected results, caveats, and recovery paths.
 - Changelog/release notes: user-visible change, upgrade impact, migration notes, and links.
 
+## Default Shape
+
+- Open with one brief statement of the result, problem, or decision.
+- Use compact bullets for distinct facts; use paragraphs only when the reasoning needs a narrative.
+- For a behaviour change, show a concrete before/after example before the detailed explanation.
+- Add detail only when the audience needs it for the next decision or action.
+
 ## Writing Standards
 
 - Lead with the problem, not the implementation.
 - Explain why the change is needed and what outcome it creates.
 - Use progressive disclosure: start with what the reader needs now, then add details.
 - Prefer task-based writing for guides: goal, prerequisites, steps, expected result, troubleshooting.
-- Include examples when they reduce ambiguity; keep them tested or clearly illustrative.
 - In MR/PR descriptions and technical docs, when prose asks the reader to track one input through two or more paths, replace the comparison with a compact plain-text diagram.
 - Include only implementation details that affect review, operation, migration, API use, or future changes.
 - Call out risks, compatibility behavior, rollout constraints, and follow-ups when they matter.
@@ -50,11 +57,9 @@ Choose the shape that matches the task:
 - For MR/PR descriptions, do not include test counts; they go stale during rebases.
 - Link source material when it influenced the change: issue, MR, Slack thread, article, docs, changelog, release, or compare view.
 - Trace historical and behavioural claims to a commit, date, or document. When the source cannot be found, say so instead of paraphrasing what it probably said.
-- Include a concrete before/after example when it clarifies caller-visible behaviour that the diff does not show directly.
 - Write for a reader with no prior context. Replace assumptions about prior knowledge with a concrete example.
 - For dependency upgrades, link the changelog for the traversed version range. When no changelog exists, link the release or compare view instead.
 - Use plain language. Avoid marketing tone, hero language, drama, jargon, filler, and restating the diff.
-- Prefer concise bullets when several facts compete for attention, and cut anything the audience does not need for the next decision.
 - For benchmarks, use a table with before/after when there is a baseline, and say how each number was measured.
 - Make the subject, title, or first sentence tell the audience whether the change affects them and why it matters: "Stop double-charging retried webhooks", not "Refactor webhook handler".
 - Define each domain or internal term before its first use. The text must make sense without following any link.
@@ -132,6 +137,8 @@ Run this on the finished draft before presenting it, and revise every hit:
 1. Run `scripts/lint` on the finished artifact. Pass Markdown file paths as arguments; pipe extensionless files or chat-only text through standard input. Fix every alert in authored prose, preserve required quoted text exactly, then rerun Vale until no authored-prose alerts remain.
 2. Search the whole text, headings, titles, and list items included, for not-X-but-Y contrasts, groups of three, bold labels that restate their text, and one-line closers.
 3. Check that the text is:
+   - Brief enough to scan without losing required context.
+   - Led by bullets and a concrete before/after example when the default shape applies.
    - Accurate against the code, diff, tests, and linked sources.
    - Complete for the audience's next action, but no broader.
    - Structured with headings or bullets that make scanning easy.
