@@ -53,7 +53,9 @@ For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 events into the same JSON the Claude Code hooks send: the prompt, Bash and
 Linear MCP calls, Bash, Write and Edit results, a read of the change-writing
 skill as a Skill result, and session end. It invokes the appropriate
-executable by name and injects guard reminders into tool results.
+executable by name and injects guard reminders into tool results. Its
+`enter_worktree` tool creates or reuses the managed worktree, then forks the
+current pi session there so later commands start in the worktree.
 
 [`packages/agent-guard.nix`](../packages/agent-guard.nix) and
 [`packages/agent-worktree.nix`](../packages/agent-worktree.nix) compile the Ruby

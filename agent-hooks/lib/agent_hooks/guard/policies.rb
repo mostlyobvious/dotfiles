@@ -13,8 +13,10 @@ module AgentHooks
       )
 
     module Policies
-      BLOCKED_MESSAGE =
+      CLAUDE_WORKTREE_MESSAGE =
         "BLOCKED: use the session host's worktree tool (Claude Code: EnterWorktree) instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
+      PI_WORKTREE_MESSAGE =
+        "BLOCKED: use the enter_worktree tool instead of git worktree add so the session moves to the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
       CHANGE_WRITING_MESSAGE =
         "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
@@ -66,6 +68,30 @@ module AgentHooks
           status: 2,
           message: "BLOCKED: '#{context.command}' #{reason}\n"
         )
+      end
+
+      def self.worktree_creation_message(context)
+        if context.event["host"] == "pi"
+          PI_WORKTREE_MESSAGE
+        else
+          CLAUDE_WORKTREE_MESSAGE
+        end
+      end
+
+      def self.worktree_switch_reason(context)
+        tool =
+          context.event["host"] == "pi" ? "enter_worktree" : "EnterWorktree"
+        "uses git switch or checkout inside a linked worktree. Use #{tool} for another branch or git restore for files."
+      end
+
+      def self.worktree_entry_message(context, worktree)
+        tool =
+          if context.event["host"] == "pi"
+            "the enter_worktree tool"
+          else
+            "the session host's worktree tool (Claude Code: EnterWorktree)"
+          end
+        "BLOCKED: this session runs in #{context.cwd}. Use #{tool} with name #{worktree} to create or reuse the worktree, then rerun the command without cd.\n"
       end
 
       def self.unless_go(context, reason)
@@ -132,7 +158,7 @@ module AgentHooks
               return(
                 Policies.blocked(
                   context,
-                  "uses git switch or checkout inside a linked worktree. Use EnterWorktree for another branch or git restore for files."
+                  Policies.worktree_switch_reason(context)
                 )
               )
             end
@@ -560,7 +586,12 @@ module AgentHooks
                  command.git_arguments.first == "add" &&
                  !other_repository_worktree?(context, command)
              }
-            return Decision.new(status: 2, message: BLOCKED_MESSAGE)
+            return(
+              Decision.new(
+                status: 2,
+                message: Policies.worktree_creation_message(context)
+              )
+            )
           end
 
           context.program.commands.each do |command|
@@ -587,8 +618,7 @@ module AgentHooks
             return(
               Decision.new(
                 status: 2,
-                message:
-                  "BLOCKED: this session runs in #{context.cwd}. Use the session host's worktree tool (Claude Code: EnterWorktree) with name #{worktree} to create or reuse the worktree, then rerun the command without cd.\n"
+                message: Policies.worktree_entry_message(context, worktree)
               )
             )
           end
@@ -618,7 +648,8 @@ module AgentHooks
         private_class_method :other_repository_worktree?, :expand
       end
 
-      private_constant :BLOCKED_MESSAGE,
+      private_constant :CLAUDE_WORKTREE_MESSAGE,
+                       :PI_WORKTREE_MESSAGE,
                        :CHANGE_WRITING_MESSAGE,
                        :ATTRIBUTION_MESSAGE,
                        :COMMIT_FILE_MESSAGE,

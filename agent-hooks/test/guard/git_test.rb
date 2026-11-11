@@ -36,6 +36,17 @@ module AgentHooks
       end
     end
 
+    def test_pi_branch_switch_names_its_available_tool
+      with_backend_worktree do |feature, home|
+        command = "git switch other"
+        reason =
+          "uses git switch or checkout inside a linked worktree. Use enter_worktree for another branch or git restore for files."
+
+        assert_equal policy_blocked(command, reason),
+                     call(command, cwd: feature, home: home, host: "pi")
+      end
+    end
+
     def test_other_git_commands_inside_a_linked_worktree_are_allowed
       with_backend_worktree do |feature, home|
         assert_equal [0, ""],

@@ -122,6 +122,27 @@ module AgentHooks
       )
     end
 
+    def test_pi_dotfiles_error_names_its_available_tool
+      main = "#{@home}/Code/dotfiles"
+      FileUtils.mkdir_p("#{main}/.git")
+
+      result =
+        run_worktree_source(
+          {
+            hook_event_name: "WorktreeCreate",
+            host: "pi",
+            name: "feature",
+            cwd: main
+          },
+          "GIT_COMMON_DIR" => "#{main}/.git"
+        )
+
+      assert_equal(
+        "dotfiles is edited in its main checkout, never in a linked worktree. Continue in #{@home}/Code/dotfiles without enter_worktree.\n",
+        result[:stderr]
+      )
+    end
+
     def test_missing_repository_is_reported_without_git_noise
       result = nil
       process_output =
@@ -146,6 +167,24 @@ module AgentHooks
             "Could not find the repository for /missing. Start the session from a repository checkout, then run EnterWorktree again.\n"
         },
         result
+      )
+    end
+
+    def test_pi_missing_repository_error_names_its_available_tool
+      result =
+        run_worktree_source(
+          {
+            hook_event_name: "WorktreeCreate",
+            host: "pi",
+            name: "feature",
+            cwd: "/missing"
+          },
+          "GIT_COMMON_STATUS" => "1"
+        )
+
+      assert_equal(
+        "Could not find the repository for /missing. Start the session from a repository checkout, then run enter_worktree again.\n",
+        result[:stderr]
       )
     end
 

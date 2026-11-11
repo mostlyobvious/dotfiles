@@ -11,6 +11,14 @@ module AgentHooks
       assert_equal blocked, call("git worktree add ../feature")
     end
 
+    def test_pi_worktree_creation_names_its_available_tool
+      command = "git worktree add ../feature"
+      message =
+        "BLOCKED: use the enter_worktree tool instead of git worktree add so the session moves to the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
+
+      assert_equal [2, message], call(command, host: "pi")
+    end
+
     def test_explicit_repository_worktree_creation_is_blocked
       assert_equal blocked,
                    call("git -C ~/Code/backend/backend worktree add ../feature")
@@ -117,6 +125,21 @@ module AgentHooks
                        "cd ~/Code/worktrees/backend/feature && bundle exec rake",
                        cwd: backend,
                        home: home
+                     )
+      end
+    end
+
+    def test_pi_worktree_entry_names_its_available_tool
+      with_repositories do |backend, home|
+        message =
+          "BLOCKED: this session runs in #{backend}. Use the enter_worktree tool with name feature to create or reuse the worktree, then rerun the command without cd.\n"
+
+        assert_equal [2, message],
+                     call(
+                       "cd ~/Code/worktrees/backend/feature",
+                       cwd: backend,
+                       home: home,
+                       host: "pi"
                      )
       end
     end

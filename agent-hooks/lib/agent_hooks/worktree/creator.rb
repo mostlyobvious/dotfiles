@@ -7,6 +7,7 @@ module AgentHooks
         home = env.fetch("HOME")
         name = event.fetch("name")
         cwd = event.fetch("cwd")
+        tool = event.key?("host") ? "enter_worktree" : "EnterWorktree"
         common_dir =
           capture(
             [
@@ -21,7 +22,7 @@ module AgentHooks
         unless common_dir
           return(
             fail_with(
-              "Could not find the repository for #{cwd}. Start the session from a repository checkout, then run EnterWorktree again.",
+              "Could not find the repository for #{cwd}. Start the session from a repository checkout, then run #{tool} again.",
               err
             )
           )
@@ -31,7 +32,7 @@ module AgentHooks
         if main_root == "#{home}/Code/dotfiles"
           return(
             fail_with(
-              "dotfiles is edited in its main checkout, never in a linked worktree. Continue in #{home}/Code/dotfiles without EnterWorktree.",
+              "dotfiles is edited in its main checkout, never in a linked worktree. Continue in #{home}/Code/dotfiles without #{tool}.",
               err
             )
           )
