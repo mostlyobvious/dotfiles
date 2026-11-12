@@ -22,8 +22,11 @@ Before running mutmut:
 
 Use the repository's command prefix in place of `uv run` when it differs.
 
+`mutmut run` redraws a progress line many times a second and has no switch to quiet it. Send its output to a log and read the tail only when it exits non-zero; `results`, `export-cicd-stats`, and the gate checker report the outcome.
+
 ```sh
-uv run mutmut run
+log=$(mktemp)
+uv run mutmut run > "$log" 2>&1 || tail -50 "$log"
 uv run mutmut results
 uv run mutmut show <mutant-name>
 uv run mutmut tests-for-mutant <mutant-name>
@@ -32,8 +35,8 @@ uv run mutmut tests-for-mutant <mutant-name>
 Run one mutant or a wildcard while iterating:
 
 ```sh
-uv run mutmut run '<mutant-name>'
-uv run mutmut run 'package.module.function*'
+uv run mutmut run '<mutant-name>' > "$log" 2>&1 || tail -50 "$log"
+uv run mutmut run 'package.module.function*' > "$log" 2>&1 || tail -50 "$log"
 ```
 
 Use `mutmut browse` when the terminal interface makes a large result set easier to inspect.
@@ -146,7 +149,7 @@ A new deterministic module should enter the gate with its first commit when prac
 For projects with a strict CI gate, run the complete sequence, not only mutmut:
 
 ```sh
-uv run mutmut run
+uv run mutmut run > "$log" 2>&1 || tail -50 "$log"
 uv run mutmut export-cicd-stats
 uv run python <project-mutation-checker>
 ```
