@@ -13,6 +13,16 @@
       caffeinate -dimsu -t 3600
     '';
 
+    functions.journal = ''
+      set -l graph "$HOME/Documents/CM"
+      if not test -d "$graph/logseq"
+          echo "No Logseq graph at $graph" >&2
+          return 1
+      end
+
+      nvim "$graph/journals/"(date +%Y_%m_%d)".md"
+    '';
+
     functions.wt = ''
       set -l code "$HOME/Code"
       set -l root "$code/worktrees"
