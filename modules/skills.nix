@@ -9,20 +9,16 @@
         input = "skills-mattpocock";
         subdir = "skills";
       };
-      mutant = {
-        input = "skills-mutant";
-        subdir = ".";
-      };
+      mutant.input = "skills-mutant";
       local = {
         path = ../skills;
+        filter.maxDepth = 1;
       };
     };
 
+    skills.enableAll = [ "local" ];
+
     skills.explicit = {
-      grill-me = {
-        from = "mattpocock";
-        path = "productivity/grill-me";
-      };
       grilling = {
         from = "mattpocock";
         path = "productivity/grilling";
@@ -63,57 +59,9 @@
         from = "mattpocock";
         path = "engineering/improve-codebase-architecture";
       };
-      grill-with-docs = {
-        from = "mattpocock";
-        path = "engineering/grill-with-docs";
-      };
       mutant = {
         from = "mutant";
         path = ".";
-      };
-      mutmut = {
-        from = "local";
-        path = "mutmut";
-      };
-      change-writing = {
-        from = "local";
-        path = "change-writing";
-      };
-      commit = {
-        from = "local";
-        path = "commit";
-      };
-      merge-request = {
-        from = "local";
-        path = "merge-request";
-      };
-      merge-stack = {
-        from = "local";
-        path = "merge-stack";
-      };
-      my-mrs = {
-        from = "local";
-        path = "my-mrs";
-      };
-      rebase-stack = {
-        from = "local";
-        path = "rebase-stack";
-      };
-      review-ccc = {
-        from = "local";
-        path = "review-ccc";
-      };
-      review-wewut = {
-        from = "local";
-        path = "review-wewut";
-      };
-      statistics-pitfalls = {
-        from = "local";
-        path = "statistics-pitfalls";
-      };
-      worktree-cleanup = {
-        from = "local";
-        path = "worktree-cleanup";
       };
     };
 
