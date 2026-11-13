@@ -17,7 +17,7 @@ description: Prepare, open, or update a merge request or pull request. Use when 
 3. Check whether the branch serves one goal. Several concerns that serve that goal belong in one MR/PR, kept apart by commits. Propose a split only when a concern serves a different goal, or when its size or risk would make one review hard to complete; stack the MRs when they depend on each other.
 4. Draft the title and description from the actual commits and diff, writing the description to `mr-description.md` in the scratchpad or another directory outside the repository. Do not rely on the branch name alone.
 5. Preserve project template headings when present; otherwise use the format below.
-6. Run the change-writing Review Pass on the draft, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
+6. Reconcile the draft with the user's requested outcomes and exclusions. Account for each outcome in the draft, or omit it when the final diff does not contain it. Run the change-writing Review Pass, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
 7. When opening a GitLab MR, explicitly set squash-on-merge to false and verify it after creation.
 8. After pushing to a branch with an open MR, compare its description against the new diff and propose an update when they disagree.
 

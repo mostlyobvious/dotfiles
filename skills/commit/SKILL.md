@@ -37,5 +37,6 @@ Before drafting the message, read and apply `../change-writing/SKILL.md`.
 4. When the staged files match one logical change and the message follows this skill, write the exact message to a temporary file with Write.
 5. Commit with `git commit -F <message-file>`.
 6. Verify that `git show -s --format=%B HEAD` matches the draft exactly.
-7. Report the commit hash and subject.
-8. No `--no-verify`. No amending published commits. Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.
+7. For a rewritten commit series, verify the final order and subjects against the agreed series, and confirm every change belongs to exactly one commit.
+8. Report the commit hash and subject.
+9. No `--no-verify`. No amending published commits. Use `--force-with-lease` without asking only after an amend or rebase in the current task, on the current feature branch. Ask before any other force push. Never use plain `--force`.

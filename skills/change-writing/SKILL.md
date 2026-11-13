@@ -134,7 +134,7 @@ When writing user-facing or admin-facing docs, include the relevant subset:
 
 Run this on the finished draft before presenting it, and revise every hit:
 
-1. Run `scripts/lint` on the finished artifact. Pass Markdown file paths as arguments; pipe extensionless files or chat-only text through standard input. Fix every alert in authored prose, preserve required quoted text exactly, then rerun Vale until no authored-prose alerts remain.
+1. Resolve `scripts/lint` from this skill's directory and run it on the finished artifact. Pass Markdown file paths as arguments; pipe extensionless files or chat-only text through standard input. Fix every alert in authored prose, preserve required quoted text exactly, then rerun Vale until no authored-prose alerts remain.
 2. Search the whole text, headings, titles, and list items included, for not-X-but-Y contrasts, groups of three, bold labels that restate their text, and one-line closers.
 3. Check that the text is:
    - Brief enough to scan without losing required context.
