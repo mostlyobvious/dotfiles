@@ -144,12 +144,14 @@ module AgentHooks
       end
     end
 
-    def test_entering_an_existing_worktree_asks_the_host_to_reuse_its_name
+    def test_entering_an_existing_worktree_uses_its_absolute_path
       with_repositories do |backend, home|
         target = "#{home}/Code/worktrees/backend/feature"
         FileUtils.mkdir_p(target)
+        message =
+          "BLOCKED: this session runs in #{backend}. Call EnterWorktree with {\"path\":\"#{target}\"} to enter the existing worktree, then rerun the command without cd.\n"
 
-        assert_equal create_worktree(backend, "feature"),
+        assert_equal [2, message],
                      call(
                        "cd ~/Code/worktrees/backend/feature && bundle exec rake",
                        cwd: backend,

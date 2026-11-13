@@ -86,9 +86,11 @@ module AgentHooks
         end
       end
 
-      def self.worktree_entry_message(context, worktree)
+      def self.worktree_entry_message(context, worktree, target)
         if context.event["host"] == "pi"
           "BLOCKED: this session runs in #{context.cwd}. Use the enter_worktree tool with name #{worktree} to create or reuse the worktree, then rerun the command without cd.\n"
+        elsif File.directory?(target)
+          "BLOCKED: this session runs in #{context.cwd}. Call EnterWorktree with {\"path\":\"#{target}\"} to enter the existing worktree, then rerun the command without cd.\n"
         else
           "BLOCKED: this session runs in #{context.cwd}. Call EnterWorktree with {\"path\":\"#{worktree}\"} to create or reuse the worktree; pass the bare name, not a filesystem path. Then rerun the command without cd.\n"
         end
@@ -618,7 +620,8 @@ module AgentHooks
             return(
               Decision.new(
                 status: 2,
-                message: Policies.worktree_entry_message(context, worktree)
+                message:
+                  Policies.worktree_entry_message(context, worktree, target)
               )
             )
           end
