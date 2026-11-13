@@ -17,7 +17,7 @@ description: Prepare, open, or update a merge request or pull request. Use when 
 3. Check whether the branch serves one goal. Several concerns that serve that goal belong in one MR/PR, kept apart by commits. Propose a split only when a concern serves a different goal, or when its size or risk would make one review hard to complete; stack the MRs when they depend on each other.
 4. Draft the title and description from the actual commits and diff, writing the description to `mr-description.md` in the scratchpad or another directory outside the repository. Do not rely on the branch name alone.
 5. Preserve project template headings when present; otherwise use the format below.
-6. Reconcile the draft with the user's requested outcomes and exclusions. Account for each outcome in the draft, or omit it when the final diff does not contain it. Run the change-writing Review Pass, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
+6. Reconcile the final diff and draft with the user's requested outcomes and exclusions. Use reconciliation as an internal completeness check; publish only information a reviewer needs. Run the change-writing Review Pass, then present the title and description for approval before creating or updating, unless the user explicitly asked to submit without review.
 7. When opening a GitLab MR, explicitly set squash-on-merge to false and verify it after creation.
 8. After pushing to a branch with an open MR, compare its description against the new diff and propose an update when they disagree.
 
@@ -35,7 +35,7 @@ Linear: BE-123. Stacked on !6943; review that first.
 - Choices the diff doesn't explain and effects outside the repository.
 ```
 
-Write the opening line only for a stack, or for a ticket the user named for this MR. When the description has four or more sections, put one or two sentences before the first heading, after any routing line: the outcome, then the decision or risk the reviewer should weigh first. Skip them when the first heading already states both. Headings are statements a reviewer could disagree with, not topics.
+Write the opening line only for a stack, or for a ticket the user named for this MR. Use one section per reviewer decision. Treat implementation structure only as navigation. Headings are statements a reviewer could disagree with, not topics.
 
 Add only when present:
 
@@ -53,15 +53,14 @@ Add only when present:
 
 ## Writing Rules
 
-- Describe only what the diff can't show: the problem and its evidence, behaviour seen from the caller's side, the reason for the approach, effects outside the repository, and checks CI doesn't run. Name a file or method only to point the reviewer at a decision in it.
+- Include only context needed to evaluate a decision: the problem and its evidence, caller-visible behaviour, the reason for the approach, effects outside the repository, and checks CI does not run. Contracts, tests, and the diff own the complete behavioural specification.
+- Delete a sentence when removing it would not change a review decision, deployment order, compatibility concern, or known risk.
 - Keep the title specific to the reviewer-visible change.
 - Make the first section readable by anyone who might open the MR, not only the assigned reviewer.
 - Spend the most words on decisions that are expensive to undo after merge: data shape, protocols, dependencies, permissions, security controls. Skip choices a follow-up of a few hours could change.
 - State a hard-to-undo consequence, a deploy dependency, or expected work left out in one sentence where it applies.
-- The headings plus the first bullet of each section should tell the whole change to someone skimming.
 - Treat a heading as a context reset: name the subject in the first sentence or bullet instead of starting with `it`, `this`, or `they`.
 - For UI changes, add a screenshot where the change is obvious without zooming, or a GIF under 15 seconds.
-- Keep descriptions concise; skip filler and dramatic framing.
 - For migrations, background jobs, permissions, and data shape changes, state what the diff hides: lock or run time, deploy order, rows left in the old shape, and callers that see different behaviour.
 - Link references inline where the text cites them.
 - Wrap values written as `YYYY-MM` or `YYYY-MM-DD`, such as API version `2026-10-21`, in inline code; GitLab otherwise links the `2026-10` prefix as an external issue. Write calendar dates in prose as 21 October 2026.
