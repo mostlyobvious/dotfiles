@@ -76,11 +76,11 @@
         "secretspec-nixpkgs": "secretspec-nixpkgs"
       },
       "locked": {
-        "lastModified": 1795338453,
-        "narHash": "sha256-ETZNB8nVJYwfDOMjMXTm/OfZCOBbiK15xjO5gsKsDso=",
+        "lastModified": 1795341029,
+        "narHash": "sha256-Vp+Oub+WtrwFN7x1ziYN54LIuREcRm3bW6w5UojeklE=",
         "ref": "refs/heads/main",
-        "rev": "293f2f1df4f822518f562fea695ab052c18574f5",
-        "revCount": 19,
+        "rev": "6b7c11268f183d5f216968d9bf568751c95afd57",
+        "revCount": 20,
         "type": "git",
         "url": "ssh://git@github.com/mostlyobvious/chattermill.git"
       },
