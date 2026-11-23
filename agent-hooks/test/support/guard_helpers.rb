@@ -15,9 +15,9 @@ module AgentHooks
     CHANGE_WRITING_MESSAGE =
       "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
     MR_REMINDER =
-      "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
+      "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill)."
     REVIEW_REMINDER =
-      "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
+      "Run the change-writing Review Pass on mr-description.md before presenting it for approval."
     WORKTREE_MESSAGE =
       "BLOCKED: call EnterWorktree with {\"path\":\"<worktree name>\"} instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
     COMMIT_FILE_MESSAGE =

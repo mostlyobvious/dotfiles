@@ -86,7 +86,7 @@ class AgentGuardPolicyTest < Minitest::Test
     output = JSON.parse(result[:stdout])
 
     assert_equal 0, result[:status]
-    assert_equal "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8).",
+    assert_equal "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill).",
                  output.fetch("hookSpecificOutput").fetch("additionalContext")
   end
 
@@ -102,7 +102,7 @@ class AgentGuardPolicyTest < Minitest::Test
     output = JSON.parse(result[:stdout])
 
     assert_equal 0, result[:status]
-    assert_equal "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6).",
+    assert_equal "Run the change-writing Review Pass on mr-description.md before presenting it for approval.",
                  output.fetch("hookSpecificOutput").fetch("additionalContext")
   end
 

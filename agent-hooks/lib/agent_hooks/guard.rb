@@ -6,9 +6,9 @@ require_relative "guard/policies"
 module AgentHooks
   module Guard
     MR_REMINDER =
-      "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill, step 8)."
+      "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill)."
     REVIEW_REMINDER =
-      "Run the change-writing Review Pass on mr-description.md before presenting it for approval (merge-request skill, step 6)."
+      "Run the change-writing Review Pass on mr-description.md before presenting it for approval."
 
     def self.run(event, home)
       session = event["session_id"]

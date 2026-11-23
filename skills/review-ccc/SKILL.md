@@ -11,8 +11,8 @@ Review the branch against its target. Read the diff, each commit, and the MR des
 
 Check this before the other sections, and report its findings first.
 
-- Read the MR description alone, as a reviewer from outside the work. State the problem the MR solves in one sentence; when you cannot, report that as the top finding.
-- The description follows the primary rules in `../merge-request/SKILL.md`: it opens with the why, defines its terms for an outsider, and keeps the problem apart from the change.
+- Read the MR description alone and state the problem it solves in one sentence; when you cannot, report that as the top finding.
+- The description follows the Primary Rules in `../merge-request/SKILL.md`.
 
 ## Correctness
 
@@ -23,13 +23,13 @@ Check this before the other sections, and report its findings first.
 ## Consistency
 
 - Naming, layout, and idiom match the surrounding code.
-- The MR description and commit messages match the current diff, follow the change-writing skill, and leave out work this MR does not do.
+- The MR description and commit messages match the current diff and leave out work this MR does not do.
 
 ## Cohesion
 
 - Each commit is one logical change that builds and passes on its own. Flag additions that an existing mechanism, deletion, or simplification could replace.
 - Commits are ordered so each one reads as a step from the previous; decisions reversed later in the branch are squashed away.
-- The MR serves one goal, with each concern in its own commits. Propose a split into stacked MRs only when a concern serves a different goal, or when its size or risk would make one review hard to complete.
+- The MR serves one goal, with each concern in its own commits; apply the split test from `../merge-request/SKILL.md`.
 
 ## Report
 

@@ -16,4 +16,4 @@ A stack is a chain of MRs where each MR targets the branch of the one before it;
    - resolve conflicts; stop and report when a conflict needs a decision
    - on a `db/schema.rb` conflict limited to the `define(version:)` line, keep the newer version; do not run `db:prepare` or `db:migrate` to regenerate it, because the local Rails version can rewrite the dump
    - `git push --force-with-lease=<branch>:origin/<branch> origin <branch>`
-4. For each MR, check that the description still matches the rebased diff (merge-request skill, step 8).
+4. For each MR, check that the description still matches the rebased diff (merge-request skill).

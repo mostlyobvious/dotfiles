@@ -8,7 +8,7 @@ compatibility: Requires Vale 3.25 or newer.
 
 ## When Invoked
 
-1. Identify the writing job: artifact, commit message, MR/PR description, technical doc, API reference, guide, changelog, release note, or reviewer summary.
+1. Identify the writing job: artifact, commit message, MR/PR description, technical doc, API reference, guide, changelog, release note, or reviewer summary. For an MR/PR description, read the Primary Rules in `../merge-request/SKILL.md` first; they override this skill.
 2. Identify the audience: future maintainer, reviewer, operator, API consumer, end user, administrator, or SDK user.
 3. Review the source material: diff, commits, code, tests, existing docs, issue/MR links, changelogs, incidents, user feedback, and project templates.
 4. Find gaps: missing context, unclear problem statement, unverified claims, absent examples, undocumented risks, inconsistent terminology, or stale docs.
@@ -31,7 +31,7 @@ Choose the shape that matches the task:
 
 - Artifact: concise decision aid built around concrete evidence and examples.
 - Commit message: decision record for future maintainers.
-- MR/PR description: knowledge shared with a reviewer from outside the work, led by why the change exists; the merge-request skill's primary rules govern it.
+- MR/PR description: knowledge shared with a reviewer from outside the work.
 - Developer docs: concepts, setup, integration paths, examples, and troubleshooting.
 - API docs: endpoints, parameters, request/response examples, authentication, errors, and compatibility notes.
 - User/admin guides: task-based steps, expected results, caveats, and recovery paths.
@@ -70,6 +70,7 @@ Choose the shape that matches the task:
 - When a number, name, or mechanism is missing from the sources, say so ("We have not benchmarked query time before and after") instead of estimating one.
 - Docs and code comments describe current behavior. The previous approach belongs in the commit, changelog, or migration guide.
 - Write only text addressed to the reader. Instructions about the text ("keep it short") and chat wrappers ("Let me know if you'd like me to", "I've gone ahead and") stay in the conversation.
+- Put each sentence's subject and verb within its first few words, and rewrite noun stacks such as `retry handling configuration` as a verb phrase.
 
 ## Plain-text diagrams
 
