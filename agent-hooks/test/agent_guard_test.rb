@@ -7,7 +7,7 @@ class AgentGuardTest < Minitest::Test
   include Repositories
 
   BLOCKED_MESSAGE =
-    "BLOCKED: call EnterWorktree with {\"path\":\"<worktree name>\"} instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
+    "BLOCKED: call EnterWorktree with {\"name\":\"<worktree name>\"} instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
 
   def test_direct_worktree_creation_uses_enter_worktree
     result = run_guard("git worktree add ../feature")
@@ -53,7 +53,7 @@ class AgentGuardTest < Minitest::Test
 
       assert_equal 2, result[:status]
       assert_equal "", result[:stdout]
-      assert_equal "BLOCKED: this session runs in #{backend}. Call EnterWorktree with {\"path\":\"feature\"} to create or reuse the worktree; pass the bare name, not a filesystem path. Then rerun the command without cd.\n",
+      assert_equal "BLOCKED: this session runs in #{backend}. Call EnterWorktree with {\"name\":\"feature\"} to create or reuse the worktree; if it reports \"Already in a worktree session\", call ExitWorktree with {\"action\":\"keep\"} first. Then rerun the command without cd.\n",
                    result[:stderr]
     end
   end

@@ -164,7 +164,7 @@ module AgentHooks
           status: 1,
           stdout: "",
           stderr:
-            "Could not find the repository for /missing. Start the session from a repository checkout, then call EnterWorktree with {\"path\":\"feature\"} again.\n"
+            "Could not find the repository for /missing. Start the session from a repository checkout, then call EnterWorktree with {\"name\":\"feature\"} again.\n"
         },
         result
       )

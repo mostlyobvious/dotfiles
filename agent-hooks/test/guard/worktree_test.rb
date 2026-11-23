@@ -118,9 +118,12 @@ module AgentHooks
       end
     end
 
-    def test_entering_a_missing_worktree_asks_the_host_to_create_it
+    def test_entering_a_missing_worktree_asks_the_host_to_create_it_by_name
       with_repositories do |backend, home|
-        assert_equal create_worktree(backend, "feature"),
+        message =
+          "BLOCKED: this session runs in #{backend}. Call EnterWorktree with {\"name\":\"feature\"} to create or reuse the worktree; if it reports \"Already in a worktree session\", call ExitWorktree with {\"action\":\"keep\"} first. Then rerun the command without cd.\n"
+
+        assert_equal [2, message],
                      call(
                        "cd ~/Code/worktrees/backend/feature && bundle exec rake",
                        cwd: backend,
@@ -144,12 +147,11 @@ module AgentHooks
       end
     end
 
-    def test_entering_an_existing_worktree_uses_its_absolute_path
+    def test_entering_an_existing_worktree_reuses_it_by_name
       with_repositories do |backend, home|
-        target = "#{home}/Code/worktrees/backend/feature"
-        FileUtils.mkdir_p(target)
+        FileUtils.mkdir_p("#{home}/Code/worktrees/backend/feature")
         message =
-          "BLOCKED: this session runs in #{backend}. Call EnterWorktree with {\"path\":\"#{target}\"} to enter the existing worktree, then rerun the command without cd.\n"
+          "BLOCKED: this session runs in #{backend}. Call EnterWorktree with {\"name\":\"feature\"} to create or reuse the worktree; if it reports \"Already in a worktree session\", call ExitWorktree with {\"action\":\"keep\"} first. Then rerun the command without cd.\n"
 
         assert_equal [2, message],
                      call(

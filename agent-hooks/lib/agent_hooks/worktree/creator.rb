@@ -13,7 +13,7 @@ module AgentHooks
           if pi
             "run enter_worktree again"
           else
-            "call EnterWorktree with {\"path\":\"#{name}\"} again"
+            "call EnterWorktree with {\"name\":\"#{name}\"} again"
           end
         common_dir =
           capture(
