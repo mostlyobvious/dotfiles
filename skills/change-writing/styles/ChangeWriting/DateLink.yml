@@ -1,0 +1,19 @@
+extends: existence
+message: "Write the date in prose, or wrap the value '%s' in inline code; GitLab links its year and month as an issue."
+level: error
+nonword: true
+tokens:
+  - '\b\d{4}-\d{2}(?:-\d{2})?\b'
+tests:
+  - name: flags a bare API version
+    input: "The client sends API version 2026-10-21.\n"
+    contains: ChangeWriting.DateLink
+  - name: flags a bare month
+    input: "Rows written before 2026-10 keep their metadata.\n"
+    contains: ChangeWriting.DateLink
+  - name: accepts a value in inline code
+    input: "The client sends API version `2026-10-21`.\n"
+    want: ""
+  - name: accepts a date in prose
+    input: "Rows written before 21 October 2026 keep their metadata.\n"
+    want: ""

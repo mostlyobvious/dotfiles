@@ -1,0 +1,16 @@
+extends: occurrence
+message: "Write the heading as a statement a reviewer could disagree with."
+level: error
+scope: heading
+min: 3
+token: '[^\s]+'
+tests:
+  - name: flags a one-word heading
+    input: "## Changes\n\nThe importer retries each row once.\n"
+    contains: ChangeWriting.TopicHeading
+  - name: flags a two-word heading
+    input: "## Problem statement\n\nImports stop at the first bad row.\n"
+    contains: ChangeWriting.TopicHeading
+  - name: accepts a heading that states a conclusion
+    input: "## Imports stop at the first bad row\n\nThe importer raises on row 12.\n"
+    want: ""

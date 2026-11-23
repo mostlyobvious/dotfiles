@@ -1,0 +1,24 @@
+extends: existence
+message: "State what is true instead of contrasting it with what is not: '%s'."
+level: error
+ignorecase: true
+nonword: true
+tokens:
+  - '\bnot\s+(?:just\s+|only\s+)?[^,.;:!?\n]{1,40},\s+but\b'
+  - '\b(?:isn|aren|wasn|doesn|don)(?:''|’)t\s+[^.;:!?\n]{1,40}\s(?:—|–|--|;)\s*(?:it|they|this)(?:''|’)?(?:s|re)?\b'
+tests:
+  - name: flags not X, but Y
+    input: "The fix is not a rewrite, but a one-line guard.\n"
+    contains: ChangeWriting.NotButContrast
+  - name: flags not just X, but Y
+    input: "It matters not just for imports, but for exports too.\n"
+    contains: ChangeWriting.NotButContrast
+  - name: flags isn't X — it's Y
+    input: "This isn't a cache problem — it's a lock problem.\n"
+    contains: ChangeWriting.NotButContrast
+  - name: accepts a plain negation
+    input: "The importer does not retry failed rows.\n"
+    want: ""
+  - name: accepts a statement of fact
+    input: "The fix is a one-line guard.\n"
+    want: ""

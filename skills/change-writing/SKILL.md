@@ -64,12 +64,12 @@ Choose the shape that matches the task:
 - Make the subject, title, or first sentence tell the audience whether the change affects them and why it matters: "Stop double-charging retried webhooks", not "Refactor webhook handler".
 - Define each domain or internal term before its first use. The text must make sense without following any link.
 - Match vocabulary to the audience: a user-facing changelog does not name internal classes or modules.
-- In changelogs and release notes, describe what improved ("Imports finish in 2 min"), not what is no longer broken. Cut entries like "various improvements and bugfixes".
+- In changelogs and release notes, describe what improved ("Imports finish in 2 min"), not what is no longer broken. Cut entries like `various improvements and bugfixes`.
 - Use passive voice deliberately in incident write-ups and reverts to keep the focus off who caused the failure.
 - Write sentences specific to this change. A sentence that could move unchanged into another project's text says nothing; cut it.
 - When a number, name, or mechanism is missing from the sources, say so ("We have not benchmarked query time before and after") instead of estimating one.
 - Docs and code comments describe current behavior. The previous approach belongs in the commit, changelog, or migration guide.
-- Write only text addressed to the reader. Instructions about the text ("keep it short") and chat wrappers ("Let me know if you'd like me to", "I've gone ahead and") stay in the conversation.
+- Write only text addressed to the reader. Instructions about the text ("keep it short") and chat wrappers (`Let me know if you'd like me to`, `I've gone ahead and`) stay in the conversation.
 - Put each sentence's subject and verb within its first few words, and rewrite noun stacks such as `retry handling configuration` as a verb phrase.
 
 ## Plain-text diagrams
@@ -136,7 +136,7 @@ When writing user-facing or admin-facing docs, include the relevant subset:
 Run this on the finished draft before presenting it, and revise every hit:
 
 1. Resolve `scripts/lint` from this skill's directory and run it on the finished artifact. Pass Markdown file paths as arguments; pipe extensionless files or chat-only text through standard input. Fix every alert in authored prose, preserve required quoted text exactly, then rerun Vale until no authored-prose alerts remain.
-2. Search the whole text, headings, titles, and list items included, for not-X-but-Y contrasts, groups of three, bold labels that restate their text, and one-line closers.
+2. Search the whole text, headings, titles, and list items included, for groups of three and one-line closers.
 3. Check that the text is:
    - Brief enough to scan without losing required context.
    - Led by bullets and a concrete before/after example when the default shape applies.

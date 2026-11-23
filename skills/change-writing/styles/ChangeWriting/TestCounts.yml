@@ -1,0 +1,28 @@
+extends: existence
+message: "Drop the test count '%s'; it goes stale during rebases."
+level: error
+ignorecase: true
+nonword: true
+tokens:
+  - '\ball\s+\d+\s+(?:tests|specs|examples)\b'
+  - '\b\d+\s+(?:tests|specs|examples)\s+(?:pass|passed|green)\b'
+  - '\b\d+\s+(?:examples?|runs?|tests?),\s+\d+\s+(?:failures?|assertions?)\b'
+tests:
+  - name: flags all N tests
+    input: "All 42 tests pass.\n"
+    contains: ChangeWriting.TestCounts
+  - name: flags N specs pass
+    input: "Locally, 310 specs pass.\n"
+    contains: ChangeWriting.TestCounts
+  - name: flags an RSpec summary
+    input: "The suite reports 310 examples, 0 failures.\n"
+    contains: ChangeWriting.TestCounts
+  - name: flags a Minitest summary
+    input: "The run ends with 371 runs, 484 assertions.\n"
+    contains: ChangeWriting.TestCounts
+  - name: accepts specs named by what they test
+    input: "Existing 401 specs send no JSON content type.\n"
+    want: ""
+  - name: accepts a check without a count
+    input: "The importer specs pass on the replayed webhooks.\n"
+    want: ""

@@ -1,0 +1,20 @@
+extends: existence
+message: "Start the list item with its point instead of a bold label: '%s'."
+level: error
+scope: raw
+nonword: true
+tokens:
+  - '(?m)^[ \t]*(?:[-*+]|\d+\.)[ \t]+\*\*[^*\n]+\*\*'
+tests:
+  - name: flags a bold label on a bullet
+    input: "- **Retries:** the importer retries each row once.\n"
+    contains: ChangeWriting.BoldLeadIn
+  - name: flags a bold label on a numbered item
+    input: "1. **Cache** stores the parsed rows.\n"
+    contains: ChangeWriting.BoldLeadIn
+  - name: accepts bold inside a sentence
+    input: "- The importer retries **each** row once.\n"
+    want: ""
+  - name: accepts a plain bullet
+    input: "- The importer retries each row once.\n"
+    want: ""

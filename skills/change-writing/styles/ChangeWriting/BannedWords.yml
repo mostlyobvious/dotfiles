@@ -1,0 +1,17 @@
+extends: existence
+message: "Say what the thing does instead of '%s'."
+level: error
+ignorecase: true
+tokens:
+  - '\bload-bearing\b'
+  - '\bgenuinely\b'
+tests:
+  - name: flags load-bearing
+    input: "The cache is load-bearing for imports.\n"
+    contains: ChangeWriting.BannedWords
+  - name: flags genuinely
+    input: "This genuinely helps reviewers.\n"
+    contains: ChangeWriting.BannedWords
+  - name: accepts a concrete effect
+    input: "Imports read the cache before the database.\n"
+    want: ""
