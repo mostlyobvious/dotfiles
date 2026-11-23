@@ -54,10 +54,10 @@ For pi, [`modules/pi.nix`](../modules/pi.nix) adds both executables to pi's
 [`agent-guard.ts`](../config/pi/extensions/agent-guard.ts), which translates pi
 events into the same JSON the Claude Code hooks send: the prompt, Bash and
 Linear MCP calls, Bash, Write and Edit results, a read of the change-writing
-skill as a Skill result, and session end. It invokes the appropriate
-executable by name and injects guard reminders into tool results. Its
-`enter_worktree` tool creates or reuses the managed worktree, then forks the
-current pi session there so later commands start in the worktree.
+or merge-request skill as a Skill result, and session end. It invokes the
+appropriate executable by name and injects guard reminders into tool results.
+Its `enter_worktree` tool creates or reuses the managed worktree, then forks
+the current pi session there so later commands start in the worktree.
 
 [`packages/agent-guard.nix`](../packages/agent-guard.nix) and
 [`packages/agent-worktree.nix`](../packages/agent-worktree.nix) compile the Ruby
@@ -79,8 +79,8 @@ builds and activates the packages through Home Manager.
 [`guard/facts.rb`](lib/agent_hooks/guard/facts.rb) keeps what the policies
 need to know about the session, recorded at the moment it happens rather than
 reconstructed from a transcript: the latest prompt, the last command blocked
-pending `go`, whether the change-writing skill has been used, and the files
-written or edited since. Facts live at
+pending `go`, whether the change-writing and merge-request skills have been
+used, and the files written or edited since. Facts live at
 `~/.local/state/agent-guard/<session>.json`, updated under an exclusive lock
 and replaced atomically, and are deleted when the session ends. An event
 without a session id runs against empty facts, so it blocks whatever needs an
@@ -114,7 +114,7 @@ independent while preserving policy order:
    Artifact publication, and Linear prose publication; an MR description
    file (`mr-describe`'s argument, or any `*desc*.md` for other MR commands)
    written or edited after the skill's last use blocks until the skill is
-   used again;
+   used again; MR/PR publication also requires the merge-request skill;
 6. require commit message files and validate their format;
 7. reject Claude or Anthropic credit (co-author trailers, "Generated with
    Claude Code") in a commit command, in a file passed with `-F`, in the

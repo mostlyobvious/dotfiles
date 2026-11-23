@@ -531,6 +531,7 @@ module AgentHooks
     def test_description_file_is_not_an_inline_description
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
 
         assert_equal [0, ""],
                      call(

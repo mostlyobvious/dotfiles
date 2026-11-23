@@ -37,9 +37,12 @@ module AgentHooks
         input = event.fetch("tool_input")
         case event["tool_name"]
         when "Skill"
-          if input["skill"] == "change-writing"
+          case input["skill"]
+          when "change-writing"
             facts["change_writing"] = true
             facts.delete("edits")
+          when "merge-request"
+            facts["merge_request"] = true
           end
         when "Edit", "Write"
           facts["edits"] = facts.fetch("edits", []) + [input.fetch("file_path")]
@@ -59,6 +62,10 @@ module AgentHooks
 
       def self.change_writing?(facts)
         facts["change_writing"] == true
+      end
+
+      def self.merge_request?(facts)
+        facts["merge_request"] == true
       end
 
       def self.description_edited?(facts, file)

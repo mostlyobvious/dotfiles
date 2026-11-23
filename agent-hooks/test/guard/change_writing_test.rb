@@ -7,6 +7,7 @@ module AgentHooks
     cover "AgentHooks::Guard::Policies.evaluate"
     cover "AgentHooks::Guard::Facts.observe"
     cover "AgentHooks::Guard::Facts.change_writing?"
+    cover "AgentHooks::Guard::Facts.merge_request?"
     cover "AgentHooks::Guard::Facts.description_edited?"
 
     def test_commit_requires_change_writing
@@ -48,6 +49,7 @@ module AgentHooks
     def test_tool_result_without_a_tool_name_keeps_the_skill_recorded
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
         Guard.run(
           {
             "hook_event_name" => "PostToolUse",
@@ -67,11 +69,68 @@ module AgentHooks
       end
     end
 
-    def test_change_writing_allows_description_update
+    def test_both_skills_allow_description_update
+      with_session do |home, session|
+        change_writing(home, session)
+        merge_request(home, session)
+
+        assert_equal [0, ""],
+                     call(
+                       "mr-describe 42 /tmp/mr-description.md",
+                       home: home,
+                       session_id: session
+                     )
+      end
+    end
+
+    def test_description_update_requires_merge_request
       with_session do |home, session|
         change_writing(home, session)
 
-        assert_equal [0, ""],
+        assert_equal [2, MERGE_REQUEST_SKILL_MESSAGE],
+                     call(
+                       "mr-describe 42 /tmp/mr-description.md",
+                       home: home,
+                       session_id: session
+                     )
+      end
+    end
+
+    def test_merge_request_creation_requires_merge_request
+      with_session do |home, session|
+        change_writing(home, session)
+
+        assert_equal [2, MERGE_REQUEST_SKILL_MESSAGE],
+                     call(
+                       "gh pr create --title Ready",
+                       home: home,
+                       session_id: session
+                     )
+      end
+    end
+
+    def test_merge_request_alone_does_not_replace_change_writing
+      with_session do |home, session|
+        merge_request(home, session)
+
+        assert_equal [2, CHANGE_WRITING_MESSAGE],
+                     call(
+                       "mr-describe 42 /tmp/mr-description.md",
+                       home: home,
+                       session_id: session
+                     )
+      end
+    end
+
+    def test_recorded_merge_request_other_than_true_does_not_count
+      with_session do |home, session|
+        change_writing(home, session)
+        File.write(
+          facts_file(home, session),
+          JSON.generate("change_writing" => true, "merge_request" => "yes")
+        )
+
+        assert_equal [2, MERGE_REQUEST_SKILL_MESSAGE],
                      call(
                        "mr-describe 42 /tmp/mr-description.md",
                        home: home,
@@ -132,6 +191,7 @@ module AgentHooks
       with_session do |home, session|
         observe(home, session, "Edit", file_path: "/tmp/mr-description.md")
         change_writing(home, session)
+        merge_request(home, session)
 
         assert_equal [0, ""],
                      call(
@@ -145,6 +205,7 @@ module AgentHooks
     def test_other_file_edits_do_not_stale_change_writing
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
         observe(home, session, "Write", file_path: "/tmp/notes.md")
 
         assert_equal [0, ""],
@@ -173,6 +234,7 @@ module AgentHooks
     def test_only_the_named_description_file_counts_for_an_update
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
         observe(home, session, "Edit", file_path: "/tmp/mr-description.md")
 
         assert_equal [0, ""],
@@ -187,6 +249,7 @@ module AgentHooks
     def test_description_update_without_a_file_falls_back_to_the_pattern
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
         observe(home, session, "Edit", file_path: "/tmp/notes.md")
 
         assert_equal [0, ""],
@@ -201,6 +264,7 @@ module AgentHooks
     def test_description_directory_name_does_not_stale_creation
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
         observe(home, session, "Edit", file_path: "/tmp/desc/notes.md")
 
         assert_equal [0, ""],
@@ -290,6 +354,7 @@ module AgentHooks
     def test_description_outside_markdown_does_not_stale_creation
       with_session do |home, session|
         change_writing(home, session)
+        merge_request(home, session)
         observe(home, session, "Edit", file_path: "/tmp/description.txt")
 
         assert_equal [0, ""],

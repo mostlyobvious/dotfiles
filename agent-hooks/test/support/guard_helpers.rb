@@ -14,6 +14,8 @@ module AgentHooks
       "BLOCKED: commit messages and MR/PR descriptions must not credit Claude or Anthropic as co-author or generator.\n"
     CHANGE_WRITING_MESSAGE =
       "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
+    MERGE_REQUEST_SKILL_MESSAGE =
+      "BLOCKED: MR/PR descriptions require the merge-request skill first: invoke it with the Skill tool (pi: read its SKILL.md).\n"
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill)."
     REVIEW_REMINDER =
@@ -89,6 +91,10 @@ module AgentHooks
 
     def change_writing(home, session)
       observe(home, session, "Skill", skill: "change-writing")
+    end
+
+    def merge_request(home, session)
+      observe(home, session, "Skill", skill: "merge-request")
     end
 
     def finish(home, session)
@@ -197,6 +203,7 @@ module AgentHooks
         return(
           with_session do |session_home, session|
             change_writing(session_home, session)
+            merge_request(session_home, session)
             call(
               command,
               cwd: cwd,

@@ -12,7 +12,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { worktreeEventForToolResult } from "./lib/agent-worktree-events.mjs";
 
-const changeWritingSkillPath = /(^|\/)skills\/change-writing\/SKILL\.md$/;
+const guardedSkillPath = /(?:^|\/)skills\/(change-writing|merge-request)\/SKILL\.md$/;
 const linearToolName = /^mcp__.*linear__/i;
 
 function run(executable: string, event: Record<string, unknown>) {
@@ -157,9 +157,9 @@ export default function (pi: ExtensionAPI) {
 			} else if (isEditToolResult(event)) {
 				toolName = "Edit";
 				toolInput = { file_path: resolve(ctx.cwd, event.input.path) };
-			} else if (isReadToolResult(event) && changeWritingSkillPath.test(event.input.path)) {
+			} else if (isReadToolResult(event) && guardedSkillPath.test(event.input.path)) {
 				toolName = "Skill";
-				toolInput = { skill: "change-writing" };
+				toolInput = { skill: event.input.path.match(guardedSkillPath)?.[1] };
 			} else {
 				return;
 			}

@@ -19,6 +19,8 @@ module AgentHooks
         "BLOCKED: use the enter_worktree tool instead of git worktree add so the session moves to the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
       CHANGE_WRITING_MESSAGE =
         "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
+      MERGE_REQUEST_SKILL_MESSAGE =
+        "BLOCKED: MR/PR descriptions require the merge-request skill first: invoke it with the Skill tool (pi: read its SKILL.md).\n"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
       LINEAR_PROSE_KEYS = %w[body content description summary title].freeze
       ATTRIBUTION_MESSAGE =
@@ -392,18 +394,19 @@ module AgentHooks
                    commit
             return
           end
-          if Facts.change_writing?(context.facts) &&
-               !(
-                 publishes &&
-                   Facts.description_edited?(
-                     context.facts,
-                     description(context)
+          unless Facts.change_writing?(context.facts) &&
+                   !(
+                     publishes &&
+                       Facts.description_edited?(
+                         context.facts,
+                         description(context)
+                       )
                    )
-               )
-            return
+            return Decision.new(status: 2, message: CHANGE_WRITING_MESSAGE)
           end
-
-          Decision.new(status: 2, message: CHANGE_WRITING_MESSAGE)
+          if publishes && !Facts.merge_request?(context.facts)
+            Decision.new(status: 2, message: MERGE_REQUEST_SKILL_MESSAGE)
+          end
         end
 
         def self.script_publishes?(command, context, merge_request)
@@ -654,6 +657,7 @@ module AgentHooks
       private_constant :CLAUDE_WORKTREE_MESSAGE,
                        :PI_WORKTREE_MESSAGE,
                        :CHANGE_WRITING_MESSAGE,
+                       :MERGE_REQUEST_SKILL_MESSAGE,
                        :ATTRIBUTION_MESSAGE,
                        :COMMIT_FILE_MESSAGE,
                        :COMMIT_FORMAT_MESSAGE,
