@@ -120,11 +120,14 @@ independent while preserving policy order:
    Claude Code") in a commit command, in a file passed with `-F`, in the
    file given to `mr-describe` or `--description-file`, and in such files
    named by an MR script;
-8. require detached devenv startup from the worktree root;
-9. require Python project commands in managed worktrees to run through
+8. pass those same files through the change-writing linter, Markdown files by
+   path so description-only rules apply and other files as a draft; any alert
+   blocks;
+9. require detached devenv startup from the worktree root;
+10. require Python project commands in managed worktrees to run through
    `devenv shell --` when the repository has `devenv.nix` and the current path
    belongs to a `pyproject.toml` or `uv.lock` project;
-10. enforce worktree creation and entry through the session host for the
+11. enforce worktree creation and entry through the session host for the
    session's own repository, and reject branch switching inside linked
    worktrees; another repository's worktree is created with
    `git -C <repository> worktree add ~/Code/worktrees/<repository>/<name>` and

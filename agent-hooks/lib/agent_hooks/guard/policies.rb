@@ -21,6 +21,7 @@ module AgentHooks
         "BLOCKED: commit messages, MR/PR descriptions, artifacts, and Linear prose require the change-writing skill first: invoke it with the Skill tool (pi: read its SKILL.md). For an MR/PR description, invoke it again after the latest description edit.\n"
       MERGE_REQUEST_SKILL_MESSAGE =
         "BLOCKED: MR/PR descriptions require the merge-request skill first: invoke it with the Skill tool (pi: read its SKILL.md).\n"
+      LINT = "change-writing-lint"
       LINEAR_WRITE = /\Amcp__.*linear__(?:save_|submit_diff_review)/i
       LINEAR_PROSE_KEYS = %w[body content description summary title].freeze
       ATTRIBUTION_MESSAGE =
@@ -61,6 +62,7 @@ module AgentHooks
         decision ||= MergeRequest.call(context)
         decision ||= Commit.call(context)
         decision ||= Attribution.call(context)
+        decision ||= ProseLint.call(context)
         decision ||= Worktree.call(context)
         decision || Decision.new(status: 0, message: "")
       end
@@ -532,15 +534,17 @@ module AgentHooks
         def self.call(context)
           texts =
             context.program.commands.flat_map do |command|
-              texts(command, context)
+              contents =
+                prose_files(command, context).map { |path| File.read(path) }
+              contents << context.command if command.git_subcommand == "commit"
+              contents
             end
           if texts.any? { |text| ATTRIBUTION.match?(text) }
             Decision.new(status: 2, message: ATTRIBUTION_MESSAGE)
           end
         end
 
-        def self.texts(command, context)
-          commit = command.git_subcommand == "commit"
+        def self.prose_files(command, context)
           files = description_files(command)
           case command.argv
           in ["mr-describe", _, description, *]
@@ -561,13 +565,9 @@ module AgentHooks
                 .each { |inner| files.concat(description_files(inner)) }
             end
           end
-          paths = files.map { |file| File.expand_path(file, context.cwd) }
-          contents =
-            paths
-              .select { |path| File.file?(path) }
-              .map { |path| File.read(path) }
-          contents << context.command if commit
-          contents
+          files
+            .map { |file| File.expand_path(file, context.cwd) }
+            .select { |path| File.file?(path) }
         end
 
         def self.description_files(command)
@@ -581,7 +581,50 @@ module AgentHooks
           end
         end
 
-        private_class_method :texts, :description_files
+        private_class_method :description_files
+      end
+
+      module ProseLint
+        def self.call(context)
+          alerts =
+            context.program.commands.flat_map do |command|
+              Attribution
+                .prose_files(command, context)
+                .flat_map { |path| alerts(path) }
+            end
+          return if alerts.empty?
+
+          Decision.new(
+            status: 2,
+            message:
+              "BLOCKED: the change-writing linter rejects this prose:\n#{alerts.join}Revise it, then retry.\n"
+          )
+        end
+
+        def self.alerts(path)
+          output, error, =
+            if path.end_with?(".md")
+              Open3.capture3(LINT, path)
+            else
+              Open3.capture3(LINT, stdin_data: File.read(path))
+            end
+          name = File.basename(path)
+          begin
+            JSON
+              .parse(output)
+              .values
+              .flatten
+              .map do |alert|
+                "- #{name}:#{alert.fetch("Line")} #{alert.fetch("Message")}\n"
+              end
+          rescue JSON::ParserError
+            "- #{name}: the linter failed: #{error.chomp}\n"
+          end
+        rescue SystemCallError
+          []
+        end
+
+        private_class_method :alerts
       end
 
       module Worktree
@@ -679,6 +722,8 @@ module AgentHooks
                        :MergeRequest,
                        :Commit,
                        :Attribution,
+                       :ProseLint,
+                       :LINT,
                        :Worktree
     end
 

@@ -3,10 +3,17 @@
   stdenv,
   callPackage,
   shfmt,
+  vale,
+  writeShellApplication,
 }:
 
 let
   spinel = callPackage ./spinel.nix { };
+  lint = writeShellApplication {
+    name = "change-writing-lint";
+    runtimeInputs = [ vale ];
+    text = ''exec ${../skills/change-writing}/scripts/lint "$@"'';
+  };
   source = lib.fileset.toSource {
     root = ../agent-hooks;
     fileset = lib.fileset.unions [
@@ -26,6 +33,8 @@ stdenv.mkDerivation {
   postPatch = ''
     substituteInPlace lib/agent_hooks/guard/shell_command.rb \
       --replace-fail 'SHFMT = "shfmt"' 'SHFMT = "${lib.getExe shfmt}"'
+    substituteInPlace lib/agent_hooks/guard/policies.rb \
+      --replace-fail 'LINT = "change-writing-lint"' 'LINT = "${lib.getExe lint}"'
   '';
 
   buildPhase = ''
