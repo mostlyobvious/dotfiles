@@ -31,7 +31,7 @@ Choose the shape that matches the task:
 
 - Artifact: concise decision aid built around concrete evidence and examples.
 - Commit message: decision record for future maintainers.
-- MR/PR description: reviewer guide to scope, intent, risk, and verification.
+- MR/PR description: knowledge shared with a reviewer from outside the work, led by why the change exists; the merge-request skill's primary rules govern it.
 - Developer docs: concepts, setup, integration paths, examples, and troubleshooting.
 - API docs: endpoints, parameters, request/response examples, authentication, errors, and compatibility notes.
 - User/admin guides: task-based steps, expected results, caveats, and recovery paths.

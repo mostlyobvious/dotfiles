@@ -7,6 +7,13 @@ description: Review a branch or MR for correctness, consistency, and cohesion, i
 
 Review the branch against its target. Read the diff, each commit, and the MR description.
 
+## Why
+
+Check this before the other sections, and report its findings first.
+
+- Read the MR description alone, as a reviewer from outside the work. State the problem the MR solves in one sentence; when you cannot, report that as the top finding.
+- The description follows the primary rules in `../merge-request/SKILL.md`: it opens with the why, defines its terms for an outsider, and keeps the problem apart from the change.
+
 ## Correctness
 
 - The code does what the MR description claims; check each claim against the diff.
