@@ -1,0 +1,25 @@
+extends: metric
+message: "The description runs to %s words of prose against a budget of 300. Delete what the diff already shows, how the work was done, and facts stated twice; keep the problem, the outcome, and what a reviewer cannot see in the diff."
+level: error
+formula: |
+  words
+condition: "> 300"
+tests:
+  - name: flags prose over the budget
+    input: |
+      cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+
+      cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+
+      cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+
+      cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+
+      cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+
+      cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+
+    contains: ChangeWriting.DescriptionWords
+  - name: accepts a short description
+    input: "The importer stops at the first bad row.\n"
+    want: ""

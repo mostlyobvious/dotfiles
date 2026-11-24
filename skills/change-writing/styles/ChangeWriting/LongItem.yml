@@ -1,0 +1,14 @@
+extends: occurrence
+message: "Keep a list item to 40 words: split it, or cut the detail a reviewer would not miss."
+level: error
+scope: list
+max: 40
+token: '[^\s]+'
+tests:
+  - name: flags a list item over 40 words
+    input: "- cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut cut 
+"
+    contains: ChangeWriting.LongItem
+  - name: accepts a one-sentence item
+    input: "- The importer retries each row once.\n"
+    want: ""

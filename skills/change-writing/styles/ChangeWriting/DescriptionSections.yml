@@ -1,0 +1,37 @@
+extends: metric
+message: "The description has %s sections against a budget of 5. Keep the problem, the change, and the sections a reviewer must act on."
+level: error
+formula: |
+  heading.h2
+condition: "> 5"
+tests:
+  - name: flags a sixth section
+    input: |
+      ## Imports stop at bad row 1
+
+      The importer raises.
+
+      ## Imports stop at bad row 2
+
+      The importer raises.
+
+      ## Imports stop at bad row 3
+
+      The importer raises.
+
+      ## Imports stop at bad row 4
+
+      The importer raises.
+
+      ## Imports stop at bad row 5
+
+      The importer raises.
+
+      ## Imports stop at bad row 6
+
+      The importer raises.
+
+    contains: ChangeWriting.DescriptionSections
+  - name: accepts two sections
+    input: "## Imports stop at the first bad row\n\nThe importer raises.\n\n## Imports skip a bad row\n\nThe importer logs it.\n"
+    want: ""

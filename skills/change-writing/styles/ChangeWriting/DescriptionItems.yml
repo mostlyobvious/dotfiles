@@ -1,0 +1,26 @@
+extends: metric
+message: "The description has %s list items against a budget of 12. Merge items that make one point and delete the ones a reviewer would not miss."
+level: error
+formula: |
+  list
+condition: "> 12"
+tests:
+  - name: flags a thirteenth list item
+    input: |
+      - The importer retries row 1 once.
+      - The importer retries row 2 once.
+      - The importer retries row 3 once.
+      - The importer retries row 4 once.
+      - The importer retries row 5 once.
+      - The importer retries row 6 once.
+      - The importer retries row 7 once.
+      - The importer retries row 8 once.
+      - The importer retries row 9 once.
+      - The importer retries row 10 once.
+      - The importer retries row 11 once.
+      - The importer retries row 12 once.
+      - The importer retries row 13 once.
+    contains: ChangeWriting.DescriptionItems
+  - name: accepts a short list
+    input: "- The importer retries each row once.\n"
+    want: ""
