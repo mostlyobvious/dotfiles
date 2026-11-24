@@ -46,7 +46,26 @@ module AgentHooks
           end
         when "Edit", "Write"
           facts["edits"] = facts.fetch("edits", []) + [input.fetch("file_path")]
+          facts["cold_read"] = facts.fetch("cold_read", []) -
+            [input.fetch("file_path")]
+        when "Bash"
+          ShellCommand
+            .parse(input.fetch("command"))
+            .commands
+            .each do |command|
+              case command.argv
+              in ["mr-cold-read", file, *]
+                facts["cold_read"] = facts.fetch("cold_read", []) +
+                  [File.expand_path(file, event["cwd"])]
+              else
+                nil
+              end
+            end
         end
+      end
+
+      def self.cold_read?(facts, file)
+        facts.fetch("cold_read", []).include?(file)
       end
 
       def self.approve(facts, command)

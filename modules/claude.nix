@@ -21,6 +21,11 @@ let
     ];
     text = builtins.readFile ./claude/mr-describe.sh;
   };
+  mrColdRead = pkgs.writeShellApplication {
+    name = "mr-cold-read";
+    runtimeInputs = [ config.programs.claude-code.package ];
+    text = builtins.readFile ./claude/mr-cold-read.sh;
+  };
   agentGuard = pkgs.callPackage ../packages/agent-guard.nix { };
   agentWorktree = pkgs.callPackage ../packages/agent-worktree.nix { };
   mcpServers = config.my.claudeMcpServers;
@@ -54,7 +59,10 @@ in
     home.file.".claude/hooks/agent-guard".source = lib.getExe agentGuard;
     home.file.".claude/hooks/agent-worktree".source = lib.getExe agentWorktree;
 
-    home.packages = [ mrDescribe ];
+    home.packages = [
+      mrDescribe
+      mrColdRead
+    ];
 
     home.activation.managedClaudeMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       state_dir=${lib.escapeShellArg config.xdg.stateHome}/claude-code

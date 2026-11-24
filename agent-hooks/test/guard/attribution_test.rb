@@ -174,7 +174,11 @@ module AgentHooks
         File.write(description, "## Why\n\nExplain why.\n")
 
         assert_equal [0, ""],
-                     call("mr-describe 42 #{description}", change_writing: true)
+                     call(
+                       "mr-describe 42 #{description}",
+                       change_writing: true,
+                       cold_read: [description]
+                     )
       end
     end
 

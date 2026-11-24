@@ -19,7 +19,7 @@ module AgentHooks
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill)."
     REVIEW_REMINDER =
-      "Run the change-writing Review Pass on mr-description.md before presenting it for approval."
+      "Run the change-writing Review Pass on mr-description.md, then mr-cold-read on it, before presenting it for approval."
     WORKTREE_MESSAGE =
       "BLOCKED: call EnterWorktree with {\"name\":\"<worktree name>\"} instead of git worktree add so every command starts in the worktree. For another repository's worktree, run git -C <repository> worktree add ~/Code/worktrees/<repository name>/<name>.\n"
     COMMIT_FILE_MESSAGE =
@@ -91,6 +91,27 @@ module AgentHooks
 
     def change_writing(home, session)
       observe(home, session, "Skill", skill: "change-writing")
+    end
+
+    def cold_read(home, session, file, **event)
+      Guard.run(
+        {
+          "hook_event_name" => "PostToolUse",
+          "session_id" => session,
+          "tool_name" => "Bash",
+          "tool_input" => {
+            "command" => "mr-cold-read #{file}"
+          }
+        }.merge(event.transform_keys(&:to_s)),
+        home
+      )
+    end
+
+    def cold_read_blocked(*files)
+      [
+        2,
+        "BLOCKED: no fresh reader has read #{files.join(", ")} since its last edit. Run mr-cold-read <file>, apply the cuts and fixes you agree with, and rerun it after any edit. Show the user the findings you left unapplied when you present the description.\n"
+      ]
     end
 
     def merge_request(home, session)
@@ -197,6 +218,7 @@ module AgentHooks
       cwd: "/tmp/repository",
       home: "/Users/agent",
       change_writing: false,
+      cold_read: [],
       **event
     )
       if change_writing
@@ -204,6 +226,7 @@ module AgentHooks
           with_session do |session_home, session|
             change_writing(session_home, session)
             merge_request(session_home, session)
+            cold_read.each { |file| cold_read(session_home, session, file) }
             call(
               command,
               cwd: cwd,

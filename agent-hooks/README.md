@@ -82,7 +82,8 @@ builds and activates the packages through Home Manager.
 need to know about the session, recorded at the moment it happens rather than
 reconstructed from a transcript: the latest prompt, the last command blocked
 pending `go`, whether the change-writing and merge-request skills have been
-used, and the files written or edited since. Facts live at
+used, the files written or edited since, and the description files a fresh
+reader has read since their last edit. Facts live at
 `~/.local/state/agent-guard/<session>.json`, updated under an exclusive lock
 and replaced atomically, and are deleted when the session ends. An event
 without a session id runs against empty facts, so it blocks whatever needs an
@@ -124,12 +125,19 @@ independent while preserving policy order:
    named by an MR script;
 8. pass those same files through the change-writing linter, Markdown files by
    path so description-only rules apply and other files as a draft; any alert
-   blocks;
-9. require detached devenv startup from the worktree root;
-10. require Python project commands in managed worktrees to run through
+   blocks; the description-only rules include a length budget of 300 words
+   of prose, 12 list items, 5 sections, and 40 words per list item;
+9. require a cold read of every MR description file a non-Git command
+   publishes: `mr-cold-read <file>` hands the description alone to a model
+   with no session, diff, or tools, which lists what to cut, what points at
+   the author's work, and what it could not follow; a completed
+   `mr-cold-read` records the file, and a later write or edit of it forgets
+   the read;
+10. require detached devenv startup from the worktree root;
+11. require Python project commands in managed worktrees to run through
    `devenv shell --` when the repository has `devenv.nix` and the current path
    belongs to a `pyproject.toml` or `uv.lock` project;
-11. enforce worktree creation and entry through the session host for the
+12. enforce worktree creation and entry through the session host for the
    session's own repository, and reject branch switching inside linked
    worktrees; another repository's worktree is created with
    `git -C <repository> worktree add ~/Code/worktrees/<repository>/<name>` and

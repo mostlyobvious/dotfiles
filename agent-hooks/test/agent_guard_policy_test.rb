@@ -102,7 +102,7 @@ class AgentGuardPolicyTest < Minitest::Test
     output = JSON.parse(result[:stdout])
 
     assert_equal 0, result[:status]
-    assert_equal "Run the change-writing Review Pass on mr-description.md before presenting it for approval.",
+    assert_equal "Run the change-writing Review Pass on mr-description.md, then mr-cold-read on it, before presenting it for approval.",
                  output.fetch("hookSpecificOutput").fetch("additionalContext")
   end
 

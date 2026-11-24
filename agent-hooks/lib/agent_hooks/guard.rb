@@ -8,7 +8,7 @@ module AgentHooks
     MR_REMINDER =
       "If the pushed branch has an open MR, compare its description with the new diff and propose an update when they disagree (merge-request skill)."
     REVIEW_REMINDER =
-      "Run the change-writing Review Pass on mr-description.md before presenting it for approval."
+      "Run the change-writing Review Pass on mr-description.md, then mr-cold-read on it, before presenting it for approval."
 
     def self.run(event, home)
       session = event["session_id"]

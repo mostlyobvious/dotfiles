@@ -63,6 +63,7 @@ module AgentHooks
         decision ||= Commit.call(context)
         decision ||= Attribution.call(context)
         decision ||= ProseLint.call(context)
+        decision ||= ColdRead.call(context)
         decision ||= Worktree.call(context)
         decision || Decision.new(status: 0, message: "")
       end
@@ -625,6 +626,25 @@ module AgentHooks
         private_class_method :alerts
       end
 
+      module ColdRead
+        def self.call(context)
+          unread =
+            context
+              .program
+              .commands
+              .reject { |command| command.git_subcommand }
+              .flat_map { |command| Attribution.prose_files(command, context) }
+              .reject { |path| Facts.cold_read?(context.facts, path) }
+          return if unread.empty?
+
+          Decision.new(
+            status: 2,
+            message:
+              "BLOCKED: no fresh reader has read #{unread.join(", ")} since its last edit. Run mr-cold-read <file>, apply the cuts and fixes you agree with, and rerun it after any edit. Show the user the findings you left unapplied when you present the description.\n"
+          )
+        end
+      end
+
       module Worktree
         def self.call(context)
           if context.program.commands.any? { |command|
@@ -720,6 +740,7 @@ module AgentHooks
                        :Commit,
                        :Attribution,
                        :ProseLint,
+                       :ColdRead,
                        :LINT,
                        :Worktree
     end
