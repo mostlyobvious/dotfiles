@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   pkgs,
   ...
 }:
@@ -7,7 +8,7 @@
 {
   home.packages = with pkgs; [
     ast-grep
-    devenv
+    inputs.devenv-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.devenv
     glab
     python315
     tuicr

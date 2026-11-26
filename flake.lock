@@ -147,6 +147,22 @@
         "url": "https://install.determinate.systems/determinate-nixd/tag/v3.24.3/x86_64-linux"
       }
     },
+    "devenv-nixpkgs": {
+      "locked": {
+        "lastModified": 1795234589,
+        "narHash": "sha256-f/VVvxf5RsQgWVhUtefoca5ktVg0DA2bnkMOcmSnozo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -410,6 +426,7 @@
         "agent-skills": "agent-skills",
         "chattermill": "chattermill",
         "determinate": "determinate",
+        "devenv-nixpkgs": "devenv-nixpkgs",
         "fonts": "fonts",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",

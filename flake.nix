@@ -29,6 +29,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    devenv-nixpkgs.url = "github:NixOS/nixpkgs/2786a2a72088ecf32aea5b3ec52099e6a7cff78f";
+
     chattermill.url = "git+ssh://git@github.com/mostlyobvious/chattermill.git";
 
     # Agent skill sources — content repos, not flakes. Pinned in flake.lock;
